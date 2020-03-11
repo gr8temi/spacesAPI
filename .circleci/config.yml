@@ -30,4 +30,4 @@ jobs:
             python manage.py test -p test_*.py api.tests
       - run:
           name: Running application deployment
-          command: ./bin/deploy
+          command: source ./bin/deploy
