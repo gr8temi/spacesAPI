@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Activate virtual environment, should be sourced
+source venv/bin/activate

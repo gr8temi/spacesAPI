@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Api container execution reference script
+docker-compose exec api $*

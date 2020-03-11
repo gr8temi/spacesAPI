@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Run tests in a container
+echo -e "\n[*] Ensure all folders in api.tests folder and subfolders have the __init__.py file\n"
+docker-compose exec api python manage.py test -p test_*.py api.tests 

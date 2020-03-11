@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Show logs for running containers
+docker-compose logs -f -t
