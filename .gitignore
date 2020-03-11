@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+spaces/dump/
+.env
+.vscode
+.DS_Store

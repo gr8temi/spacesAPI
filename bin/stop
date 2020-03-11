@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Stop running containers by compose
+docker-compose down || exit >> /dev/null 2>&1

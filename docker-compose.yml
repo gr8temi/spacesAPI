@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=spacesdb
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - "spacesdb:/var/lib/postgresql/data"
+
+  api:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - "./spaces:/app"
+    env_file:
+      - .env
+    ports:
+      - "8100:8000"
+    depends_on:
+      - db
+
+volumes:
+  spacesdb:

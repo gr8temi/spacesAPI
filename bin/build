@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Build docker images as defined in compose file
+bin/stop
+docker-compose build

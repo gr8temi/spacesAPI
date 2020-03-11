@@ -1,0 +1,35 @@
+version: 2.1
+
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: circleci/python:3.7-stretch-node
+        environment:
+          DEBUG: True
+          DBUSER: $DBUSER
+          DBPASSWD: $DBPASSWD
+      - image: circleci/postgres:9.6.2
+        name: db
+        environment:
+          POSTGRES_DB: spacesdb
+    steps:
+      - checkout
+      - run:
+          name: Install postgresql for the primary container
+          command: |
+            sudo apt-get update
+            pip install --user psycopg2
+      - run:
+          name: Install all application dependencies
+          command: pip install --user -r requirements.txt
+      - run:
+          name: Run all test cases in tests folder
+          command: |
+            cd spaces
+            python manage.py test -p test_*.py api.tests
+      - run:
+          name: Running application deployment
+          command: ./bin/deploy
+
+          
