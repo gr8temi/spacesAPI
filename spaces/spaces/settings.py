@@ -33,6 +33,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
     'rest_framework',
     'api'
 ]
@@ -40,7 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -62,8 +64,17 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # Global configurations for rest framework
-REST_FRAMEWORK = {}
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
 
+# Password Hasher
+
+PASSWORD_HASSHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PawordHasher'
+]
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 

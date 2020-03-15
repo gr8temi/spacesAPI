@@ -63,4 +63,3 @@ The MIT License - Copyright (c) 2019 - Present, Decagon Institute. https://decag
 
 * Changes should be moved into both `develop` and `master` branches through merge commits so `master` always stay ahead of `develop`
 
-
