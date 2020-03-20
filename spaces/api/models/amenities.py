@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from .spaces import Space
+from .space import Space
 
 
 class Amenities(models.Model):

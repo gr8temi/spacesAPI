@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from .user import User
 from .order import Order
-from .spaces import Space
+from .space import Space
 
 
 class Refund(models.Model):

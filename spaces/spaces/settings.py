@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'rest_framework',
-    'api'
+    'api',
+    'guardian'
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,10 @@ REST_FRAMEWORK = {
     ],
 }
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', 
+    'guardian.backends.ObjectPermissionBackend',
+)
 # Password Hasher
 
 PASSWORD_HASSHERS = [

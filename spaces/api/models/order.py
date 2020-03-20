@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from .user import User
 from .order_type import OrderType
-from .spaces import Space
+from .space import Space
 
 class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
