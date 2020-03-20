@@ -3,6 +3,8 @@ from django.db import models
 from .spaces_category import SpaceCategory
 from .agent import Agent
 
+
+
 class SpaceManager(models.Manager):
     def get_spaces_by_availability(self,available):
         spaces = self.objects.filter(availability=available)
