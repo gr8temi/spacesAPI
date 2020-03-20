@@ -1,0 +1,203 @@
+[
+    {
+        "model": "api.User",
+        "pk": 1,
+        "fields": {
+            "username": "ade",
+            "fullname": "Ade Wale",
+            "email": "ade@gmail.com",
+            "phone_number": "08011122234",
+            "password": "12345",
+            "created_at": "2019-01-12 15:12:34",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2019-01-12 15:12:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 2,
+        "fields": {
+            "username": "ola",
+            "fullname": "Ola Bimbo",
+            "email": "ola@gmail.com",
+            "phone_number": "08022211134",
+            "password": "12345",
+            "created_at": "2019-03-15 16:14:54",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": true,
+            "is_agent": false,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2019-03-15 16:14:54"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 3,
+        "fields": {
+            "username": "olu",
+            "fullname": "Olu Mide",
+            "email": "olu@gmail.com",
+            "phone_number": "08014522234",
+            "password": "12345",
+            "created_at": "2020-01-12 15:12:34",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": true,
+            "is_agent": false,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2020-01-12 15:44:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 4,
+        "fields": {
+            "username": "joko",
+            "fullname": "Joko Tade",
+            "email": "joko@gmail.com",
+            "phone_number": "080987622234",
+            "password": "12345",
+            "created_at": "2020-01-10 00:14:54",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": true,
+            "is_agent": false,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2020-01-10 00:14:54"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 5,
+        "fields": {
+            "username": "nne",
+            "fullname": "Nne Ada",
+            "email": "nne@gmail.com",
+            "phone_number": "08045122234",
+            "password": "12345",
+            "created_at": "2020-01-10 00:14:54",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2020-01-10 00:14:54"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 6,
+        "fields": {
+            "username": "abu",
+            "fullname": "Abu Maggie",
+            "email": "abu@gmail.com",
+            "phone_number": "08789122234",
+            "password": "12345",
+            "created_at": "2019-12-30 13:14:54",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2020-01-12 15:12:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 7,
+        "fields": {
+            "username": "bolu",
+            "fullname": "Bolu Tife",
+            "email": "bolu@gmail.com",
+            "phone_number": "08066622234",
+            "password": "12345",
+            "created_at": "2019-06-12 15:12:34",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": true,
+            "is_agent": false,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2019-08-12 15:12:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 8,
+        "fields": {
+            "username": "Sua",
+            "fullname": "Sua Tide",
+            "email": "Sua@gmail.com",
+            "phone_number": "080666722234",
+            "password": "12345",
+            "created_at": "2019-06-12 15:12:34",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2019-09-12 15:12:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 9,
+        "fields": {
+            "username": "kola",
+            "fullname": "Kola Wole",
+            "email": "kola@gmail.com",
+            "phone_number": "08011122234",
+            "password": "12345",
+            "created_at": "2019-01-12 15:12:34",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2019-02-12 15:12:34"
+        }
+    },
+
+    {
+        "model": "api.User",
+        "pk": 10,
+        "fields": {
+            "username": "omoh",
+            "fullname": "Omoh Jude",
+            "email": "omoh@gmail.com",
+            "phone_number": "08011122234",
+            "password": "12345",
+            "created_at": "2020-03-15 17:24:54",
+            "email_verified": true,
+            "is_super": false,
+            "is_customer": false,
+            "is_agent": true,
+            "is_active": false,
+            "token": 234567,
+            "updated_at": "2020-07-15 17:24:54"
+        }
+    }
+]
+
+

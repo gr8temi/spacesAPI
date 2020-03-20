@@ -1,0 +1,87 @@
+[
+    {
+        "Model": "api.Spaces",
+        "pk": 1,
+        "fields":
+        {
+            "number_of_bookings": 5,
+            "agent": 1,
+            "description": "A nice event hall with state-of-the-art facilities",
+            "price": "#300,000",
+            "created_at": "2020-03-15 16:14:54",
+            "space_category": "Hall",
+            "location": "Igbo-efon",
+            "name": "Ade Event Hall",
+            "availability": true,
+            "updated_at": "2020-06-15 16:14:54"
+        }
+    },
+    {
+        "Model": "api.Spaces",
+        "pk": 2,
+        "fields":
+        {
+            "number_of_bookings": 15,
+            "agent": 5,
+            "description": "A nice event apartment with state-of-the-art facilities",
+            "price": "#400,000",
+            "created_at": "2019-12-15 16:14:54",
+            "space_category": "Apartment",
+            "location": "Marwa",
+            "name": "OLu Abode",
+            "availability": true,
+            "updated_at": "2020-02-15 16:14:54"
+        }
+    },
+    {
+        "Model": "api.Spaces",
+        "pk": 3,
+        "fields":
+        {
+            "number_of_bookings": 10,
+            "agent": 4,
+            "description": "A nice Flat with state-of-the-art facilities",
+            "price": "#300,000",
+            "created_at": "2020-01-15 16:14:54",
+            "space_category": "House",
+            "location": "Igbo-efon",
+            "name": "Ola Housing",
+            "availability": true,
+            "updated_at": "2020-03-15 16:14:54"
+        }
+    },
+    {
+        "Model": "api.Spaces",
+        "pk": 4,
+        "fields":
+        {
+            "number_of_bookings": 1,
+            "agent": 3,
+            "description": "A nice shop with state-of-the-art facilities",
+            "price": "#100,000",
+            "created_at": "2020-02-15 16:14:54",
+            "space_category": "Shop",
+            "location": "Agungi",
+            "name": "Omoh Shopping Complex",
+            "availability": true,
+            "updated_at": "2020-03-15 16:14:54"
+        }
+    },
+    {
+        "Model": "api.Spaces",
+        "pk": 5,
+        "fields":
+        {
+            "number_of_bookings": 6,
+            "agent": 2,
+            "description": "A nice office space with state-of-the-art facilities",
+            "price": "#300,000",
+            "created_at": "2019-11-15 16:14:54",
+            "space_category": "Office",
+            "location": "Lekki",
+            "name": "Traditions building",
+            "availability": true,
+            "updated_at": "2020-02-17 16:14:54"
+        }
+    }
+]
