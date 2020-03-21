@@ -25,8 +25,8 @@ class User(models.Model):
     is_customer = models.BooleanField(default=True)
     is_agent = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
-    token = models.CharField(max_length=50)
+    token = models.CharField(max_length=20)
     objects = UserManager()
     updated_at = models.DateTimeField( auto_now=True)
     def __str__(self):
-        return self.id
+        return self.username
