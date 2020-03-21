@@ -1,0 +1,32 @@
+[
+    {
+        "pk" : 1,
+        "model": "api.Customer",
+        "fields": {
+            "user": 2
+        }
+    },
+    {
+        "pk" : 2,
+        "model": "api.Customer",
+        "fields": {
+            "user": 3
+        }
+    },
+    {
+        "pk" : 3,
+        "model": "api.Customer",
+        "fields": {
+            "user": 4
+        }
+    },
+    {
+        "pk" : 4,
+        "model": "api.Customer",
+        "fields": {
+            "user": 7
+        }
+    }
+]
+
+
