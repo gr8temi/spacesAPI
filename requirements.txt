@@ -1,6 +1,7 @@
 asgiref==3.2.3
 dj-database-url==0.5.0
 Django==3.0
+django-rest-passwordreset==1.1.0
 djangorestframework==3.10.3
 psycopg2==2.8.4
 python-decouple==3.3
