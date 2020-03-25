@@ -3,6 +3,7 @@ from ..models.spaces import Space
 
 
 class SpaceSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(format="hex")
     class Meta:
         model = Space
         fields = ('id', 'number_of_bookings', 'agent', 'description', 'price', 'created_at',

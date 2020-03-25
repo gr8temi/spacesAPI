@@ -1,3 +1,4 @@
+import bcrypt
 from django.test import TestCase
 from ..models.spaces import Space
 from ..models.spaces_category import SpaceCategory
@@ -6,10 +7,14 @@ from ..models.agent import Agent
 from ..views.add_space import CreateSpace
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.models import TokenUser
+
 
 from ..serializers.space import SpaceSerializer
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from ..views.auth.login import UserLogin
 
 
 class CreateSpaceTest(TestCase):
@@ -24,7 +29,6 @@ class CreateSpaceTest(TestCase):
             space_category="hall")
         self.location = "Lagos"
         self.availability = "available"
-        # self.created_at = date.today()
         self.new_user = User.objects.create(
             username="joe", email="joe@gmail.com")
         self.agent = Agent.objects.create(
@@ -40,12 +44,27 @@ class CreateSpaceTest(TestCase):
 
 class VIewTestCase(TestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.space_data = {'name': 'office space'}
-        self.response = self.client.post(
-            CreateSpace(), self.space_data, format="json")
+        password="joe"
+        self.hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        self.new_user = User.objects.create(
+            username="joe", email="joe@gmail.com", password=self.hashed)
+        self.new_user.save()
 
     def test_create(self):
-        response = self.client.post(
-            '/spaces/', self.space_data, format='json')
-        self.assertEqual(response.status_code, 201)
+        data = {'username': self.new_user.username, 'password': "joe"}
+        url = reverse('login')
+        response = self.client.post(url, data )
+        user_token = response.data['token']['access']
+        # header = {'Authorization' : 'Bearer ' + user_token }
+        header = 'Authorization:' + ' Bearer ' + user_token
+        print(header)
+        # url2 = reverse('space')
+        # response1 = self.client.post(
+        #     url2, header , format='json')
+        # print(response1)
+        # self.assertEqual(response1.status_code, 201)
+        
+        response1 = self.client.post(
+            '/spaces/', header , format='json')
+        print(response1)
+        self.assertEqual(response1.status_code, 201)
