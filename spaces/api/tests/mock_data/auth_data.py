@@ -6,6 +6,6 @@ def auth_data():
 
 def reset_password_data():
     return {
-        "token": "sometoken",
-        "password": "bouncer2"
+        "token": 234567,
+        "password": "12345"
     }

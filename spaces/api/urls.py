@@ -4,6 +4,7 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 
 
+from .views.auth import login, forgot_password, reset_password
 
 urlpatterns = [
 
@@ -11,6 +12,9 @@ urlpatterns = [
     path('spaces/', CreateSpace.as_view(), name="space"),
 
     # match route that has not been registered above
+    re_path(r'^(?:.*)$', notfound),
+
     path('auth/login/', login.UserLogin.as_view(), name='login'),
-    # re_path(r'^(?:.*)$', notfound),
+    path('auth/forgot_password/', forgot_password.ForgotPassword.as_view(), name='forgot_password'),
+    path('auth/reset_password/', reset_password.ResetPassword.as_view(), name = 'reset_password')
 ]
