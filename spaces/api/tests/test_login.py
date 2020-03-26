@@ -11,8 +11,7 @@ import bcrypt
 class TestLogin(APITestCase):
     def setUp(self):
         data = registration_data.customer_registration_data()
-        hashed = bcrypt.hashpw(
-            data['password'].encode('utf-8'), bcrypt.gensalt())
+        hashed = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         token = 'sometoken'
         user = User.objects.create(
             username=data['username'],

@@ -18,6 +18,7 @@ class CreateSpace(APIView):
         serializer = SpaceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data['name'] + " was created successfully", status=status.HTTP_201_CREATED)
-        return Response("Check your input, some fields might be missing", status=status.HTTP_400_BAD_REQUEST)       
+            name = serializer.data["name"]
+            return Response({"payload":serializer.data, "message":f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
+        return Response({"message":"Check your input, some fields might be missing","error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)       
 

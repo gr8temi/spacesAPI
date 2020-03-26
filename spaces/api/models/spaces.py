@@ -10,7 +10,7 @@ class SpaceManager(models.Manager):
         return {"spaces":spaces,"count":count}
         
 class Space(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    space_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     number_of_bookings = models.IntegerField()
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     description = models.TextField()
