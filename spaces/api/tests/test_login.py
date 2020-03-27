@@ -2,8 +2,6 @@ from rest_framework import status
 from .mock_data import registration_data,auth_data
 from rest_framework.test import APITestCase
 from django.urls import reverse
-from django.urls import reverse
-
 from ..models.user import User
 import bcrypt
 

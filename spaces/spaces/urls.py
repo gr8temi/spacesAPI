@@ -1,9 +1,9 @@
-from spaces.views import home, index, email
+from .views import home, index, email
 from django.urls import path, re_path, include
 
 urlpatterns = [
     # match api index route request
-    re_path(r'^(?:api/?)$', index),
+    # re_path(r'^(?:api/?)$', index),
 
     # match test email route
     re_path(r'^test\-email/?$', email),
@@ -12,5 +12,5 @@ urlpatterns = [
     path('api/', include('api.urls')),
 
     # match all other routes and respond with 403
-    re_path(r'^(?:.*)$', home)
+    # re_path(r'^(?:.*)$', home)    
 ]
