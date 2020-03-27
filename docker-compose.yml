@@ -8,6 +8,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - "spacesdb:/var/lib/postgresql/data"
+    ports:
+      - "5430:5430"
 
   api:
     build: .
