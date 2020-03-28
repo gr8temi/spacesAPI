@@ -15,7 +15,7 @@ services:
     volumes:
       - "./spaces:/app"
     env_file:
-      - .env
+      - .env.example
     ports:
       - "8100:8000"
     depends_on:
