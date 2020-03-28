@@ -8,24 +8,17 @@ from ..models.user import User
 import bcrypt
 
 class TestResetPassword(APITestCase):
-    pass
-    url = reverse("reset_password")
-
+    
     def setUp(self):
         data = user_registration_data()
-        hashed = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-        token = 'randomtoken'
-        user = User.objects.create(
-            username=data['username'],
-            password=hashed,
-            token=token,
-            is_customer = True
-        )
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        user = User.objects.create(**data)
         user.save()
 
     def test_user_reset_password(self):
-        response = self.client.post(self.url, reset_password_data())
-        print(response)
+        url = reverse("reset-password")
+        
+        response = self.client.post(url, reset_password_data())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         
