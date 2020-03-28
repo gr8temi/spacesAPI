@@ -1,9 +1,15 @@
 asgiref==3.2.3
+bcrypt==3.1.7
+cffi==1.14.0
 dj-database-url==0.5.0
 Django==3.0
 django-rest-passwordreset==1.1.0
 djangorestframework==3.10.3
+djangorestframework-simplejwt==4.4.0
 psycopg2==2.8.4
+pycparser==2.20
+PyJWT==1.7.1
 python-decouple==3.3
 pytz==2019.3
+six==1.14.0
 sqlparse==0.3.0
