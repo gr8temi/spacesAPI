@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.models import TokenUser
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class UserLogin(APIView):
@@ -15,7 +17,10 @@ class UserLogin(APIView):
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
+                
                 refresh = RefreshToken.for_user(user)
+                
+
                 token = {
                     'access': str(refresh.access_token),
                 }
@@ -24,5 +29,6 @@ class UserLogin(APIView):
             else:
                 return Response(dict(error="User name or password is not valid"), status=status.HTTP_400_BAD_REQUEST)
 
-        except:
-            return Response(dict(error="User name or password is not valid"), status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            
+            return Response(dict(error="User name or password is not working",), status=status.HTTP_400_BAD_REQUEST)
