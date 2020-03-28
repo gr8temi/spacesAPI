@@ -11,7 +11,7 @@ class SpaceManager(models.Manager):
         
 class Space(models.Model):
     space_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    number_of_bookings = models.IntegerField()
+    number_of_bookings = models.IntegerField(null=True,blank=True)
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     description = models.TextField()
     price  = models.CharField( max_length=50)
