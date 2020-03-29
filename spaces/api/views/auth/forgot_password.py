@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 
 
 class ForgotPassword(APIView):
-    
+
     def post(self, request):
 
         data = request.data
@@ -23,7 +23,7 @@ class ForgotPassword(APIView):
             return Response("Username does not exist", status=status.HTTP_400_BAD_REQUEST)
 
         user_token = user.token
-        user_id = user.id
+        user_id = user.user_id
         user_email = user.email
     
         subject = 'Reset your password'

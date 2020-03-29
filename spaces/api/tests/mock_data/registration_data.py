@@ -22,7 +22,7 @@ def agent_registration_data():
     
 def user_registration_data():
     return {
-    "username": "ola",
+     "username": "ola",
     "name": "Ola Bimbo",
     "email": "ola@gmail.com",
     "phone_number": "08022211134",
