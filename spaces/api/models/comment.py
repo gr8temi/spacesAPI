@@ -5,7 +5,7 @@ from .question import Question
 
 
 class Comment(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    comment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     content = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

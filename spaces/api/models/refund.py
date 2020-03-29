@@ -6,7 +6,7 @@ from .spaces import Space
 
 
 class Refund(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    refund_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
