@@ -4,6 +4,7 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 from .views import agent, customer
 
+from .views.auth import login, forgot_password, reset_password, verify_email
 
 urlpatterns = [
 
@@ -21,6 +22,9 @@ urlpatterns = [
     path('v1/customers/', customer.CustomerList.as_view(), name='customers'),
     path('v1/auth/customer/<uuid:customer_id>/',
          customer.CustomerDetail.as_view(), name='customer_details'),
+    path('v1/auth/verify-email/', verify_email.VerifyEmail.as_view(), name="verify-email"),
+    path('v1/auth/forgot-password/', forgot_password.ForgotPassword.as_view(), name="forgot-password"),
+    path('v1/auth/reset-password/', reset_password.ResetPassword.as_view(), name = 'reset-password'),
     # re_path(r'^(?:.*)$', notfound),
 
 ]

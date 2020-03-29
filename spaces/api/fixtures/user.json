@@ -4,17 +4,17 @@
         "pk": 1,
         "fields": {
             "username": "ade",
-            "fullname": "Ade Wale",
+            "name": "Ade Wale",
             "email": "ade@gmail.com",
             "phone_number": "08011122234",
-            "password": "12345",
+            "password": "12341",
             "created_at": "2019-01-12 15:12:34",
             "email_verified": true,
             "is_super": false,
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "12-ER-34-TY-67",
             "updated_at": "2019-01-12 15:12:34"
         }
     },
@@ -24,17 +24,17 @@
         "pk": 2,
         "fields": {
             "username": "ola",
-            "fullname": "Ola Bimbo",
+            "name": "Ola Bimbo",
             "email": "ola@gmail.com",
             "phone_number": "08022211134",
-            "password": "12345",
+            "password": "12342",
             "created_at": "2019-03-15 16:14:54",
             "email_verified": true,
             "is_super": false,
             "is_customer": true,
             "is_agent": false,
             "is_active": false,
-            "token": 234567,
+            "token": "34-TY-56-HJ-78",
             "updated_at": "2019-03-15 16:14:54"
         }
     },
@@ -44,17 +44,17 @@
         "pk": 3,
         "fields": {
             "username": "olu",
-            "fullname": "Olu Mide",
+            "name": "Olu Mide",
             "email": "olu@gmail.com",
             "phone_number": "08014522234",
-            "password": "12345",
+            "password": "12343",
             "created_at": "2020-01-12 15:12:34",
             "email_verified": true,
             "is_super": false,
             "is_customer": true,
             "is_agent": false,
             "is_active": false,
-            "token": 234567,
+            "token": "09-VG-34-CF-65",
             "updated_at": "2020-01-12 15:44:34"
         }
     },
@@ -64,17 +64,17 @@
         "pk": 4,
         "fields": {
             "username": "joko",
-            "fullname": "Joko Tade",
+            "name": "Joko Tade",
             "email": "joko@gmail.com",
             "phone_number": "080987622234",
-            "password": "12345",
+            "password": "12344",
             "created_at": "2020-01-10 00:14:54",
             "email_verified": true,
             "is_super": false,
             "is_customer": true,
             "is_agent": false,
             "is_active": false,
-            "token": 234567,
+            "token": "21-RE-65-FD-04",
             "updated_at": "2020-01-10 00:14:54"
         }
     },
@@ -84,7 +84,7 @@
         "pk": 5,
         "fields": {
             "username": "nne",
-            "fullname": "Nne Ada",
+            "name": "Nne Ada",
             "email": "nne@gmail.com",
             "phone_number": "08045122234",
             "password": "12345",
@@ -94,7 +94,7 @@
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "11-DD-33-GG-55",
             "updated_at": "2020-01-10 00:14:54"
         }
     },
@@ -104,17 +104,17 @@
         "pk": 6,
         "fields": {
             "username": "abu",
-            "fullname": "Abu Maggie",
+            "name": "Abu Maggie",
             "email": "abu@gmail.com",
             "phone_number": "08789122234",
-            "password": "12345",
+            "password": "12346",
             "created_at": "2019-12-30 13:14:54",
             "email_verified": true,
             "is_super": false,
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "43-FF-65-GF-31",
             "updated_at": "2020-01-12 15:12:34"
         }
     },
@@ -124,17 +124,17 @@
         "pk": 7,
         "fields": {
             "username": "bolu",
-            "fullname": "Bolu Tife",
+            "name": "Bolu Tife",
             "email": "bolu@gmail.com",
             "phone_number": "08066622234",
-            "password": "12345",
+            "password": "12347",
             "created_at": "2019-06-12 15:12:34",
             "email_verified": true,
             "is_super": false,
             "is_customer": true,
             "is_agent": false,
             "is_active": false,
-            "token": 234567,
+            "token": "30-XZ-41-NB-03",
             "updated_at": "2019-08-12 15:12:34"
         }
     },
@@ -144,17 +144,17 @@
         "pk": 8,
         "fields": {
             "username": "Sua",
-            "fullname": "Sua Tide",
+            "name": "Sua Tide",
             "email": "Sua@gmail.com",
             "phone_number": "080666722234",
-            "password": "12345",
+            "password": "12348",
             "created_at": "2019-06-12 15:12:34",
             "email_verified": true,
             "is_super": false,
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "43-NB-45-FG-00",
             "updated_at": "2019-09-12 15:12:34"
         }
     },
@@ -164,17 +164,17 @@
         "pk": 9,
         "fields": {
             "username": "kola",
-            "fullname": "Kola Wole",
+            "name": "Kola Wole",
             "email": "kola@gmail.com",
             "phone_number": "08011122234",
-            "password": "12345",
+            "password": "12349",
             "created_at": "2019-01-12 15:12:34",
             "email_verified": true,
             "is_super": false,
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "01-GF-02-JH-03",
             "updated_at": "2019-02-12 15:12:34"
         }
     },
@@ -184,17 +184,17 @@
         "pk": 10,
         "fields": {
             "username": "omoh",
-            "fullname": "Omoh Jude",
+            "name": "Omoh Jude",
             "email": "omoh@gmail.com",
             "phone_number": "08011122234",
-            "password": "12345",
+            "password": "12340",
             "created_at": "2020-03-15 17:24:54",
             "email_verified": true,
             "is_super": false,
             "is_customer": false,
             "is_agent": true,
             "is_active": false,
-            "token": 234567,
+            "token": "76-VC-32-JH-65",
             "updated_at": "2020-07-15 17:24:54"
         }
     }
