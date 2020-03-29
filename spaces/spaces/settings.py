@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'rest_framework',
-    'api'
+    'api',
     
 ]
 
@@ -63,7 +63,7 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="dummy@gmail.com")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="dummy-password")
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 # Global configurations for rest framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

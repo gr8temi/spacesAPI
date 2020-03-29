@@ -4,5 +4,5 @@ from ..models.agent import Agent
 
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Space
+        model = Agent
         fields = "__all__"
