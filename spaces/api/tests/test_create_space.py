@@ -72,5 +72,5 @@ class VIewTestCase(APITestCase):
             "price":200
         }
         response1 = self.client.post(
-            '/api/spaces/',space_data ,HTTP_AUTHORIZATION=header, format='json')
+            reverse('space'),space_data ,HTTP_AUTHORIZATION=header, format='json')
         self.assertEqual(response1.status_code, 201)
