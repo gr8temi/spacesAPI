@@ -16,7 +16,7 @@ class TestResetPassword(APITestCase):
         user.save()
 
     def test_user_reset_password(self):
-        url = reverse("reset_password")
+        url = reverse("reset-password")
         
         response = self.client.post(url, reset_password_data())
         self.assertEqual(response.status_code, status.HTTP_200_OK)

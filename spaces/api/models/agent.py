@@ -13,5 +13,5 @@ class Agent(models.Model):
     created_at = models.DateTimeField( auto_now_add=True)
     
     def __str__(self):
-        return self.id
+        return self.business_name
     

@@ -66,9 +66,5 @@ def agent_registration_data():
         "validated": False,
         "updated_at": "2019-01-12 15:12:34",
         "created_at": "2019-01-12 15:12:34"
-<<<<<<< HEAD
-        }
-=======
     }
->>>>>>> d7309e9ed03f84de7a4d10cbba68cb17f777a6de
 

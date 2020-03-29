@@ -12,7 +12,7 @@ from ..models.user import User
 class TestForgotPassword(APITestCase):
 
     def test_forgot_password(self):
-        url = reverse('forgot_password')
+        url = reverse('forgot-password')
     
         user = User.objects.create(**user1_registration_data())
         user.save()
