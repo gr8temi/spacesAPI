@@ -83,8 +83,6 @@ data = {
     email:string,
     phone_number:string,
     name:string,
-    business_name:string,
-    office_address: string,
     password:string
 }
 ```
@@ -108,3 +106,30 @@ data = {
     **fields to be updated
 }
 ```
+#### Verify Email
+````
+
+Route = Route = "api/v1/auth/verify-email/"
+
+data = {
+    token: token sent to email(string)
+}
+````
+#### Forgot Password
+````
+
+Route = Route = "api/v1/auth/forgot-password/"
+
+data = {
+    username: agent or customer username
+}
+````
+#### Reset Password
+````
+
+Route = Route = "api/v1/auth/reset-password/"
+
+data = {
+    token: string,
+    password: new password
+}

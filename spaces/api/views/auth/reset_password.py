@@ -12,7 +12,10 @@ class ResetPassword(APIView):
 
         password = data['password']
         token = data['token']
-        result = User.objects.get(token=token)
+        try:
+            result = User.objects.get(token=token)
+        except:
+            result = False
         
         if result:
             user = result
