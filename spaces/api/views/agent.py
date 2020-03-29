@@ -70,7 +70,7 @@ class AgentRegister(APIView):
             agent_serializer.save()
             agent_name = agent_serializer.data["business_name"]
             if bool(new_user):
-                print("")
+        
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 message = "Registration was successful"
                 customer_message_details = {
@@ -84,7 +84,6 @@ class AgentRegister(APIView):
                 }
                 # send mail to the user
                 send = send_email(customer_message_details)
-                print(send)
             return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data},status=status.HTTP_201_CREATED)
         else:
             return Response({"error": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -94,7 +93,6 @@ class AgentRegister(APIView):
         email = data['email']
         check = self.get_object(email)
 
-        # print(data[])
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
         token = token_generator()

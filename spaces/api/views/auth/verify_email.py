@@ -15,9 +15,7 @@ class VerifyEmail(APIView):
             return user
         except:
             return False
-    
-    def get(self, request):
-        return Response({"message": "Email verification endpoint"})
+
 
     def post(self, request):
         token = request.data["token"]
@@ -34,10 +32,8 @@ class VerifyEmail(APIView):
                 },
                 "verify_state": user.email_verified
             }, status=status.HTTP_202_ACCEPTED)
-        elif user and user.email_verified == False:
-            user.email_verified = True
-            user.save()
-            return Response({"message": "User has already been verified"}, status=status.HTTP_410_GONE)
-        return Response({"message": "You are not a registered user. Click on the link to register"})
+        elif user and user.email_verified == True:
+            return Response({"message": "User has already been verified"}, status=status.HTTP_302_FOUND)
+        return Response({"message": "You are not a registered user."}, status=status.HTTP_404_NOT_FOUND)
 
 

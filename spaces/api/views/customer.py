@@ -83,7 +83,6 @@ class CustomerRegister(APIView):
                 }
                 # send mail to the user
                 send = send_email(customer_message_details)
-                print(send)
             return Response({"message": f"Customer {customer_name} successfully created", "payload": customer_serializer.data},status=status.HTTP_201_CREATED)
         else:
             return Response({"error": customer_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -93,7 +92,6 @@ class CustomerRegister(APIView):
         email = data['email']
         check = self.get_object(email)
 
-        # print(data[])
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
         token = token_generator()

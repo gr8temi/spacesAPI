@@ -17,7 +17,7 @@ class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     name= models.CharField(max_length=50, default="John doe")
     email = models.EmailField(max_length=254, unique=True)
-    phone_number = models.CharField(max_length=14)
+    phone_number = models.                               CharField(max_length=14)
     password = models.CharField(max_length=256)
     created_at = models.DateTimeField(auto_now_add=True)
     email_verified = models.BooleanField(default=False)
