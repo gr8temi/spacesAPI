@@ -17,7 +17,7 @@ class TestForgotPassword(APITestCase):
         user = User.objects.create(**user1_registration_data())
         user.save()
         
-        agent = {"username": user.username}
+        agent = {"email": user.email}
         
         response = self.client.post(url, agent)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
