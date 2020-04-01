@@ -54,10 +54,11 @@ class VIewTestCase(APITestCase):
             user=self.new_user, business_name="best4less")
 
     def test_create(self):
-        data = {'username': self.new_user.username, 'password': "joe"}
+        data = {'email': self.new_user.email, 'password': "joe"}
         url = reverse('login')
         response = self.client.post(url, data )
-        user_token = response.data['token']['access']
+        user_token = response.data["token"]['access']
+        
         # header = {'Authorization' : 'Bearer ' + user_token }
         header = 'Bearer ' + user_token
         self.client.login(username=self.new_user.username,password="joe")

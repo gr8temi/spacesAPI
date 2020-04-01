@@ -37,15 +37,27 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'rest_framework',
     'django_rest_passwordreset',
-    'api'
+    'api',
+    'corsheaders',
     
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+CORS_ORIGIN_ALLOW_ALL=True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 ROOT_URLCONF = 'spaces.urls'
@@ -62,15 +74,16 @@ DATABASES = DB.config(DEBUG)
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.dummy.net")
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="dummy@gmail.com")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="dummy-password")
-EMAIL_PORT = 587
+EMAIL_PORT = config("EMAIL_PORT", default=465)
 EMAIL_USE_TLS = True
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_USE_SSL = False
 # Global configurations for rest framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
     ],
 }
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
 # Password Hasher
 SIMPLE_JWT = {
