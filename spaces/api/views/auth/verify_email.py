@@ -33,7 +33,7 @@ class VerifyEmail(APIView):
                 "verify_state": user.email_verified
             }, status=status.HTTP_202_ACCEPTED)
         elif user and user.email_verified == True:
-            return Response({"message": "User has already been verified"}, status=status.HTTP_302_FOUND)
+            return Response({"message": "User has already been verified"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "You are not a registered user."}, status=status.HTTP_404_NOT_FOUND)
 
 

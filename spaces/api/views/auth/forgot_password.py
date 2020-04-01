@@ -16,8 +16,8 @@ class ForgotPassword(APIView):
     def post(self, request):
 
         data = request.data
-        user_name = data["username"]
-        user = get_object_or_404(User, username=user_name)
+        email = data["email"]
+        user = get_object_or_404(User, email=email)
         token = random_string_generator()
         
         if not user:

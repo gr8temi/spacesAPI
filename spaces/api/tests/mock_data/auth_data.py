@@ -1,6 +1,6 @@
 def auth_data():
     return {
-        "username": "testuser",
+        "email": "spaces234@gmail.com",
         "password": "testpassword"
     }
 

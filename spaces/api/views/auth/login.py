@@ -13,7 +13,7 @@ class UserLogin(APIView):
     def post(self, request):
         data = request.data
         try:
-            user = User.objects.get(username=data['username'])
+            user = User.objects.get(email=data['email'])
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
@@ -27,8 +27,8 @@ class UserLogin(APIView):
 
                 return Response(dict(message="Login was successful", token=token), status=status.HTTP_200_OK)
             else:
-                return Response(dict(error="User name or password is not valid"), status=status.HTTP_400_BAD_REQUEST)
+                return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)
 
         except Exception:
             
-            return Response(dict(error="User name or password is not working",), status=status.HTTP_400_BAD_REQUEST)
+            return Response(dict(error="Email is not Correct",), status=status.HTTP_400_BAD_REQUEST)

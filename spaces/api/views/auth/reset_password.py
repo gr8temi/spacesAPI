@@ -25,4 +25,4 @@ class ResetPassword(APIView):
             message = "Your password has successfully been reset"
             return Response({"message": message}, status=status.HTTP_200_OK)
         
-        return Response({"User does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":"User does not exist"}, status=status.HTTP_400_BAD_REQUEST)
