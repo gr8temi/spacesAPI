@@ -14,6 +14,11 @@ import os
 from spaces.db import DB
 from decouple import config
 from datetime import timedelta
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -59,6 +64,15 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+sentry_sdk.init(
+    dsn="https://e3f95a649c0945208cd8b451cc42a89a@sentry.io/5189112",
+    integrations=[DjangoIntegration()],
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    # send_default_pii=True
+)
+
 
 ROOT_URLCONF = 'spaces.urls'
 
