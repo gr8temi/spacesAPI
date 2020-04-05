@@ -116,7 +116,7 @@ class CustomerRegister(APIView):
 
         # Check if customer already exist
         if bool(check) and check.is_customer:
-            return Response({"message": f"Customer {check.username} already Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({"message": f"Customer {check.name} already Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # Create new Customer
         elif not bool(check):
