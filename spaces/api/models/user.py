@@ -14,7 +14,6 @@ class UserManager(models.Manager):
 
 class User(models.Model):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=50, unique=True)
     name= models.CharField(max_length=50, default="John doe")
     email = models.EmailField(max_length=254, unique=True)
     phone_number = models.                               CharField(max_length=14)

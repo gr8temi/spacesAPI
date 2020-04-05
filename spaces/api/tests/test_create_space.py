@@ -21,8 +21,7 @@ class CreateSpaceTest(APITestCase):
             space_category="hall")
         self.location = "Lagos"
         self.availability = "available"
-        self.new_user = User.objects.create(
-            username="joe", email="joe@gmail.com")
+        self.new_user = User.objects.create( email="joe@gmail.com")
         self.agent = Agent.objects.create(
             user=self.new_user, business_name="best4less")
         self.space = Space.objects.create(name=self.name,
@@ -39,7 +38,7 @@ class VIewTestCase(APITestCase):
         password="joe"
         self.hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         self.new_user = User.objects.create(
-            username="joe", email="joe@gmail.com", password=self.hashed)
+             email="joe@gmail.com", password=self.hashed)
         self.new_user.save()
         self.name = "Event Hall"
         self.id = 1
@@ -61,7 +60,7 @@ class VIewTestCase(APITestCase):
         
         # header = {'Authorization' : 'Bearer ' + user_token }
         header = 'Bearer ' + user_token
-        self.client.login(username=self.new_user.username,password="joe")
+        # self.client.login(username=self.new_user.username,password="joe")
         
         space_data = {
             "number_of_bookings":self.number_of_bookings,

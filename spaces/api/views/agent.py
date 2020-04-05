@@ -84,9 +84,12 @@ class AgentRegister(APIView):
                 }
                 # send mail to the user
                 send = send_email(customer_message_details)
-            return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data},status=status.HTTP_201_CREATED)
+            if send:
+                return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data},status=status.HTTP_201_CREATED)
+            else:
+                return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"errorss": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         data = request.data
@@ -97,7 +100,6 @@ class AgentRegister(APIView):
             data['password'].encode('utf-8'), bcrypt.gensalt())
         token = token_generator()
         user_data = {
-            'username': data["username"],
             'name': data['name'],
             'email': data['email'],
             'phone_number': data['phone_number'],
@@ -113,8 +115,8 @@ class AgentRegister(APIView):
         }
         
         # Check if agent already exist
-        if bool(check) and check.is_agent:
-            return Response({"message": f"Agent {check.username} already Exist"})
+        if bool(check) and bool(check.is_agent):
+            return Response({"message": f"Agent with {check.email} already Exist"},status=status.HTTP_400_BAD_REQUEST)
 
         # Check if User already exist but is a customer
         elif bool(check) and check.is_customer:
@@ -132,4 +134,6 @@ class AgentRegister(APIView):
                 
                 return self.serializeAgent(new_agent_data,user_serializer.data["email"],token=user_serializer.data["token"],new_user=True)
             else:
-                return Response({"error": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                return Response({"errorr": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+
+        return
