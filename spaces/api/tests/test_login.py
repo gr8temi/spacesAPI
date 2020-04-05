@@ -14,7 +14,7 @@ class TestLogin(APITestCase):
         hashed = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         token = 'sometoken'
         user = User.objects.create(
-            username=data['username'],
+            
             email="spaces234@gmail.com",
             password=hashed,
             
