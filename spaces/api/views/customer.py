@@ -88,7 +88,7 @@ class CustomerRegister(APIView):
                 # send mail to the user
                 send = send_email(customer_message_details)
             if send:
-                return Response({"message": f"Agent {customer_name} successfully created", "payload": customer_serializer.data}, status=status.HTTP_201_CREATED)
+                return Response({"message": f"Customer {customer_name} successfully created", "payload": customer_serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -98,7 +98,6 @@ class CustomerRegister(APIView):
         data = request.data
         email = data['email']
         check = self.get_object(email)
-
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
         token = token_generator()
@@ -107,7 +106,8 @@ class CustomerRegister(APIView):
             'email': data['email'],
             'phone_number': data['phone_number'],
             'password': f'${hashed}',
-            "token": token
+            "token": token,
+            "is_customer": True
         }
 
         customer_data = {
@@ -115,7 +115,7 @@ class CustomerRegister(APIView):
         }
 
         # Check if customer already exist
-        if bool(check) and check.is_customer:
+        if bool(check) and bool(check.is_customer):
             return Response({"message": f"Customer {check.name} already Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # Create new Customer
@@ -129,3 +129,4 @@ class CustomerRegister(APIView):
                 return self.serializeCustomer(new_customer_data, user_serializer.data["email"], token=user_serializer.data["token"], new_user=True)
             else:
                 return Response({"error": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": f"Customer {check.name} Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
