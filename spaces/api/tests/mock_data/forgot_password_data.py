@@ -17,7 +17,6 @@ def agent_forgot_password_data():
 
 def user1_registration_data():
     return {
-        "username": "ade",
         "name": "Ade Wale",
         "email": "ade@gmail.com",
         "phone_number": "08011122234",

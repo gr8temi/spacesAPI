@@ -24,8 +24,9 @@ class UserLogin(APIView):
                 token = {
                     'access': str(refresh.access_token),
                 }
+                agent = user.is_agent
 
-                return Response(dict(message="Login was successful", token=token), status=status.HTTP_200_OK)
+                return Response(dict(message="Login was successful", token=token,agent=agent), status=status.HTTP_200_OK)
             else:
                 return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)
 
