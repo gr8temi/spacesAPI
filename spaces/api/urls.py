@@ -1,15 +1,21 @@
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from spaces.views import notfound
 from django.urls import path, re_path
 from .views.auth import login
 from .views.add_space import CreateSpace
+from .views.space import Spaces
 from .views import agent, customer
-
 from .views.auth import login, forgot_password, reset_password, verify_email
+from django.views.decorators.cache import cache_page
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+
 
 urlpatterns = [
 
     # register other routes here ...
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
+    path('v1/all-spaces/', cache_page(CACHE_TTL)(Spaces.as_view()), name="spaces"),
     # match route that has not been registered above
     path('v1/auth/login/', login.UserLogin.as_view(), name='login'),
     path('v1/auth/agents/signup/',
@@ -22,9 +28,12 @@ urlpatterns = [
     path('v1/customers/', customer.CustomerList.as_view(), name='customers'),
     path('v1/auth/customer/<uuid:customer_id>/',
          customer.CustomerDetail.as_view(), name='customer_details'),
-    path('v1/auth/verify-email/', verify_email.VerifyEmail.as_view(), name="verify-email"),
-    path('v1/auth/forgot-password/', forgot_password.ForgotPassword.as_view(), name="forgot-password"),
-    path('v1/auth/reset-password/', reset_password.ResetPassword.as_view(), name = 'reset-password'),
+    path('v1/auth/verify-email/',
+         verify_email.VerifyEmail.as_view(), name="verify-email"),
+    path('v1/auth/forgot-password/',
+         forgot_password.ForgotPassword.as_view(), name="forgot-password"),
+    path('v1/auth/reset-password/',
+         reset_password.ResetPassword.as_view(), name='reset-password'),
     # re_path(r'^(?:.*)$', notfound),
 
 ]

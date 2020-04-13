@@ -18,7 +18,6 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -44,9 +43,12 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'api',
     'corsheaders',
-    
+    'algoliasearch_django',
+
 ]
 
+
+# Middlewares
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -54,7 +56,9 @@ MIDDLEWARE = [
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ORIGIN_ALLOW_ALL=True
+
+# CORS settings
+CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -64,6 +68,8 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+# Sentry settings
 sentry_sdk.init(
     dsn="https://e3f95a649c0945208cd8b451cc42a89a@sentry.io/5189112",
     integrations=[DjangoIntegration()],
@@ -81,7 +87,6 @@ WSGI_APPLICATION = 'spaces.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = DB.config(DEBUG)
 
 # Email Settings
@@ -91,15 +96,19 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="dummy-password")
 EMAIL_PORT = config("EMAIL_PORT", default=465)
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+
+
 # Global configurations for rest framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
     ],
 }
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
-# Password Hasher
+
+# Simple JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -122,12 +131,26 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=15),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+# Algolia Settings
+ALGOLIA = {
+    'APPLICATION_ID': config('ALGOLIA_APPLICATION_ID'),
+    'API_KEY': config('ALGOLIA_API_KEY'),
+    "KEY_PREFIX": "234spaces",
+    "INDEX_SUFFIX": "Spaces_dev",
+    "AUTO_INDEXING": not DEBUG
+}
+
+
+# Password Hasher
 PASSWORD_HASSHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PawordHasher'
 ]
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -140,3 +163,15 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+CACHE_TTL = 60 * 15
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config('REDIS_URL'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+
+    }
+}
