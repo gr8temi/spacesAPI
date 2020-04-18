@@ -102,6 +102,7 @@ EMAIL_BACKEND = config(
 
 # Global configurations for rest framework
 REST_FRAMEWORK = {
+    'DATE_INPUT_FORMATS': [("%Y-%m-%d"),],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
     ],
