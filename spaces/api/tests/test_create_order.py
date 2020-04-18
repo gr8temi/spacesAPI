@@ -27,14 +27,11 @@ class CreateOrderTest(APITestCase):
         self.order_type = OrderType.objects.create(order_type="booking")
         self.user = User.objects.create(email="user@gmail.com", password=self.hashed)
 
-        # self.old_space_count = Space.objects.count()
         self.name = "Event Hall"
-        # self.id = 1
         self.number_of_bookings = 1
         self.description = "An event hall for party"
         self.price = 200000
         self.space_category_id = SpaceCategory.objects.create(space_category="hall")
-        # self.location = "Lagos"
         self.new_agent = User.objects.create( email="joe@gmail.com")
         self.agent = Agent.objects.create(
             user=self.new_agent, business_name="best4less")
@@ -62,12 +59,9 @@ class CreateOrderTest(APITestCase):
         self.order_data = {
                     'usage_start_date': "2020-16-04",
                     'usage_end_date': "2020-18-04",
-                    # 'status': 'booked',
                     'transaction_code': "234567",
                     'order_code': "234Spaces/234567",
-                
                     'order_type': 1,
-                    # 'user': 1,
                     'space': "Event Hall"
                 }
 

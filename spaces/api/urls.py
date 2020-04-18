@@ -16,7 +16,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 urlpatterns = [
 
     # register other routes here ...
-    path('v1/booking/', cache_page(CACHE_TTL)(Booking.as_view()), name="booking"),
+    path('v1/booking/', Booking.as_view(), name="booking"),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)(Spaces.as_view()), name="spaces"),
     # match route that has not been registered above

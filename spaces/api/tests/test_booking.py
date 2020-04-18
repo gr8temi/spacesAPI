@@ -56,7 +56,7 @@ class TestBooking(APITestCase):
                         'usage_end_date': "2020-04-20",
                         'transaction_code': "234567",
                         'order_type': self.order_type,
-                        'space': self.space
+                        'space': self.space.space_id
                     }
 
     def test_booking(self):
