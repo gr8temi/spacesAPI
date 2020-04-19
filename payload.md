@@ -41,7 +41,7 @@ data = {
 }
 ```
 
-### create agent from a customer
+### create agent from a user
 
 ```
 Route = "api/v1/auth/agents/signup/"
@@ -92,7 +92,7 @@ data = {
 Route = Route = "api/v1/customers/"
 ```
 
-### Get/Delete an Customer
+### Get/Delete a Customer
 ```
 Route = Route = "api/v1/auth/customer/user_id/"
 ```
@@ -132,4 +132,18 @@ Route = Route = "api/v1/auth/reset-password/"
 data = {
     token: string,
     password: new password
+}
+
+````
+#### Booking
+````
+Route = Route = "api/v1/booking/
+````
+data = {
+    usage_start_date: Date field,
+    usage_end_date: date field,
+    transaction_code: code generated on payment
+    order_type: string
+    space: string
+
 }

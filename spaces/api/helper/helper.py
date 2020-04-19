@@ -18,3 +18,8 @@ def send_email(message_details):
         return True
     except Exception as Error:
         return Error
+
+def order_code(size=6, chars=string.digits):
+    digit = ''.join(random.choice(chars) for _ in range(size))
+    code = f"234Spaces-{digit}"
+    return code

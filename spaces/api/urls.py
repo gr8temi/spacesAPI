@@ -2,18 +2,21 @@ from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from spaces.views import notfound
 from django.urls import path, re_path
+from django.views.decorators.cache import cache_page
+
 from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces
+from .views.booking import Booking
 from .views import agent, customer
 from .views.auth import login, forgot_password, reset_password, verify_email
-from django.views.decorators.cache import cache_page
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
 urlpatterns = [
 
     # register other routes here ...
+    path('v1/booking/', Booking.as_view(), name="booking"),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)(Spaces.as_view()), name="spaces"),
     # match route that has not been registered above
