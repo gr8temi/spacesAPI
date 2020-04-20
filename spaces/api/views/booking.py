@@ -32,6 +32,12 @@ class Booking(APIView):
         space_agent = get_object_or_404(User, name=agent.user)
         return space_agent
 
+    def date_object(self, date):
+        return datetime.strptime(date, '%Y-%m-%d').date()
+
+    def get_order_type_id(self, order_type):
+        order = OrderType.objects.filter(order_type=order_type)[0]
+        return order.order_type_id
 
     def post(self, request):
 
@@ -39,38 +45,20 @@ class Booking(APIView):
         user = get_object_or_404(User, user_id=user_token.id)
 
         data = request.data
-        end_date = data['usage_end_date']
-        start_date = data['usage_start_date']
+        end_date = self.date_object(data['usage_end_date'])
+        start_date = self.date_object(data['usage_start_date'])
         space_id = data["space"]
         order_type_name = data["order_type"]
 
         space = self.get_space(space_id)
-
         agent = self.get_agent(space.agent)
+
         agent_name = agent.name
         agent_mail = agent.email
 
-        order_type = get_object_or_404(OrderType, order_type=order_type_name)
-
-        # check order table for chosen space, check enddate of all status with booked or reserve
         today = timezone.now().date()
-        orders = Order.objects.filter(space=space_id)
-        # active_orders will return an array of orders that are booked or reserved.
-        active_orders = [order for order in orders if order.usage_end_date > today]
-        if active_orders:
-            for order in active_orders:
-                order_type = order.order_type
-                order_end_date = order.usage_end_date
-    
-                if order_type == "booking":
-                    # User should pick another time or check another space.
-                    return Response({"message": f"Space unavailable, pick a date later than {order_end_date} or check another space"})
-                if order_type == "reservation":
-                    expiry_time = order.order_time + timedelta(seconds=21600)
-
-                    # Tell customer to check back after the reserved expiry time or pick a date later than usage_end_date
-                    return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        else:
+        # //////////////////////////////////////////////////////////////////////////////////////
+        def book_space():
             order_cde = order_code()
             order_data = {
                 'usage_start_date': start_date,
@@ -78,8 +66,8 @@ class Booking(APIView):
                 'status': 'booked',
                 'transaction_code': data['transaction_code'],
                 'order_code': order_cde,
-            
-                'order_type': order_type.order_type_id,
+
+                'order_type': self.get_order_type_id(order_type_name),
                 'user': user_token.id,
                 'space': space_id
             }
@@ -87,7 +75,7 @@ class Booking(APIView):
             order_serializer = OrderSerializer(data=order_data)
             if order_serializer.is_valid():
                 order_serializer.save()
-                
+
                 # notifications
                 sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
@@ -102,14 +90,47 @@ class Booking(APIView):
                 agent_content = f"Dear {agent_name}, you have an order placed for your space {space.name} listed on our platform from {start_date} to {end_date}."
 
                 send_mail(subject_agent, agent_content, sender, to_agent)
-                send_mail(subject_customer, customer_content, sender, to_customer)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
 
-                customer_details = {"id":user.user_id,"name": user.name, "phone_number": user.phone_number, "email": user.email}
+                customer_details = {"id": user.user_id, "name": user.name,
+                                    "phone_number": user.phone_number, "email": user.email}
                 return Response(
-                    {"payload": {**customer_details, "order_code": order_cde},"message": "Order completed"},
+                    {"payload": {**customer_details, "order_code": order_cde},
+                        "message": f"Order completed"},
                     status=status.HTTP_200_OK
                 )
                 return Response({"message": "User not valid"})
             else:
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    # ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        orders = Order.objects.filter(space=space_id)
+        active_orders = [
+            order for order in orders if order.usage_end_date >= start_date]
+
+        if end_date < start_date:
+            return Response({"message": "End date must be a later date after start date"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if active_orders:
+            for order in active_orders:
+                order_end_date = order.usage_end_date
+                order_type = order.order_type.order_type
+
+                if start_date <= order_end_date:
+                    print(type(order.order_type), type(
+                        request.data['order_type']))
+                    if order_type == "booking":
+                        return Response({"message": f"Space unavailable, pick a date later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                    if order_type == "reservation":
+                        expiry_time = order.order_time + \
+                            timedelta(seconds=21600)
+
+                        return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {active_orders[-1].usage_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+                else:
+                    return book_space()
+        else:
+            return book_space()
+
+        
