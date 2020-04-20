@@ -1,6 +1,6 @@
 # Endpoints data
 
-### Creating Space data
+### Creating Space data POST
 ```
 Route = "api/v1/spaces/"
 
@@ -14,7 +14,7 @@ location:string,
 name:string
 }
 ```
-### Login User
+### Login User POST
 
 ```
 Route = "api/v1/auth/login/"
@@ -25,7 +25,7 @@ data = {
 }
 ```
 
-### Create Agent
+### Create Agent POST
 
 ```
 Route = "api/v1/auth/agents/signup/"
@@ -41,7 +41,7 @@ data = {
 }
 ```
 
-### create agent from a user
+### create agent from a user POST
 
 ```
 Route = "api/v1/auth/agents/signup/"
@@ -53,7 +53,7 @@ data = {
 }
 ```
 
-### Get all Agents
+### Get all Agents GET
 ```
 Route = Route = "api/v1/agents/"
 ```
@@ -63,7 +63,7 @@ Route = Route = "api/v1/agents/"
 Route = Route = "api/v1/auth/agent/user_id/"
 ```
 
-### Update an Agent
+### Update an Agent PUT
 ```
 
 Route = Route = "api/v1/auth/agent/user_id/"
@@ -73,7 +73,7 @@ data = {
 }
 ```
 
-### Create Customer
+### Create Customer POST
 
 ```
 Route = "api/v1/auth/customers/signup/"
@@ -87,7 +87,7 @@ data = {
 }
 ```
 
-### Get all Customers
+### Get all Customers GET
 ```
 Route = Route = "api/v1/customers/"
 ```
@@ -97,7 +97,7 @@ Route = Route = "api/v1/customers/"
 Route = Route = "api/v1/auth/customer/user_id/"
 ```
 
-### Update an Customer
+### Update an Customer PUT
 ```
 
 Route = Route = "api/v1/auth/customer/user_id/"
@@ -106,7 +106,7 @@ data = {
     **fields to be updated
 }
 ```
-#### Verify Email
+#### Verify Email POST
 ````
 
 Route = Route = "api/v1/auth/verify-email/"
@@ -115,7 +115,7 @@ data = {
     token: token sent to email(string)
 }
 ````
-#### Forgot Password
+#### Forgot Password POST
 ````
 
 Route = Route = "api/v1/auth/forgot-password/"
@@ -124,7 +124,7 @@ data = {
     username: agent or customer username
 }
 ````
-#### Reset Password
+#### Reset Password POST
 ````
 
 Route = Route = "api/v1/auth/reset-password/"
@@ -135,9 +135,9 @@ data = {
 }
 
 ````
-#### Booking
+#### Booking POST
 ````
-Route = Route = "api/v1/booking/
+Route = "api/v1/booking/
 ````
 data = {
     usage_start_date: Date field,
@@ -147,3 +147,11 @@ data = {
     space: string
 
 }
+
+#### Single Space GET
+
+```
+Route = "v1/space/space_id/"
+
+append UUID to url
+```
