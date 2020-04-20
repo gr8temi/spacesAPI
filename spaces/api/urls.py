@@ -6,7 +6,7 @@ from django.views.decorators.cache import cache_page
 
 from .views.auth import login
 from .views.add_space import CreateSpace
-from .views.space import Spaces
+from .views.space import Spaces,SpaceDetail
 from .views.booking import Booking
 from .views import agent, customer
 from .views.auth import login, forgot_password, reset_password, verify_email
@@ -18,6 +18,7 @@ urlpatterns = [
     # register other routes here ...
     path('v1/booking/', Booking.as_view(), name="booking"),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
+    path("v1/space/<uuid:space_id>/",SpaceDetail.as_view(), name="a_space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)(Spaces.as_view()), name="spaces"),
     # match route that has not been registered above
     path('v1/auth/login/', login.UserLogin.as_view(), name='login'),
