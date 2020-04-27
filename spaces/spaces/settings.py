@@ -16,7 +16,7 @@ from decouple import config
 from datetime import timedelta
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'algoliasearch_django',
 
 ]
-
 
 # Middlewares
 MIDDLEWARE = [
@@ -176,3 +175,11 @@ CACHES = {
 
     }
 }
+
+# CELERY STUFF
+BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Lagos'

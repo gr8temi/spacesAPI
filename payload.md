@@ -133,11 +133,10 @@ data = {
     token: string,
     password: new password
 }
-
 ````
 #### Booking
 ````
-Route = Route = "api/v1/booking/
+Route = Route = "api/v1/booking/"
 ````
 data = {
     usage_start_date: Date field,
@@ -146,4 +145,16 @@ data = {
     order_type: string
     space: string
 
+}
+````
+#### Reservation
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    usage_start_date: Date field,
+    usage_end_date: date field,
+    transaction_code: string
+    order_type: string
+    space: string
 }

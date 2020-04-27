@@ -18,26 +18,10 @@ from ..models.order_type import OrderType
 from ..helper.helper import order_code
 from ..serializers.order import OrderSerializer
 from ..serializers.user import UserSerializer
+from .order import PlaceOrder
 
-
-class Booking(APIView):
+class Booking(PlaceOrder, APIView):
     permission_classes = (IsAuthenticated,)
-
-    def get_space(self, space_id):
-        space = get_object_or_404(Space, space_id=space_id)
-        return space
-
-    def get_agent(self, biz):
-        agent = get_object_or_404(Agent, business_name=biz)
-        space_agent = get_object_or_404(User, name=agent.user)
-        return space_agent
-
-    def date_object(self, date):
-        return datetime.strptime(date, '%Y-%m-%d').date()
-
-    def get_order_type_id(self, order_type):
-        order = OrderType.objects.filter(order_type=order_type)[0]
-        return order.order_type_id
 
     def post(self, request):
 
@@ -96,7 +80,7 @@ class Booking(APIView):
                 customer_details = {"id": user.user_id, "name": user.name,
                                     "phone_number": user.phone_number, "email": user.email}
                 return Response(
-                    {"payload": {**customer_details, "order_code": order_cde},
+                    {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start_date, "Booking end date": end_date},
                         "message": f"Order completed"},
                     status=status.HTTP_200_OK
                 )
@@ -104,7 +88,6 @@ class Booking(APIView):
             else:
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     # ////////////////////////////////////////////////////////////////////////////////////////////////////
-
         orders = Order.objects.filter(space=space_id)
         active_orders = [
             order for order in orders if order.usage_end_date >= start_date]
@@ -118,8 +101,6 @@ class Booking(APIView):
                 order_type = order.order_type.order_type
 
                 if start_date <= order_end_date:
-                    print(type(order.order_type), type(
-                        request.data['order_type']))
                     if order_type == "booking":
                         return Response({"message": f"Space unavailable, pick a date later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
                     if order_type == "reservation":
