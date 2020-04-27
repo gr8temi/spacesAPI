@@ -16,7 +16,7 @@ from decouple import config
 from datetime import timedelta
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-
+from celery.schedules import crontab
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -100,7 +100,7 @@ EMAIL_BACKEND = config(
 
 # Global configurations for rest framework
 REST_FRAMEWORK = {
-    'DATE_INPUT_FORMATS': [("%Y-%m-%d"),],
+    'DATE_INPUT_FORMATS': [("%Y-%m-%d"), ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
     ],
@@ -182,3 +182,10 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Africa/Lagos'
+
+CELERY_BEAT_SCHEDULE = {
+    'update_order_status': {
+        'task': 'api.tasks.update_order_status',
+        'schedule': crontab()  # execute every minute
+    }
+}
