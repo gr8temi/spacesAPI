@@ -14,6 +14,11 @@ location:string,
 name:string
 }
 ```
+### Get all spaces
+```
+Route = "v1/all-spaces/
+```
+
 ### Login User
 
 ```
@@ -146,8 +151,9 @@ data = {
     space: string
 
 }
+
 ````
-#### Reservation
+#### Reservation (method = POST)
 ````
 Route = Route = "api/v1/reservation/"
 ````
@@ -157,4 +163,14 @@ data = {
     transaction_code: string
     order_type: string
     space: string
+}
+
+````
+#### Complete Order (method = PUT)
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    order_code: string,
+    transaction_code: string
 }

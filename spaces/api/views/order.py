@@ -19,10 +19,9 @@ class PlaceOrder(ABC):
 
     def date_object(self, date):
         return datetime.strptime(date, '%Y-%m-%d').date()
-# order_type.OrderType
+
     def get_order_type_id(self, order_type):
         order = get_object_or_404(OrderType, order_type=order_type)
-        # order = OrderType.objects.filter(order_type=order_type)[0]
         return order.order_type_id
     
     @abstractmethod

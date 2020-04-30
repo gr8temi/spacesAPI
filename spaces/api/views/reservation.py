@@ -34,15 +34,14 @@ class Reservation(PlaceOrder, APIView):
         order_type_name = data["order_type"]
 
         space = self.get_space(space_id)
-        agent = self.get_agent(space.agent)
 
+        agent = self.get_agent(space.agent)
         agent_name = agent.name
         agent_mail = agent.email
 
         today = timezone.now().date()
         now = timezone.now()
         reservation_expiry = now + timedelta(seconds = 21600)
-        # print(f"reservation expires at {reservation_expiry}")
         order_cde = order_code()
 
     # ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,34 +119,38 @@ class Reservation(PlaceOrder, APIView):
         customer = get_object_or_404(User, user_id=user.id)
         order_code = data['order_code']
         transaction_code = data['transaction_code']
-        # customer want to complete order
         order = get_object_or_404(Order, order_code=order_code)
-        space = Space.objects.filter(name=order.space)[0]
-        # space = get_object_or_404(Space, name=order.space)
+        space = self.get_space(order.space.space_id)
+    
+        # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!! 
         agent = self.get_agent(space.agent)
 
         if order.status == "pending":
-            if transaction_code != "none" and order_code:
-                order.transaction_code = transaction_code
-                order.status = "booked"
-                order.save()
+            if order_code:
+                if transaction_code != "none":
 
-                sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
-                subject_agent = "YOU HAVE A RESERVED ORDER"
-                to_agent = [agent.email]
-                agent_content = f"Dear {agent.name}, space {space.name} listed on our platform has been reser from {order.usage_start_date} to {order.usage_end_date}."
+                    order.transaction_code = transaction_code
+                    order.status = "booked"
+                    order.save()
 
-                subject_customer2 = "ORDER COMPLETED"
-                to_customer = [customer.email]
-                customer_content2 = f"Dear {customer.name}, Your order {order_code} for {space.name} has been completed. Thanks for your patronage"
+                    sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
+                    subject_agent = "YOU HAVE A RESERVED ORDER"
+                    to_agent = [agent.email]
+                    agent_content = f"Dear {agent.name}, space {space.name} listed on our platform has been reser from {order.usage_start_date} to {order.usage_end_date}."
+
+                    subject_customer2 = "ORDER COMPLETED"
+                    to_customer = [customer.email]
+                    customer_content2 = f"Dear {customer.name}, Your order {order_code} for {space.name} has been completed. Thanks for your patronage"
 
 
-                send_mail(subject_agent, agent_content, sender, to_agent)
-                send_mail(subject_customer2, customer_content2, sender, to_customer)
-    
-                return Response({"message": "Order completed"}, status=status.HTTP_200_OK)
+                    send_mail(subject_agent, agent_content, sender, to_agent)
+                    send_mail(subject_customer2, customer_content2, sender, to_customer)
+
+                    return Response({"message": "Order completed", "status": f"{order.status}"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"message": "Kindly make payment to proceed"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({"message": "Enter order code and make payment"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Provide order code to proceed'})
         else:
             return Response({"message": "Reservation has expired, click on booking link to make a fresh booking"}, status=status.HTTP_406_NOT_ACCEPTABLE)
         

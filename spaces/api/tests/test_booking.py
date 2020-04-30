@@ -84,9 +84,6 @@ class TestBooking(APITestCase):
                         'order_type': self.order_type2,
                         'space': self.space.space_id
                     }
-        # self.complete_order_data = {
-        #     'order_code': "", 'transaction_code': "235467"
-        # }
 
         self.data = {'email': 'customer@gmail.com', 'password': "customer"}
         self.url = reverse('login')
@@ -117,12 +114,12 @@ class TestBooking(APITestCase):
         self.assertEqual(response1.data["message"], "Flora Hall reserved from 2020-04-27 to 2020-04-29")
         
         order_code = response1.data["payload"]["order_code"]
-        order_data4 = {
+        complete_order_data = {
             'order_code': order_code,
             'transaction_code': '235467'
         }
         
-        response2 = self.client.put(self.url3, order_data4, HTTP_AUTHORIZATION=self.header)
+        response2 = self.client.put(self.url3, complete_order_data, HTTP_AUTHORIZATION=self.header)
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(response2.data["message"], "Order completed")
        
