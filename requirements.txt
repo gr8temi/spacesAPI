@@ -1,11 +1,11 @@
 algoliasearch==1.20.0
 algoliasearch-django==1.7.1
-amqp==1.4.9
-anyjson==0.3.3
+amqp==2.5.2
 asgiref==3.2.3
 autopep8==1.5
 bcrypt==3.1.7
-billiard==3.3.0.23
+billiard==3.6.3.0
+celery==4.4.2
 certifi==2019.11.28
 cffi==1.14.0
 chardet==3.0.4
@@ -19,6 +19,7 @@ djangorestframework==3.10.3
 djangorestframework-simplejwt==4.4.0
 idna==2.9
 importlib-metadata==1.6.0
+kombu==4.6.8
 psycopg2==2.8.4
 pycodestyle==2.5.0
 pycparser==2.20
