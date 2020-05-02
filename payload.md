@@ -14,6 +14,11 @@ location:string,
 name:string
 }
 ```
+### Get all spaces
+```
+Route = "v1/all-spaces/
+```
+
 ### Login User
 
 ```
@@ -133,11 +138,10 @@ data = {
     token: string,
     password: new password
 }
-
 ````
 #### Booking
 ````
-Route = Route = "api/v1/booking/
+Route = Route = "api/v1/booking/"
 ````
 data = {
     usage_start_date: Date field,
@@ -146,4 +150,27 @@ data = {
     order_type: string
     space: string
 
+}
+
+````
+#### Reservation (method = POST)
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    usage_start_date: Date field,
+    usage_end_date: date field,
+    transaction_code: string
+    order_type: string
+    space: string
+}
+
+````
+#### Complete Order (method = PUT)
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    order_code: string,
+    transaction_code: string
 }

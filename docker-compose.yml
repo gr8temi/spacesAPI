@@ -27,7 +27,34 @@ services:
     depends_on:
       - db
       - redis
+      
+  celery:
+    build: .
+    command: celery -A spaces worker -l info
+    volumes:
+      - "celerydata:/celery"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+
+  celery-beat:
+    build: .
+    command: celery -A spaces beat -l info
+    volumes:
+      - "celerybeatdata:/celerybeat"
+    env_file:
+      - .env        
+    depends_on: 
+      - db
+      - redis
+    
 
 volumes:
   spacesdb:
   redisdata:
+  celerydata:
+  celerybeatdata:
+
