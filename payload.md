@@ -14,7 +14,15 @@ location:string,
 name:string
 }
 ```
+
+
+### Get all spaces
+```
+Route = "v1/all-spaces/
+```
+
 ### Login User POST
+
 
 ```
 Route = "api/v1/auth/login/"
@@ -133,11 +141,11 @@ data = {
     token: string,
     password: new password
 }
-
 ````
 #### Booking POST
 ````
 Route = "api/v1/booking/
+
 ````
 data = {
     usage_start_date: Date field,
@@ -148,6 +156,7 @@ data = {
 
 }
 
+
 #### Single Space GET
 
 ```
@@ -155,3 +164,26 @@ Route = "v1/space/space_id/"
 
 append UUID to url
 ```
+
+````
+#### Reservation (method = POST)
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    usage_start_date: Date field,
+    usage_end_date: date field,
+    transaction_code: string
+    order_type: string
+    space: string
+}
+
+````
+#### Complete Order (method = PUT)
+````
+Route = Route = "api/v1/reservation/"
+````
+data = {
+    order_code: string,
+    transaction_code: string
+}

@@ -8,6 +8,7 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces,SpaceDetail
 from .views.booking import Booking
+from .views.reservation import Reservation
 from .views import agent, customer
 from .views.auth import login, forgot_password, reset_password, verify_email
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
@@ -16,6 +17,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 urlpatterns = [
 
     # register other routes here ...
+    path('v1/reservation/', Reservation.as_view(), name="reservation"),
     path('v1/booking/', Booking.as_view(), name="booking"),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path("v1/space/<uuid:space_id>/",SpaceDetail.as_view(), name="a_space"),
