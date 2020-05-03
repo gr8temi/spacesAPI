@@ -11,11 +11,9 @@ def customer_registration_data():
 
 def agent_registration_data():
     return {
-        "shop_name": "best4less",
-        "email": "test@gmail.com",
-        "password": "testpassword",
-        "user_type": "vendor",
-        "email_verification_token": "hjfdsjkfl3"
+        "business_name": "best4less",
+        "office_address":"lagos",
+        "validated": False
     }
     
 def user_registration_data():
