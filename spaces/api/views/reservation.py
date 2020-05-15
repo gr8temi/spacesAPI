@@ -76,11 +76,10 @@ class Reservation(PlaceOrder, APIView):
                 customer_details = {"id": customer.user_id, "name": customer.name,
                                     "phone_number": customer.phone_number, "email": customer.email}
                 return Response(
-                    {"payload": {**customer_details, "Booking start date": start_date, "Booking end date": end_date, "order_code": order_cde},
+                    {"payload": {**customer_details, "booking_start_date": start_date, "booking_end_date": end_date, "order_code": order_cde},
                         "message": f"{space.name} reserved from {start_date} to {end_date}"},
                     status=status.HTTP_200_OK
                 )
-                # return Response({"message": "User not valid"})
             else:
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
               

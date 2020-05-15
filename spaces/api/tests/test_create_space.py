@@ -51,6 +51,8 @@ class ViewTestCase(APITestCase):
         self.space_category = SpaceCategory.objects.create(
             space_category="hall")
         self.location = "Lagos"
+        self.latitude = "12.567895"
+        self.longitude = "0.876545"
         self.agent = Agent.objects.create(
             user=self.new_user, business_name="best4less")
         self.images = ['An image url', 'Another image url']
@@ -72,6 +74,8 @@ class ViewTestCase(APITestCase):
             "description":self.description,
             "space_category":self.space_category.category_id,
             "location":self.location,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
             "name":self.name,
             "price":200,
             "images": self.images,
