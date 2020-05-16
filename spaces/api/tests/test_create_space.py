@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from ..views.auth.login import UserLogin
+from .mock_data.space_data import space_data
 
 class CreateSpaceTest(APITestCase):
     def setUp(self):
@@ -27,11 +28,12 @@ class CreateSpaceTest(APITestCase):
         self.videos = ['A video url', 'Another video url']
         self.rules = ['No drinking', 'No smoking']
         self.facilities = ['Rest room', 'Changing room']
-        self.space = Space.objects.create(name=self.name,
-                                          number_of_bookings=self.number_of_bookings, agent=self.agent, description=self.description, price=self.price, space_category=self.space_category_id, images=self.images, videos=self.videos, rules=self.rules, facilities=self.facilities)
+        # self.space = Space.objects.create(name=self.name,
+        #                                   number_of_bookings=self.number_of_bookings, agent=self.agent, description=self.description, price=self.price, space_category=self.space_category_id, images=self.images, videos=self.videos, rules=self.rules, facilities=self.facilities)
         # print(self.space.rule)
     def test_create_space(self):
-        self.space.save()
+        space = Space.objects.create(**space_data())
+        space.save()
         new_space_count = Space.objects.count()
         self.assertNotEqual(self.old_space_count, new_space_count)
 
@@ -68,21 +70,19 @@ class ViewTestCase(APITestCase):
         
         header = 'Bearer ' + user_token
         
-        space_data = {
-            "number_of_bookings":self.number_of_bookings,
-            "agent":self.agent.agent_id,
-            "description":self.description,
-            "space_category":self.space_category.category_id,
-            "location":self.location,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "name":self.name,
-            "price":200,
-            "images": self.images,
-            "videos": self.videos,
-            "rules": self.rules,
-            "facilities": self.facilities,
-        }
+        # space_data = {
+        #     "number_of_bookings":self.number_of_bookings,
+        #     "agent":self.agent.agent_id,
+        #     "description":self.description,
+        #     "space_category":self.space_category.category_id,
+        #     "location":self.location,
+        #     "name":self.name,
+        #     "price":200,
+        #     "images": self.images,
+        #     "videos": self.videos,
+        #     "rules": self.rules,
+        #     "facilities": self.facilities,
+        # }
         response1 = self.client.post(
-            reverse('space'),space_data ,HTTP_AUTHORIZATION=header, format='json')
+            reverse('space'),space_data() ,HTTP_AUTHORIZATION=header, format='json')
         self.assertEqual(response1.status_code, 201)
