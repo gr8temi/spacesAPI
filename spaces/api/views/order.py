@@ -4,9 +4,10 @@ from datetime import datetime
 from ..models import spaces, agent, user
 from ..models.order_type import OrderType
 from ..helper.helper import order_code
+from rest_framework.views import APIView
 
 
-class PlaceOrder(ABC):
+class PlaceOrder(APIView):
 
     def get_space(self, space_id):
         space = get_object_or_404(spaces.Space, space_id=space_id)

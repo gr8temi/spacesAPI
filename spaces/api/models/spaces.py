@@ -2,14 +2,16 @@ import uuid
 from django.db import models
 from .spaces_category import SpaceCategory
 from .agent import Agent
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 class SpaceManager(models.Manager):
     def get_spaces_by_availability(self,available):
         spaces = self.objects.filter(availability=available)
         count = spaces.count()
         return {"spaces":spaces,"count":count}
-        
+           
 class Space(models.Model):
     space_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     number_of_bookings = models.IntegerField(null=True,blank=True)
@@ -18,15 +20,17 @@ class Space(models.Model):
     price  = models.CharField( max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     space_category = models.ForeignKey(SpaceCategory, on_delete=models.DO_NOTHING)
+    capacity = models.IntegerField()
     location  = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     name  = models.CharField(max_length=50)
     images = ArrayField(base_field=models.CharField(max_length=256))
+    videos = ArrayField(base_field=models.CharField(max_length=256))
     facilities = ArrayField(base_field=models.CharField(max_length=50))
     rules = ArrayField(base_field=models.CharField(max_length=50))
-    cancellation_rules = ArrayField(base_field=models.CharField(max_length=256), null=True)
-    videos = ArrayField(base_field=models.CharField(max_length=256))
+    cancellation_rules = ArrayField(base_field=models.CharField(max_length=256))
+    availability = JSONField(encoder=DjangoJSONEncoder)
     objects = SpaceManager()
     updated_at = models.DateTimeField( auto_now=True)
     

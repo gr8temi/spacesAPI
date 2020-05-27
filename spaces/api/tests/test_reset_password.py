@@ -11,7 +11,6 @@ class TestResetPassword(APITestCase):
     
     def setUp(self):
         data = user_registration_data()
-        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         user = User.objects.create(**data)
         user.save()
 

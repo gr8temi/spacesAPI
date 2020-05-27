@@ -20,7 +20,7 @@ from ..serializers.order import OrderSerializer
 from ..serializers.user import UserSerializer
 from .order import PlaceOrder
 
-class Booking(PlaceOrder, APIView):
+class Booking(PlaceOrder):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -114,4 +114,28 @@ class Booking(PlaceOrder, APIView):
         else:
             return book_space()
 
+
+class BookingStatus(APIView):
+    def get_order(self,order_code):
+
+        try:
+            return Order.objects.get(order_code=order_code)
+        except:
+            return False
+
+    def get(self,request,order_code):
+
+        order = self.get_order(order_code)
         
+        if order:
+
+            order_type = order.order_type
+            serializer = OrderSerializer(order)
+            if str(order_type) == "booking":
+                return Response({"message":"Booking fetched successfully", "payload":serializer.data},status=status.HTTP_200_OK)
+            elif str(order_type) == "reservation":
+                expiry_time = order.order_time + timedelta(seconds=21600)
+
+                return Response({"message":"Reservation fetched successfully","payload":serializer.data,"expiration":expiry_time}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message":"Order not found"}, status=status.HTTP_404_NOT_FOUND)
