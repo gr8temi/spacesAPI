@@ -5,13 +5,22 @@
 Route = "api/v1/spaces/"
 
 data = {
-number_of_bookings:integer,
-agent: agent's UUID,
+name:string
 description: string,
 space_category: category's UUID,
-price:string,
-location:string,
-name:string
+address: dict,
+gmap: dict,
+number_of_bookings:integer,
+capacity: integer,
+amount: string,
+agent: agent's UUID
+duration: string,
+images: list,
+videos: list,
+amenities: list,
+carspace: integer,
+rules: list,
+cancellation_rules: list
 }
 ```
 ### Get all spaces
