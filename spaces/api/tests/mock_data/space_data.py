@@ -6,20 +6,30 @@ from ...models.spaces_category import SpaceCategory
 
 def space_creation_data():
     return {
-        "number_of_bookings": 1,
+        "name": "asdfghjk",
         "description": "testuser",
-        "price": "testpassword",
-        "location": "customer",
-        "longitude": 12.345678,
-        "latitude": -3.567899,
-        "name": "hjfdsjkfl3",
+        "address": {"address": "Ijeoma Odika", "city": "lekki", "state": "lagos"},
+        "gmap": {"lat": "6.234567", "lng": "-2.675432"},
+        "number_of_bookings": 1,
+        "capacity":50,
+        "amount": "450000",
+        "duration": "weekly",
         "images":["image1"],
         "videos":["video1"],
-        "facilities":["facilities"],
+        "amenities":["facilities"],
+        "carspace": 50,
         "rules":["rules"],
-        "cancellation_rules":["no-refund"],
-        "capacity":50,
-        "availability":[{"day": "monday", "all_day": True, "opening_time": "8am", "closing_time": "5pm"}]
+        "cancellation_rules":["no-refund"]
+    }
+
+def extras_data():
+    return {
+        "extras": [{"name": "AC", "cost": 500, "duration": "hourly"}, {"name": "Bouncer", "cost": 500, "duration": "hourly"}]
+    }
+
+def availability_data():
+    return {
+        "availability":[{"day": "monday", "all_day": True, "open_time": "8:00", "close_time": "17:00"}, {"day": "tuesday", "all_day": False, "open_time": "", "close_time": ""}],
     }
 
 def space_category_data():

@@ -5,11 +5,13 @@ from ..models.spaces_category import SpaceCategory
 from ..models.user import User
 from ..models.agent import Agent
 from ..models.customer import Customer
+from ..models.availabilities import Availability
+from ..models.extras import Extra
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from ..views.auth.login import UserLogin
-from .mock_data.space_data import space_creation_data, space_category_data
+from .mock_data.space_data import space_creation_data, space_category_data, extras_data, availability_data
 from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
 
 class CreateSpaceTest(APITestCase):
@@ -21,7 +23,6 @@ class CreateSpaceTest(APITestCase):
 
     def test_create_space(self):
         space = Space.objects.create(**space_creation_data(), agent=self.agent, space_category=self.space_category)
-        space.save()
         new_space_count = Space.objects.count()
         self.assertNotEqual(self.old_space_count, new_space_count)
 
@@ -36,8 +37,6 @@ class ViewTestCase(APITestCase):
         # create customer
         self.user_customer = User.objects.create(**customer_registration_data())
         self.customer = Customer.objects.create(user=self.user_customer)
-        self.space = Space.objects.create(**space_creation_data(), agent=self.agent, space_category=self.space_category)
-
         self.data = {**customer_login_data()}
         self.url = reverse('login')
         self.response = self.client.post(self.url, self.data )
@@ -48,9 +47,13 @@ class ViewTestCase(APITestCase):
         
         space_data = {
             **space_creation_data(),
+            **extras_data(),
+            **availability_data(),
             "agent": self.agent.agent_id,
             "space_category":self.space_category.category_id
         }
         response1 = self.client.post(
-            reverse('space'),space_data ,HTTP_AUTHORIZATION=self.header, format='json')
+            reverse('space'),space_data, HTTP_AUTHORIZATION=self.header, format='json')
+        name = space_data['name']
         self.assertEqual(response1.status_code, 201)
+        self.assertEqual(response1.data['message'], f'{name} was created successfully')
