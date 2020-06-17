@@ -8,6 +8,8 @@ from django.utils import timezone
 from datetime import datetime, date, timedelta
 from decouple import config
 from django.core.mail import send_mail
+import calendar
+import json
 
 
 from ..models.user import User
@@ -15,48 +17,76 @@ from ..models.agent import Agent
 from ..models.spaces import Space
 from ..models.order import Order
 from ..models.order_type import OrderType
+from ..models.availabilities import Availability
 from ..helper.helper import order_code
 from ..serializers.order import OrderSerializer
 from .order import PlaceOrder
 
 
-class Reservation(PlaceOrder, APIView):
-    permission_classes = (IsAuthenticated,)
+class Reservation(PlaceOrder):
     
     def post(self, request):
-        user = request.user
-        customer = get_object_or_404(User, user_id=user.id)
+
+        if request.user:
+            user = getattr(request._request, 'user', None).id
+        else:
+            user =''
 
         data = request.data
-        end_date = self.date_object(data['usage_end_date'])
-        start_date = self.date_object(data['usage_start_date'])
+        start = datetime.strptime(data['usage_start_date'], '%Y-%m-%d %H:%M:%S')
+        end = datetime.strptime(data['usage_end_date'], '%Y-%m-%d %H:%M:%S')
+        start_day = calendar.day_name[start.weekday()]
+        end_day = calendar.day_name[end.weekday()]
+        end_time = end.hour
+        start_time = start.hour
+        start_date = start.day
+        end_date = end.day
+        start_month = start.month
+        end_month = end.month
+        start_year = start.year
+        end_year = end.year
+
         space_id = data["space"]
         order_type_name = data["order_type"]
-
+        first_name = data['first_name']
+        last_name = data['last_name']
+        email = data['company_email']
+        extras = json.dumps(data['extras'])
+        amount = data['amount']
+        no_of_guest = data['no_of_guest']
         space = self.get_space(space_id)
-
         agent = self.get_agent(space.agent)
+
         agent_name = agent.name
         agent_mail = agent.email
 
         today = timezone.now().date()
+        duration = space.duration
+        space_availability = Availability.objects.filter(space=space.name)
+        availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time, 'close_time': av.close_time} for av in space_availability]
+
         now = timezone.now()
         reservation_expiry = now + timedelta(seconds = 21600)
         order_cde = order_code()
 
-    # ////////////////////////////////////////////////////////////////////////////////////////////////
         def make_reservation():
         
             order_data = {
-                'usage_start_date': start_date,
-                'usage_end_date': end_date,
+                'amount': amount,
+                'usage_start_date': start,
+                'usage_end_date': end,
                 'status': 'pending',
                 'transaction_code': "none",
                 'order_code': order_cde,
-
                 'order_type': self.get_order_type_id(order_type_name),
-                'user': user.id,
-                'space': space_id
+                'no_of_guest': no_of_guest,
+                'user': user,
+                'first_name': first_name,
+                'last_name': last_name,
+                'company_email': email,
+                'extras': extras,
+                'space': space_id,
+                'duration': duration
             }
 
             order_serializer = OrderSerializer(data=order_data)
@@ -67,50 +97,84 @@ class Reservation(PlaceOrder, APIView):
 
                 # notification for customer
                 subject_customer = "SPACE RESERVED"
-                to_customer = [customer.email]
-                customer_content = f"Dear {customer.name}, You reserved space {space.name} for use from {start_date} to {end_date}, your order code is {order_cde}. Kindly proceed to make payment and complete order by supplying your order code upon login before {reservation_expiry}. Thanks for your patronage"
+                to_customer = [email]
+                customer_content = f"Dear {first_name}, You reserved space {space.name} for use from {start_date} to {end_date}, your order code is {order_cde}. Kindly proceed to make payment and complete order by supplying your order code upon login before {reservation_expiry}. Thanks for your patronage"
 
                 send_mail(subject_customer, customer_content,
                         sender, to_customer)
 
-                customer_details = {"id": customer.user_id, "name": customer.name,
-                                    "phone_number": customer.phone_number, "email": customer.email}
+                customer_details = {"id": user, "first_name": first_name, "last_name" : last_name, "email": email}
+
                 return Response(
                     {"payload": {**customer_details, "booking_start_date": start_date, "booking_end_date": end_date, "order_code": order_cde},
-                        "message": f"{space.name} reserved from {start_date} to {end_date}"},
+                        "message": f"{space.name} reserved from 2020-04-27 to 2020-04-29"},
                     status=status.HTTP_200_OK
                 )
             else:
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-              
-    # ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        #  check if date selected is available
-        orders = Order.objects.filter(space=space_id)
-        active_orders = [
-            order for order in orders if order.usage_end_date >= start_date]
+        def get_active_orders(start):
+            orders = Order.objects.filter(space=space_id)
+            active_orders = [order for order in orders if order.usage_end_date >= start]
+            return active_orders
 
-        if end_date < start_date:
-            return Response({"message": "End date must be a later date after start date"}, status=status.HTTP_400_BAD_REQUEST)
+        def reserve(active_orders, start_date, duration_type):
+            if active_orders:
+                for order in active_orders:
+                    order_end_date = order.usage_end_date
+                    order_type = order.order_type.order_type
 
-        if active_orders:
-            for order in active_orders:
-                order_end_date = order.usage_end_date
-                order_type = order.order_type.order_type
+                    if start_date <= order_end_date:
+                        if order_type == "booking":
+                            return Response({"message": f"Space unavailable, pick a duration_type later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                        elif order_type == "reservation":
+                            expiry_time = order.order_time + \
+                                timedelta(seconds=21600)
 
-                if start_date <= order_end_date:
-                    if order_type == "booking":
-                        return Response({"message": f"Space unavailable, pick a date later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-                    if order_type == "reservation":
-                        expiry_time = order.order_time + \
-                            timedelta(seconds=21600)
+                            return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {active_orders[-1].usage_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                        else:
+                            return Response({'message': 'Invalid order type'})
+                    else:
+                        return make_reservation()
+            else:
+                return make_reservation()
 
-                        return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {active_orders[-1].usage_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
+        active_orders = get_active_orders(start)
+        opening_period = self.check_all_day(availability, start_day)
+        
+        
+        if duration == 'hourly':
+            if self.invalid_time(start_time, end_time):
+                if opening_period == True:
+                    return reserve(active_orders, start_date, 'time')
                 else:
-                    return make_reservation()
+                    opening = [time.strftime("%m-%d-%Y, %H:%M") for time in opening_period]
+                    open_time = opening[0]
+                    close_time = opening[1]
+                    if open_time > start_time:
+                        return Response({"message": f"Space opens between {open_time} to {close_time}"}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return reserve(active_orders, start)
+            else:
+                return Response({"message": "Usage end time must be a later than start time"}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif duration == 'daily':
+            if self.invalid_time(end_date, start_date):
+                return reserve(active_orders, start, date)
+            else:
+                return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif duration == 'monthly':
+            if self.invalid_time(start_month, end_month):
+                return reserve(active_orders, start)
+            else:
+                return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
+
         else:
-            return make_reservation()
+            if self.invalid_time(start_year, end_year):
+                return reserve(active_orders, start, 'year')
+            else:
+                return Response({"message": "Usage end year must be a later than start year"}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
         data = request.data

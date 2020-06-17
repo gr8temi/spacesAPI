@@ -37,7 +37,6 @@ class TestBookingStatus(APITestCase):
     def test_book_status(self):
         url1 = reverse('booking_status',args=[str(self.order_booking.order_code)])
         url2 = reverse('booking_status',args=[str(self.order_reservation.order_code)])
-        # new_uuid = uuid.uuid4()
         url3 =reverse('booking_status',args=["1234kmonkh"])
 
         response1 = self.client.get(url1)
