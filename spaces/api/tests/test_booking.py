@@ -17,7 +17,7 @@ from ..models.availabilities import Availability
 from ..models.extras import Extra
 from ..helper.helper import order_code
 from .mock_data.space_data import space_creation_data, space_category_data, extra1, extra2, availability1, availability2, availability3_1, availability3_2, availability3_3, availability3_4, availability3_5, availability3_6, availability3_7, hourly_space_data, monthly_space_data, yearly_space_data
-from .mock_data.order_data import order_data1, order_data2, order_data3, order_data4, order_extra
+from .mock_data.order_data import order_data1, order_data3, order_data4, order_extra
 from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
 from .mock_data.order_data import order_type_booking, order_data,order_type_reservation
 

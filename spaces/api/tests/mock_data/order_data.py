@@ -19,17 +19,17 @@ def order_extra():
         'extras': [{"extraName": "Free Wifi", "amount": 6000}, {"extraName": "Free AC", "amount": 6000}]
     }
 
-def order_data2():
-    return {
-            'usage_start_date': date_object("2020-04-26 10:00:00"),
-            'usage_end_date': date_object("2020-04-28 15:00:00"),
-            'transaction_code': "234967",
-            'amount': "700",
-            'no_of_guest': 45,
-            'first_name': "sola",
-            'last_name': "sola",
-            'company_email': "soa mail",        
-        }
+# def order_data2():
+#     return {
+#             'usage_start_date': date_object("2020-04-26 10:00:00"),
+#             'usage_end_date': date_object("2020-04-28 15:00:00"),
+#             'transaction_code': "234967",
+#             'amount': "700",
+#             'no_of_guest': 45,
+#             'first_name': "sola",
+#             'last_name': "sola",
+#             'company_email': "soa mail",        
+#         }
 
 def order_data3():
     return {
