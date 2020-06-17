@@ -115,7 +115,7 @@ class Booking(PlaceOrder):
                 )
             return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        def order(active_orders, start, duration_type):
+        def order(active_orders, start):
             if active_orders:
                 for order in active_orders:
                     order_end_date = order.usage_end_date
@@ -147,7 +147,7 @@ class Booking(PlaceOrder):
         if duration == 'hourly':
             if self.invalid_time(start_time, end_time):
                 if opening_period == True:
-                    return order(active_orders, start_date, 'time')
+                    return order(active_orders, start_date)
                 else:
                     opening = [time.strftime("%m-%d-%Y, %H:%M") for time in opening_period]
                     open_time = opening[0]
@@ -155,27 +155,27 @@ class Booking(PlaceOrder):
                     if open_time > start_time:
                         return Response({"message": f"Space opens between {open_time} to {close_time}"}, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return order(active_orders, start, 'time')
+                        return order(active_orders, start)
             else:
-                return Response({"message": "Usage end {duration_type} must be a later {duration_time} after start {duration_type}"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "Usage end time must be a later  than start time"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif duration == 'daily':
             if self.invalid_time(end_date, start_date):
-                return order(active_orders, start, date)
+                return order(active_orders, start)
             else:
-                return Response({"message": "Usage end date must be a later {duration_time} after start date"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif duration == 'monthly':
             if self.invalid_time(start_month, end_month):
-                return order(active_orders, start, 'month')
+                return order(active_orders, start)
             else:
-                return Response({"message": "Usage end month must be a later {duration_time} after start month"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             if self.invalid_time(start_year, end_year):
-                return order(active_orders, start, 'year')
+                return order(active_orders, start)
             else:
-                return Response({"message": "Usage end {duration_type} must be a later {duration_time} after start {duration_type}"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "Usage end year must be a later than start year"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

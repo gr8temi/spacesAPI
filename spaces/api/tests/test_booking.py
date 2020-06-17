@@ -68,13 +68,6 @@ class TestBooking(APITestCase):
             'order_type': self.order_type1
         }
 
-        data2 = {
-            **order_data2(),
-            **order_extra(),
-            'space': self.space.space_id,
-            'order_type': self.order_type1
-        }
-
         data3 = {
             **order_data3(),
             **order_extra(),
@@ -104,7 +97,6 @@ class TestBooking(APITestCase):
             'order_type': self.order_type1
         }
         response1 = self.client.post(self.url2, data1, HTTP_AUTHORIZATION=self.header)
-        response2 = self.client.post(self.url2, data2, HTTP_AUTHORIZATION=self.header)
         response3 = self.client.post(self.url2, data3, HTTP_AUTHORIZATION=self.header)
         response4 = self.client.post(self.url2, data4, HTTP_AUTHORIZATION=self.header)
         response5 = self.client.post(self.url2, data5, HTTP_AUTHORIZATION=self.header)
@@ -113,11 +105,8 @@ class TestBooking(APITestCase):
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response1.data['message'], "Order completed")
 
-        self.assertEqual(response2.status_code, 200)
-        self.assertEqual(response2.data['message'], "Order completed")
-
         self.assertEqual(response3.status_code, 503)
-        self.assertEqual(response3.data['message'], "Space unavailable, pick a date later than 2020-04-28 15:00:00 or check another space")
+        self.assertEqual(response3.data['message'], "Space unavailable, pick a date later than 2020-04-25 11:00:00 or check another space")
 
         self.assertEqual(response4.status_code, 200)
         self.assertEqual(response4.data['message'], "Order completed")
