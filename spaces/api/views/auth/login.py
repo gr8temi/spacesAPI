@@ -20,7 +20,6 @@ class UserLogin(APIView):
                 
                 refresh = RefreshToken.for_user(user)
                 
-
                 token = {
                     'access': str(refresh.access_token),
                 }

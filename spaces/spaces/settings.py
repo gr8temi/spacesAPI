@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.postgres',
     'rest_framework',
     'django_rest_passwordreset',
     'api',
@@ -161,7 +162,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 CACHE_TTL = 60 * 15
 CACHES = {

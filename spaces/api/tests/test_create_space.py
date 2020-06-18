@@ -4,81 +4,56 @@ from ..models.spaces import Space
 from ..models.spaces_category import SpaceCategory
 from ..models.user import User
 from ..models.agent import Agent
+from ..models.customer import Customer
+from ..models.availabilities import Availability
+from ..models.extras import Extra
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from ..views.auth.login import UserLogin
+from .mock_data.space_data import space_creation_data, space_category_data, extras_data, availability_data
+from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
 
 class CreateSpaceTest(APITestCase):
     def setUp(self):
+        self.space_category = SpaceCategory.objects.create(**space_category_data())
+        self.user = User.objects.create(**user_registration_data())
+        self.agent = Agent.objects.create(user=self.user, **agent_registration_data())
         self.old_space_count = Space.objects.count()
-        self.name = "Event Hall"
-        self.id = 1
-        self.number_of_bookings = 1
-        self.description = "An event hall for party"
-        self.price = 200000
-        self.space_category_id = SpaceCategory.objects.create(
-            space_category="hall")
-        self.location = "Lagos"
-        self.new_user = User.objects.create( email="joe@gmail.com")
-        self.agent = Agent.objects.create(
-            user=self.new_user, business_name="best4less")
-        self.images = ['An image url', 'Another image url']
-        self.videos = ['A video url', 'Another video url']
-        self.rules = ['No drinking', 'No smoking']
-        self.facilities = ['Rest room', 'Changing room']
-        self.space = Space.objects.create(name=self.name,
-                                          number_of_bookings=self.number_of_bookings, agent=self.agent, description=self.description, price=self.price, space_category=self.space_category_id, images=self.images, videos=self.videos, rules=self.rules, facilities=self.facilities)
-        # print(self.space.rule)
+
     def test_create_space(self):
-        self.space.save()
+        space = Space.objects.create(**space_creation_data(), agent=self.agent, space_category=self.space_category)
         new_space_count = Space.objects.count()
         self.assertNotEqual(self.old_space_count, new_space_count)
 
 
 class ViewTestCase(APITestCase):
     def setUp(self):
-        password="joe"
-        self.hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        self.new_user = User.objects.create(
-             email="joe@gmail.com", password=self.hashed)
-        self.new_user.save()
-        self.name = "Event Hall"
-        self.id = 1
-        self.number_of_bookings = 1
-        self.description = "An event hall for party"
-        self.price = 200000
-        self.space_category = SpaceCategory.objects.create(
-            space_category="hall")
-        self.location = "Lagos"
-        self.agent = Agent.objects.create(
-            user=self.new_user, business_name="best4less")
-        self.images = ['An image url', 'Another image url']
-        self.videos = ['A video url', 'Another video url']
-        self.rules = ['No drinking', 'No smoking']
-        self.facilities = ['Rest room', 'Changing room']
+        self.space_category = SpaceCategory.objects.create(**space_category_data())
 
-    def test_create(self):
-        data = {'email': self.new_user.email, 'password': "joe"}
-        url = reverse('login')
-        response = self.client.post(url, data )
-        user_token = response.data["token"]['access']
+        # create agent
+        self.user_agent = User.objects.create(**user_registration_data())
+        self.agent = Agent.objects.create(user=self.user_agent, **agent_registration_data())
+        # create customer
+        self.user_customer = User.objects.create(**customer_registration_data())
+        self.customer = Customer.objects.create(user=self.user_customer)
+        self.data = {**customer_login_data()}
+        self.url = reverse('login')
+        self.response = self.client.post(self.url, self.data )
+        self.user_token = self.response.data["token"]['access']
+        self.header = 'Bearer ' + self.user_token
         
-        header = 'Bearer ' + user_token
+    def test_create(self):
         
         space_data = {
-            "number_of_bookings":self.number_of_bookings,
-            "agent":self.agent.agent_id,
-            "description":self.description,
-            "space_category":self.space_category.category_id,
-            "location":self.location,
-            "name":self.name,
-            "price":200,
-            "images": self.images,
-            "videos": self.videos,
-            "rules": self.rules,
-            "facilities": self.facilities,
+            **space_creation_data(),
+            **extras_data(),
+            **availability_data(),
+            "agent": self.agent.agent_id,
+            "space_category":self.space_category.category_id
         }
         response1 = self.client.post(
-            reverse('space'),space_data ,HTTP_AUTHORIZATION=header, format='json')
+            reverse('space'),space_data, HTTP_AUTHORIZATION=self.header, format='json')
+        name = space_data['name']
         self.assertEqual(response1.status_code, 201)
+        self.assertEqual(response1.data['message'], f'{name} was created successfully')
