@@ -33,7 +33,7 @@ class PlaceOrder(APIView):
                 else:
                     return ([each_day_availability['open_time'], each_day_availability['close_time']])
     
-    def invalid_time(self, end, start):
+    def invalid_time(self, start, end):
             if end < start:
                 return False
             else:

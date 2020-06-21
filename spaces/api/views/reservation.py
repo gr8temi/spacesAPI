@@ -69,6 +69,11 @@ class Reservation(PlaceOrder):
         reservation_expiry = now + timedelta(seconds = 21600)
         order_cde = order_code()
 
+        if duration == 'hourly':
+            hours_booked = json.dumps(data['hours_booked'])
+        else:
+            hours_booked = ''
+
         def make_reservation():
         
             order_data = {
@@ -86,7 +91,9 @@ class Reservation(PlaceOrder):
                 'company_email': email,
                 'extras': extras,
                 'space': space_id,
-                'duration': duration
+                'duration': duration,
+                'hours_booked': hours_booked,
+
             }
 
             order_serializer = OrderSerializer(data=order_data)
@@ -159,7 +166,7 @@ class Reservation(PlaceOrder):
                 return Response({"message": "Usage end time must be a later than start time"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif duration == 'daily':
-            if self.invalid_time(end_date, start_date):
+            if self.invalid_time(start_date, end_date):
                 return reserve(active_orders, start, date)
             else:
                 return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)

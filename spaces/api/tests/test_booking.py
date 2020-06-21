@@ -17,7 +17,7 @@ from ..models.availabilities import Availability
 from ..models.extras import Extra
 from ..helper.helper import order_code
 from .mock_data.space_data import space_creation_data, space_category_data, extra1, extra2, availability1, availability2, availability3_1, availability3_2, availability3_3, availability3_4, availability3_5, availability3_6, availability3_7, hourly_space_data, monthly_space_data, yearly_space_data
-from .mock_data.order_data import order_data1, order_data3, order_data4, order_extra
+from .mock_data.order_data import order_data1, order_data3, order_data4, order_extra, hourly_order_data
 from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
 from .mock_data.order_data import order_type_booking, order_data,order_type_reservation
 
@@ -76,7 +76,7 @@ class TestBooking(APITestCase):
         }
 
         data4 = {
-            **order_data3(),
+            **hourly_order_data(),
             **order_extra(),
             'space': self.hourlyspace.space_id,
             'order_type': self.order_type1
@@ -107,7 +107,6 @@ class TestBooking(APITestCase):
 
         self.assertEqual(response3.status_code, 503)
         self.assertEqual(response3.data['message'], "Space unavailable, pick a date later than 2020-04-25 11:00:00 or check another space")
-
         self.assertEqual(response4.status_code, 200)
         self.assertEqual(response4.data['message'], "Order completed")
 
