@@ -34,14 +34,4 @@ class Migration(migrations.Migration):
             name='extras',
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder, null=True),
         ),
-        migrations.CreateModel(
-            name='OrderExtra',
-            fields=[
-                ('extra_id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=50)),
-                ('cost', models.IntegerField(default=0)),
-                ('duration', models.CharField(max_length=50)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Order')),
-            ],
-        ),
     ]

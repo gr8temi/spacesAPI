@@ -32,15 +32,15 @@ class Booking(PlaceOrder):
         end = datetime.strptime(data['usage_end_date'], '%Y-%m-%d %H:%M:%S')
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
-        end_time = end.hour
-        start_time = start.hour
-        start_date = start.day
-        end_date = end.day
+        end_time = end.time()
+        start_time = start.time()
+        start_date = start.date()
+        end_date = end.date()
         start_month = start.month
         end_month = end.month
         start_year = start.year
         end_year = end.year
-
+        
         space_id = data["space"]
         order_type_name = data["order_type"]
         first_name = data['first_name']
@@ -64,6 +64,11 @@ class Booking(PlaceOrder):
             user = getattr(request._request, 'user', None).id
         else:
             user = ''
+    
+        if duration == 'hourly':
+            hours_booked = json.dumps(data['hours_booked'])
+        else:
+            hours_booked = ''
 
         def book_space():
             order_cde = order_code()
@@ -88,7 +93,6 @@ class Booking(PlaceOrder):
             order_serializer = OrderSerializer(data=order_data)
             if order_serializer.is_valid():
                 order_serializer.save()
-
                 # notifications
                 sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
@@ -111,9 +115,17 @@ class Booking(PlaceOrder):
                 return Response(
                     {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start, "Booking end date": end},
                         "message": f"Order completed"},
-                    status=status.HTTP_200_OK
-                )
+                    status=status.HTTP_200_OK)
             return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        def get_active_orders(start):
+            orders = Order.objects.filter(space=space_id)
+            active_orders = [
+                order for order in orders if order.usage_end_date >= start]
+            return active_orders
+        
+        all_day = self.check_all_day(availability, start_day)
+        active_orders = get_active_orders(start)
 
         def order(active_orders, start):
             if active_orders:
@@ -122,12 +134,12 @@ class Booking(PlaceOrder):
                     order_type = order.order_type.order_type
                     if start <= order_end_date:
                         if order_type == "booking":
-                            return Response({"message": f"Space unavailable, pick a date later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                            return Response({"message": f"Space unavailable, pick a date later than {order_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
                         elif order_type == "reservation":
                             expiry_time = order.order_time + \
                                 timedelta(seconds=21600)
 
-                            return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {active_orders[-1].usage_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                            return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {order_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
                         else:
                             return Response({"message": "Invalid order type"})
                     else:
@@ -135,21 +147,12 @@ class Booking(PlaceOrder):
             else:
                 return book_space()  
 
-        def get_active_orders(start):
-            orders = Order.objects.filter(space=space_id)
-            active_orders = [
-                order for order in orders if order.usage_end_date >= start]
-            return active_orders
-        
-        opening_period = self.check_all_day(availability, start_day)
-        active_orders = get_active_orders(start)
-
         if duration == 'hourly':
             if self.invalid_time(start_time, end_time):
-                if opening_period == True:
+                if all_day == True:
                     return order(active_orders, start_date)
                 else:
-                    opening = [time.strftime("%m-%d-%Y, %H:%M") for time in opening_period]
+                    opening = [time.strftime("%m-%d-%Y, %H:%M") for time in all_day]
                     open_time = opening[0]
                     close_time = opening[1]
                     if open_time > start_time:
@@ -158,9 +161,8 @@ class Booking(PlaceOrder):
                         return order(active_orders, start)
             else:
                 return Response({"message": "Usage end time must be a later  than start time"}, status=status.HTTP_400_BAD_REQUEST)
-
         elif duration == 'daily':
-            if self.invalid_time(end_date, start_date):
+            if self.invalid_time(start_date, end_date):
                 return order(active_orders, start)
             else:
                 return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
