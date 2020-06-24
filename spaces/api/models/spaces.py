@@ -25,7 +25,7 @@ class Space(models.Model):
     gmap = JSONField(encoder=DjangoJSONEncoder)
     number_of_bookings = models.IntegerField(null=True, blank=True, default=0)
     capacity = models.IntegerField()
-    amount = models.CharField(max_length=50)
+    amount = models.IntegerField(default=0)
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     duration = models.CharField(max_length=50)
     images = ArrayField(base_field=models.CharField(max_length=256))
