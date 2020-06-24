@@ -33,8 +33,10 @@ class Reservation(PlaceOrder):
             user =''
 
         data = request.data
-        start = datetime.strptime(data['usage_start_date'], '%Y-%m-%d %H:%M:%S')
-        end = datetime.strptime(data['usage_end_date'], '%Y-%m-%d %H:%M:%S')
+        start = datetime.fromisoformat(
+            data['usage_start_date'].replace('Z', '+00:00'))
+        end = datetime.fromisoformat(
+            data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
         end_time = end.hour
@@ -48,8 +50,7 @@ class Reservation(PlaceOrder):
 
         space_id = data["space"]
         order_type_name = data["order_type"]
-        first_name = data['first_name']
-        last_name = data['last_name']
+        name = data["name"]
         email = data['company_email']
         extras = json.dumps(data['extras'])
         amount = data['amount']
@@ -86,8 +87,7 @@ class Reservation(PlaceOrder):
                 'order_type': self.get_order_type_id(order_type_name),
                 'no_of_guest': no_of_guest,
                 'user': user,
-                'first_name': first_name,
-                'last_name': last_name,
+                'name':name,
                 'company_email': email,
                 'extras': extras,
                 'space': space_id,
@@ -105,12 +105,12 @@ class Reservation(PlaceOrder):
                 # notification for customer
                 subject_customer = "SPACE RESERVED"
                 to_customer = [email]
-                customer_content = f"Dear {first_name}, You reserved space {space.name} for use from {start_date} to {end_date}, your order code is {order_cde}. Kindly proceed to make payment and complete order by supplying your order code upon login before {reservation_expiry}. Thanks for your patronage"
+                customer_content = f"Dear {name}, You reserved space {space.name} for use from {start_date} to {end_date}, your order code is {order_cde}. Kindly proceed to make payment and complete order by supplying your order code upon login before {reservation_expiry}. Thanks for your patronage"
 
                 send_mail(subject_customer, customer_content,
                         sender, to_customer)
 
-                customer_details = {"id": user, "first_name": first_name, "last_name" : last_name, "email": email}
+                customer_details = {"id": user, "name":name, "email": email}
 
                 return Response(
                     {"payload": {**customer_details, "booking_start_date": start_date, "booking_end_date": end_date, "order_code": order_cde},

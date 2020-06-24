@@ -1,5 +1,6 @@
 import bcrypt
 from ...models.user import User
+from ...models.agent import Agent
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,21 +15,29 @@ class UserLogin(APIView):
         data = request.data
         try:
             user = User.objects.get(email=data['email'])
+
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
                 
                 refresh = RefreshToken.for_user(user)
-                
+
                 token = {
                     'access': str(refresh.access_token),
                 }
-                agent = user.is_agent
+                if user.is_agent == True:
+                    try:
+                        agent = Agent.objects.get(user=user).agent_id
+                    except Exception:
+                        return Response(dict(error="User not an Agent",), status=status.HTTP_400_BAD_REQUEST)
 
-                return Response(dict(message="Login was successful", token=token,agent=agent), status=status.HTTP_200_OK)
+                    return Response(dict(message="Login was successful", token=token, agent=agent, name=user.name,user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
+                else:
+                    return Response(dict(message="Login was successful", token=token, agent=False, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
+
             else:
                 return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception:
-            
+        except Exception as err:
+            print(err)
             return Response(dict(error="Email is not Correct",), status=status.HTTP_400_BAD_REQUEST)

@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import json
 import calendar
-
+import time
 from ..models.spaces import Space
 from ..models.order import Order
 from ..models.agent import Agent
@@ -21,6 +21,7 @@ from ..serializers.order import OrderSerializer
 from ..serializers.user import UserSerializer
 from .order import PlaceOrder
 from ..models.availabilities import Availability
+import pytz
 
 
 class Booking(PlaceOrder):
@@ -28,8 +29,15 @@ class Booking(PlaceOrder):
     def post(self, request):
 
         data = request.data
-        start = datetime.strptime(data['usage_start_date'], '%Y-%m-%d %H:%M:%S')
-        end = datetime.strptime(data['usage_end_date'], '%Y-%m-%d %H:%M:%S')
+        
+
+        start = datetime.fromisoformat(
+            data['usage_start_date'].replace('Z', '+00:00'))
+
+        end = datetime.fromisoformat(
+            data['usage_end_date'].replace('Z', '+00:00'))
+        # end = datetime.fromisoformat(
+        #     data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
         end_time = end.time()
@@ -40,15 +48,15 @@ class Booking(PlaceOrder):
         end_month = end.month
         start_year = start.year
         end_year = end.year
-        
+
         space_id = data["space"]
         order_type_name = data["order_type"]
-        first_name = data['first_name']
-        last_name = data['last_name']
+        name = data['name']
         email = data['company_email']
         extras = json.dumps(data['extras'])
         amount = data['amount']
         no_of_guest = data['no_of_guest']
+
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
 
@@ -57,20 +65,23 @@ class Booking(PlaceOrder):
 
         today = timezone.now().date()
         duration = space.duration
-        space_availability = Availability.objects.filter(space=space.name)
-        availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time, 'close_time': av.close_time} for av in space_availability]
 
-        if request.user:
-            user = getattr(request._request, 'user', None).id
+        space_availability = Availability.objects.filter(space=space.name)
+
+        availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
+                         'close_time': av.close_time} for av in space_availability]
+        if data["user"]:
+            user = User.objects.get(user_id=data["user"]).user_id
         else:
             user = ''
-    
+
         if duration == 'hourly':
             hours_booked = json.dumps(data['hours_booked'])
         else:
-            hours_booked = ''
+            hours_booked = []
 
         def book_space():
+
             order_cde = order_code()
             order_data = {
                 'amount': amount,
@@ -82,12 +93,12 @@ class Booking(PlaceOrder):
                 'order_code': order_cde,
                 'order_type': self.get_order_type_id(order_type_name),
                 'user': user,
-                'first_name': first_name,
-                'last_name': last_name,
+                'name': name,
                 'company_email': email,
                 'extras': extras,
                 'space': space_id,
-                'duration': duration
+                'duration': duration,
+                'hours_booked': hours_booked
             }
 
             order_serializer = OrderSerializer(data=order_data)
@@ -99,7 +110,7 @@ class Booking(PlaceOrder):
                 # notification for customer booking space
                 subject_customer = "ORDER COMPLETED"
                 to_customer = [email]
-                customer_content = f"Dear {first_name}, your Order has been completed. You booked space {space.name} from {start_date} to {end_date}. Thanks for your patronage"
+                customer_content = f"Dear {name}, your Order has been completed. You booked space {space.name} from {start_date} to {end_date}. Thanks for your patronage"
 
                 # notification for agent that registered space
                 subject_agent = "YOU HAVE AN ORDER"
@@ -110,27 +121,50 @@ class Booking(PlaceOrder):
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
 
-                customer_details = {"id": user, "first_name": first_name, "last_name" : last_name, "email": email}
+                customer_details = {
+                    "id": user, "name": name, "email": email}
 
                 return Response(
                     {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start, "Booking end date": end},
                         "message": f"Order completed"},
                     status=status.HTTP_200_OK)
             return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        
-        def get_active_orders(start):
+
+        def get_active_orders(start, hours_booked, duration):
+
             orders = Order.objects.filter(space=space_id)
             active_orders = [
-                order for order in orders if order.usage_end_date >= start]
-            return active_orders
-        
-        all_day = self.check_all_day(availability, start_day)
-        active_orders = get_active_orders(start)
+                order for order in orders if pytz.utc.localize(order.usage_end_date) >= start]
+            new_orders = []
 
-        def order(active_orders, start):
-            if active_orders:
-                for order in active_orders:
-                    order_end_date = order.usage_end_date
+            if duration == "hourly":
+                active_orders = list(active_orders)
+
+                new_list = []
+                for orders in active_orders:
+                    if len(orders.hours_booked) > 0:
+                        new_list = new_list+json.loads(orders.hours_booked)
+
+                hours_booked = json.loads(hours_booked)
+                hours_booked_set = set(
+                    (lis["time_in"], lis["time_out"], lis["date"]) for lis in hours_booked)
+                new_list_set = set((lis["time_in"], lis["time_out"], lis["date"])
+                                   for lis in new_list)
+
+                intersect = hours_booked_set.intersection(new_list_set)
+
+                return intersect
+            else:
+                return active_orders
+
+        all_day = self.check_all_day(availability, start_day)
+
+        def order(active_order, start, duration):
+            if(duration == "hourly" and len(active_order) > 0):
+                return Response({"message": f"Space unavailable, pick a later date"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            if len(active_order) > 0:
+                for order in active_order:
+                    order_end_date = pytz.utc.localize(order.usage_end_date)
                     order_type = order.order_type.order_type
                     if start <= order_end_date:
                         if order_type == "booking":
@@ -145,40 +179,49 @@ class Booking(PlaceOrder):
                     else:
                         return book_space()
             else:
-                return book_space()  
+                return book_space()
 
         if duration == 'hourly':
+
+            active_orders = get_active_orders(start, hours_booked, "hourly")
+
             if self.invalid_time(start_time, end_time):
                 if all_day == True:
-                    return order(active_orders, start_date)
+                    return order(active_orders, start_date, "hourly")
                 else:
-                    opening = [time.strftime("%m-%d-%Y, %H:%M") for time in all_day]
+                    #
+                    new_start_time = datetime.combine(date.today(), start_time)
+                    opening = [datetime.strptime(times.strftime("%H:%M"), "%H:%M")
+                               for times in all_day]
+
                     open_time = opening[0]
                     close_time = opening[1]
-                    if open_time > start_time:
+                    if open_time > new_start_time:
                         return Response({"message": f"Space opens between {open_time} to {close_time}"}, status=status.HTTP_400_BAD_REQUEST)
                     else:
-                        return order(active_orders, start)
+                        return order(active_orders, start, duration)
             else:
                 return Response({"message": "Usage end time must be a later  than start time"}, status=status.HTTP_400_BAD_REQUEST)
         elif duration == 'daily':
+            active_orders = get_active_orders(start, [], "daily")
             if self.invalid_time(start_date, end_date):
-                return order(active_orders, start)
+
+                return order(active_orders, start, "daily")
             else:
                 return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif duration == 'monthly':
+            active_orders = get_active_orders(start, [], "monthly")
             if self.invalid_time(start_month, end_month):
-                return order(active_orders, start)
+                return order(active_orders, start, "monthly")
             else:
                 return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # else:
+        #     if self.invalid_time(start_year, end_year):
+        #         return order(active_orders, start, "yearly")
         else:
-            if self.invalid_time(start_year, end_year):
-                return order(active_orders, start)
-            else:
-                return Response({"message": "Usage end year must be a later than start year"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"message": "Usage end year must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookingStatus(APIView):
