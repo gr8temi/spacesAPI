@@ -14,8 +14,7 @@ from django.utils import timezone
 class Order(models.Model):
     orders_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     amount = models.CharField(max_length=50, default=0)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, default="new")
     company_email = models.CharField(max_length=100, default="one@gmail.com")
     no_of_guest = models.IntegerField()    
     extras = JSONBField(null=True, blank=True, default=dict, encoder=DjangoJSONEncoder)

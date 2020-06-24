@@ -19,33 +19,36 @@ class CreateSpace(APIView):
     def post(self, request, format="json"):
 
         data = request.data
-        name = data['name']
-        space_category= data['space_category']
-        existing = Space.objects.filter(name=name, space_category=space_category)
 
-        def save_to_model(field, serializer):
+        name = data['name']
+        space_category = data['space_category']
+        existing = Space.objects.filter(
+            name=name, space_category=space_category)
+
+        def save_to_model(space_id, field, serializer):
             for i in range(len(field)):
-                serialized = serializer(data={**field[i], 'space': name})
+                serialized = serializer(data={**field[i], 'space': space_id})
                 if serialized.is_valid():
                     serialized.save()
 
         space_data = {
-        'name': data['name'],
-        'description': data['description'],
-        'space_category': data['space_category'],
-        'address': data['address'],
-        'gmap': data['gmap'],
-        'number_of_bookings': data['number_of_bookings'],
-        'capacity': data['capacity'],
-        'amount': data['amount'],
-        'agent': data['agent'],
-        'duration': data['duration'],
-        'images': data['images'],
-        'videos': data['videos'],
-        'amenities': data['amenities'],
-        'carspace': data['carspace'],
-        'rules': data['rules'],
-        'cancellation_rules': data['cancellation_rules']
+            'name': data['name'],
+            'description': data['description'],
+            # data['space_category'],
+            # "2ce6293c-f8cf-41d4-9d77-bed08a9d74e5",
+            'space_category': data['space_category'],
+            'address': data['address'],
+            'gmap': data['gmap'],
+            'capacity': data['capacity'],
+            'amount': data['amount'],
+            'agent': data['agent'],
+            'duration': data['duration'],
+            'images': data['images'],
+            # 'videos': data['videos'],
+            'amenities': data['amenities'],
+            'carspace': data['carspace'],
+            'rules': data['rules'],
+            'cancellation_rules': data['cancellation_rules']
         }
 
         spaceDataSerializer = SpaceSerializer(data=space_data)
@@ -57,11 +60,11 @@ class CreateSpace(APIView):
 
         elif spaceDataSerializer.is_valid():
             spaceDataSerializer.save()
-
-            save_to_model(availability, AvailabilitySerializer)
-            save_to_model(extras, ExtraSerializer)
+            space_id = spaceDataSerializer.data["name"]
+            save_to_model(space_id, availability, AvailabilitySerializer)
+            save_to_model(space_id, extras, ExtraSerializer)
 
             name = spaceDataSerializer.data["name"]
-            return Response({"payload":spaceDataSerializer.data, "message":f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
-        return Response({"message":"Check your input, some fields might be missing","error": spaceDataSerializer.errors}, status=status.HTTP_400_BAD_REQUEST)       
+            return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
 
+        return Response({"message": "Check your input, some fields might be missing", "error": spaceDataSerializer.errors}, status=status.HTTP_400_BAD_REQUEST)

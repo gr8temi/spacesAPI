@@ -10,7 +10,9 @@ from rest_framework.views import APIView
 class PlaceOrder(APIView):
 
     def get_space(self, space_id):
+        
         space = get_object_or_404(spaces.Space, space_id=space_id)
+        
         return space
 
     def get_agent(self, biz):
