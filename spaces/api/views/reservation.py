@@ -121,9 +121,12 @@ class Reservation(PlaceOrder):
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         def get_active_orders(start):
-            orders = Order.objects.filter(space=space_id)
-            active_orders = [order for order in orders if order.usage_end_date >= start]
-            return active_orders
+            try:
+                orders = Order.objects.filter(space=space_id)
+                active_orders = [order for order in orders if order.usage_end_date >= start]
+                return active_orders
+            except:
+                return False
 
         def reserve(active_orders, start_date, duration_type):
             if active_orders:
@@ -192,7 +195,6 @@ class Reservation(PlaceOrder):
         order = get_object_or_404(Order, order_code=order_code)
         space = self.get_space(order.space.space_id)
     
-        # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!! 
         agent = self.get_agent(space.agent)
 
         if order.status == "pending":

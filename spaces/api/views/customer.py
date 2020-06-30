@@ -61,14 +61,16 @@ class CustomerDetail(APIView):
 
 class CustomerRegister(APIView):
     def get_object(self, email):
-        return get_object_or_404(User, email=email)
+        try:
+            return get_object_or_404(User, email=email)
+        except:
+            return False
 
     def serializeCustomer(self, data, email, token, new_user):
         customer_serializer = CustomerSerializer(data=data)
         if customer_serializer.is_valid():
             customer_serializer.save()
-            customer_name = User.objects.get(
-                user_id=customer_serializer.data["user"]).name
+            customer_name = get_object_or_404(User, user_id=customer_serializer.data["user"]).name
             if bool(new_user):
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 message = "Registration was successful"
