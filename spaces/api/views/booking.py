@@ -36,8 +36,6 @@ class Booking(PlaceOrder):
 
         end = datetime.fromisoformat(
             data['usage_end_date'].replace('Z', '+00:00'))
-        # end = datetime.fromisoformat(
-        #     data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
         end_time = end.time()
@@ -216,21 +214,13 @@ class Booking(PlaceOrder):
                 return order(active_orders, start, "monthly")
             else:
                 return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # else:
-        #     if self.invalid_time(start_year, end_year):
-        #         return order(active_orders, start, "yearly")
         else:
             return Response({"message": "Usage end year must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookingStatus(APIView):
     def get_order(self, order_code):
-
-        try:
-            return Order.objects.get(order_code=order_code)
-        except:
-            return False
+        return get_object_or_404(Order, order_code=order_code)
 
     def get(self, request, order_code):
 
