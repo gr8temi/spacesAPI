@@ -38,6 +38,5 @@ class UserLogin(APIView):
             else:
                 return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as err:
-            print(err)
+        except Exception:
             return Response(dict(error="Email is not Correct",), status=status.HTTP_400_BAD_REQUEST)
