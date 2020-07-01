@@ -43,13 +43,13 @@ class SingleSpace(APIView):
     def get_extra(self, space_id):
         try:
             return Extra.objects.filter(space=space_id)
-        except Exception as err:    
+        except Exception as err:
             return False
 
     def get_booked(self, space_id):
         try:
             return Order.objects.filter(space=space_id)
-        except Exception as err:    
+        except Exception as err:
             return False
 
     def get(self, request, space_id):

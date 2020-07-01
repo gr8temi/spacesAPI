@@ -5,7 +5,7 @@ from .spaces import Space
 
 class Extra(models.Model):
     extra_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    space = models.CharField(max_length=50)
+    space = models.ForeignKey(Space, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     cost = models.IntegerField(default=0)
     duration = models.CharField(max_length=50)

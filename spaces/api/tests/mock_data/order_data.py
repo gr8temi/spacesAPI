@@ -13,7 +13,6 @@ def order_data1():
         'transaction_code': "234567",
         'amount': 700,
         'no_of_guest': 34,
-
         'name': "sola",
         'company_email': "ola mail",
     }

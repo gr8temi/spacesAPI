@@ -49,15 +49,9 @@ class TestBooking(APITestCase):
         self.yearlyspace = Space.objects.create(
             **yearly_space_data(), agent=self.agent, space_category=self.space_category_id)
 
-        self.availability = Availability.objects.create(**availability1())
-        self.availability2 = Availability.objects.create(**availability2())
-        self.availability3_1 = Availability.objects.create(**availability3_1())
-        self.availability3_2 = Availability.objects.create(**availability3_2())
-        self.availability3_3 = Availability.objects.create(**availability3_3())
-        self.availability3_4 = Availability.objects.create(**availability3_4())
-        self.availability3_5 = Availability.objects.create(**availability3_5())
-        self.availability3_6 = Availability.objects.create(**availability3_6())
-        self.availability3_7 = Availability.objects.create(**availability3_7())
+        self.availability = Availability.objects.create(**availability1(), space=self.space)
+        self.availability2 = Availability.objects.create(**availability2(), space=self.hourlyspace)
+        self.availability3_1 = Availability.objects.create(**availability3_1(), space=self.monthlyspace)
 
         self.data = {**customer_login_data()}
         self.url = reverse('login')
@@ -112,12 +106,9 @@ class TestBooking(APITestCase):
             self.url2, data1, HTTP_AUTHORIZATION=self.header)
         response3 = self.client.post(
             self.url2, data3, HTTP_AUTHORIZATION=self.header)
-        # response4 = self.client.post(
-        #     self.url2, data4, HTTP_AUTHORIZATION=self.header)
+        
         response5 = self.client.post(
             self.url2, data5, HTTP_AUTHORIZATION=self.header)
-        # response6 = self.client.post(
-        #     self.url2, data6, HTTP_AUTHORIZATION=self.header)
 
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response1.data['message'], "Order completed")
@@ -125,14 +116,9 @@ class TestBooking(APITestCase):
         self.assertEqual(response3.status_code, 503)
         self.assertEqual(
             response3.data['message'], "Space unavailable, pick a date later than 2020-04-25 11:00:00+00:00 or check another space")
-        # self.assertEqual(response4.status_code, 200)
-        # self.assertEqual(response4.data['message'], "Order completed")
 
         self.assertEqual(response5.status_code, 200)
         self.assertEqual(response5.data['message'], "Order completed")
-
-        # self.assertEqual(response6.status_code, 200)
-        # self.assertEqual(response6.data['message'], "Order completed")
 
     def test_reservation(self):
 

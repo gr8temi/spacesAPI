@@ -1,0 +1,4 @@
+usage: manage.py dbshell [-h] [--database DATABASE] [--version] [-v {0,1,2,3}]
+                         [--settings SETTINGS] [--pythonpath PYTHONPATH]
+                         [--traceback] [--no-color] [--force-color]
+manage.py dbshell: error: unrecognized arguments: TABLE api_order

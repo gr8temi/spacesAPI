@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
 from abc import ABC, abstractmethod
 from datetime import datetime
 from ..models import spaces, agent, user
@@ -22,7 +23,7 @@ class PlaceOrder(APIView):
             space_agent = get_object_or_404(user.User, name=agt.user)
             return space_agent
         except:
-            return False
+            return Response({"message": "Agent not found"})
 
     def date_object(self, date):
         return datetime.strptime(date, '%Y-%m-%d %H:%M')
@@ -33,21 +34,22 @@ class PlaceOrder(APIView):
             return order.order_type_id
         except:
             return False
-
-    def check_all_day(self, av, day):
+        
+    def check_all_day(self, av, day):  
         for each_day_availability in av:
             if each_day_availability['day'].capitalize() == day:
                 if each_day_availability['all_day'] == True:
                     return True
                 else:
                     return ([each_day_availability['open_time'], each_day_availability['close_time']])
-
+    
     def invalid_time(self, start, end):
-        if end < start:
-            return False
-        else:
-            return True
-
+            if end < start:
+                return False
+            else:
+                return True
+    
     @abstractmethod
     def post(self):
         pass
+   

@@ -65,9 +65,10 @@ class AgentDetail(APIView):
 class AgentRegister(APIView):
     def get_object(self, email):
         try:
-            return get_object_or_404(User, email=email)
+            return User.objects.get(email=email)
         except User.DoesNotExist:
             return False
+
     def serializeAgent(self,data,email,token,new_user):
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
@@ -138,6 +139,6 @@ class AgentRegister(APIView):
                 
                 return self.serializeAgent(new_agent_data,user_serializer.data["email"],token=user_serializer.data["token"],new_user=True)
             else:
-                return Response({"errorr": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
         return

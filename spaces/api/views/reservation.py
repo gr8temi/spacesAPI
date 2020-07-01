@@ -39,15 +39,14 @@ class Reservation(PlaceOrder):
             data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
-        end_time = end.hour
-        start_time = start.hour
-        start_date = start.day
-        end_date = end.day
+        end_time = end.time()
+        start_time = start.time()
+        start_date = start.date()
+        end_date = end.date()
         start_month = start.month
         end_month = end.month
         start_year = start.year
         end_year = end.year
-
         space_id = data["space"]
         order_type_name = data["order_type"]
         name = data["name"]
@@ -63,7 +62,7 @@ class Reservation(PlaceOrder):
 
         today = timezone.now().date()
         duration = space.duration
-        space_availability = Availability.objects.filter(space=space.name)
+        space_availability = Availability.objects.filter(space=space.space_id)
         availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time, 'close_time': av.close_time} for av in space_availability]
 
         now = timezone.now()
