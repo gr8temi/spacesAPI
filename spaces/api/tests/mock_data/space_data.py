@@ -73,31 +73,31 @@ def yearly_space_data():
     }
     
 def extra1():
-    return {"name": "AC", "cost": 500, "duration": "hourly", "space": "asdfghjk"}
+    return {"name": "AC", "cost": 500, "duration": "hourly"}
 
-def extra2(): 
-    return {"name": "Bouncer", "cost": 500, "duration": "hourly", "space": "asdfghjk"}
+def extra2():
+    return {"name": "Bouncer", "cost": 500, "duration": "hourly"}
 
 def availability1():
-    return {"day": "tuesday", "all_day": True, "open_time": "00:00", "close_time": "23:59","space": "asdfghjk"}
+    return {"day": "tuesday", "all_day": True, "open_time": "00:00", "close_time": "23:59"}
 
 def availability2():
-    return {"day": "monday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "asdfghjk"}
+    return {"day": "monday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 
 def availability3_1():
-    return {"day": "monday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "monday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_2():
-    return {"day": "tuesday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "tuesday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_3():
-    return {"day": "wednesday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "wednesday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_4():
-    return {"day": "thursday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "thursday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_5():
-    return {"day": "friday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "friday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_6():
-    return {"day": "saturday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "saturday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 def availability3_7():
-    return {"day": "sunday", "all_day": True, "open_time": "08:00", "close_time": "17:00", "space": "dura office space"}
+    return {"day": "sunday", "all_day": True, "open_time": "08:00", "close_time": "17:00"}
 
 def extras_data():
     return {

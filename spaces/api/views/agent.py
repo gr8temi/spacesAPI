@@ -9,6 +9,7 @@ from ..serializers.user import UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator,send_email
 
@@ -17,16 +18,19 @@ class AgentList(APIView):
     # permission_classes=[IsAuthenticated,]
 
     def get(self, request, format=None):
-        queryset = Agent.objects.all()
-        serializer = AgentSerializer(queryset, many=True)
-        return Response({"payload":serializer.data, "message":"fetch successful"}, status=status.HTTP_200_OK)
+        try:
+            queryset = Agent.objects.all()
+            serializer = AgentSerializer(queryset, many=True)
+            return Response({"payload":serializer.data, "message":"fetch successful"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "Cannot fetch agents"})
 
 
 class AgentDetail(APIView):
     # permission_classes = [IsAuthenticated,]
     def get_object(self, agent_id):
         try:
-            return Agent.objects.get(agent_id=agent_id)
+            return get_object_or_404(Agent, agent_id=agent_id)
         except Agent.DoesNotExist:
             return False
 
@@ -63,7 +67,8 @@ class AgentRegister(APIView):
         try:
             return User.objects.get(email=email)
         except User.DoesNotExist:
-            return []
+            return False
+
     def serializeAgent(self,data,email,token,new_user):
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
@@ -134,6 +139,6 @@ class AgentRegister(APIView):
                 
                 return self.serializeAgent(new_agent_data,user_serializer.data["email"],token=user_serializer.data["token"],new_user=True)
             else:
-                return Response({"errorr": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
         return

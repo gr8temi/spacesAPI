@@ -9,6 +9,7 @@ from ..serializers.user import UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
 
@@ -17,18 +18,16 @@ class CustomerList(APIView):
     # permission_classes=[IsAuthenticated,]
 
     def get(self, request, format=None):
-        queryset = Customer.objects.all()
-        serializer = CustomerSerializer(queryset, many=True)
-        return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
-
+        try:
+            queryset = Customer.objects.all()
+            serializer = CustomerSerializer(queryset, many=True)
+            return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message": "Customers not found"})
 
 class CustomerDetail(APIView):
-    # permission_classes = [IsAuthenticated,]
     def get_object(self, customer_id):
-        try:
-            return Customer.objects.get(customer_id=customer_id)
-        except Customer.DoesNotExist:
-            return False
+        return get_object_or_404(Customer, customer_id=customer_id)
 
     def get(self, request, customer_id, format=None):
         customer = self.get_object(customer_id)
@@ -63,16 +62,15 @@ class CustomerDetail(APIView):
 class CustomerRegister(APIView):
     def get_object(self, email):
         try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            return []
+            return get_object_or_404(User, email=email)
+        except:
+            return False
 
     def serializeCustomer(self, data, email, token, new_user):
         customer_serializer = CustomerSerializer(data=data)
         if customer_serializer.is_valid():
             customer_serializer.save()
-            customer_name = User.objects.get(
-                user_id=customer_serializer.data["user"]).name
+            customer_name = get_object_or_404(User, user_id=customer_serializer.data["user"]).name
             if bool(new_user):
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 message = "Registration was successful"

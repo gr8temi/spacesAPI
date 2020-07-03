@@ -39,15 +39,14 @@ class Reservation(PlaceOrder):
             data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
-        end_time = end.hour
-        start_time = start.hour
-        start_date = start.day
-        end_date = end.day
+        end_time = end.time()
+        start_time = start.time()
+        start_date = start.date()
+        end_date = end.date()
         start_month = start.month
         end_month = end.month
         start_year = start.year
         end_year = end.year
-
         space_id = data["space"]
         order_type_name = data["order_type"]
         name = data["name"]
@@ -63,7 +62,7 @@ class Reservation(PlaceOrder):
 
         today = timezone.now().date()
         duration = space.duration
-        space_availability = Availability.objects.filter(space=space.name)
+        space_availability = Availability.objects.filter(space=space.space_id)
         availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time, 'close_time': av.close_time} for av in space_availability]
 
         now = timezone.now()
@@ -121,9 +120,12 @@ class Reservation(PlaceOrder):
                 return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         def get_active_orders(start):
-            orders = Order.objects.filter(space=space_id)
-            active_orders = [order for order in orders if order.usage_end_date >= start]
-            return active_orders
+            try:
+                orders = Order.objects.filter(space=space_id)
+                active_orders = [order for order in orders if order.usage_end_date >= start]
+                return active_orders
+            except:
+                return False
 
         def reserve(active_orders, start_date, duration_type):
             if active_orders:
@@ -192,7 +194,6 @@ class Reservation(PlaceOrder):
         order = get_object_or_404(Order, order_code=order_code)
         space = self.get_space(order.space.space_id)
     
-        # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!! 
         agent = self.get_agent(space.agent)
 
         if order.status == "pending":

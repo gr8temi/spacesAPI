@@ -29,15 +29,11 @@ class Booking(PlaceOrder):
     def post(self, request):
 
         data = request.data
-        
-
         start = datetime.fromisoformat(
             data['usage_start_date'].replace('Z', '+00:00'))
-
+        
         end = datetime.fromisoformat(
             data['usage_end_date'].replace('Z', '+00:00'))
-        # end = datetime.fromisoformat(
-        #     data['usage_end_date'].replace('Z', '+00:00'))
         start_day = calendar.day_name[start.weekday()]
         end_day = calendar.day_name[end.weekday()]
         end_time = end.time()
@@ -47,13 +43,14 @@ class Booking(PlaceOrder):
         start_month = start.month
         end_month = end.month
         start_year = start.year
-        end_year = end.year
+        end_year = end.year,
 
         space_id = data["space"]
         order_type_name = data["order_type"]
         name = data['name']
         email = data['company_email']
         extras = json.dumps(data['extras'])
+        print('book', start_date)
         amount = data['amount']
         no_of_guest = data['no_of_guest']
 
@@ -66,14 +63,15 @@ class Booking(PlaceOrder):
         today = timezone.now().date()
         duration = space.duration
 
-        space_availability = Availability.objects.filter(space=space.name)
+        space_availability = Availability.objects.filter(space=space.space_id)
 
         availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
                          'close_time': av.close_time} for av in space_availability]
-        if data["user"]:
-            user = User.objects.get(user_id=data["user"]).user_id
+        
+        if request.user:
+            user = getattr(request._request, 'user', None).id
         else:
-            user = ''
+            user =''
 
         if duration == 'hourly':
             hours_booked = json.dumps(data['hours_booked'])
@@ -216,21 +214,13 @@ class Booking(PlaceOrder):
                 return order(active_orders, start, "monthly")
             else:
                 return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # else:
-        #     if self.invalid_time(start_year, end_year):
-        #         return order(active_orders, start, "yearly")
         else:
             return Response({"message": "Usage end year must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookingStatus(APIView):
     def get_order(self, order_code):
-
-        try:
-            return Order.objects.get(order_code=order_code)
-        except:
-            return False
+        return get_object_or_404(Order, order_code=order_code)
 
     def get(self, request, order_code):
 

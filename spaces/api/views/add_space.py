@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
@@ -22,8 +21,9 @@ class CreateSpace(APIView):
 
         name = data['name']
         space_category = data['space_category']
+
         existing = Space.objects.filter(
-            name=name, space_category=space_category)
+        name=name, space_category=space_category).exists()
 
         def save_to_model(space_id, field, serializer):
             for i in range(len(field)):
@@ -34,8 +34,6 @@ class CreateSpace(APIView):
         space_data = {
             'name': data['name'],
             'description': data['description'],
-            # data['space_category'],
-            # "2ce6293c-f8cf-41d4-9d77-bed08a9d74e5",
             'space_category': data['space_category'],
             'address': data['address'],
             'gmap': data['gmap'],
@@ -54,8 +52,7 @@ class CreateSpace(APIView):
         spaceDataSerializer = SpaceSerializer(data=space_data)
         availability = data['availability']
         extras = data['extras']
-
-        if bool(existing):
+        if existing:
             return Response({"message": f"Space with name {name} already exists in this category"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif spaceDataSerializer.is_valid():
