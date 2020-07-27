@@ -8,9 +8,9 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace
 from .views.reservation import Reservation
-from .views.booking import Booking, BookingStatus, BookingView
+from .views.booking import BookingStatus, BookingView
 from .views import agent, customer
-from .views import space_category,space_type
+from .views import space_category, space_type
 from .views.auth import login, forgot_password, reset_password, verify_email
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
