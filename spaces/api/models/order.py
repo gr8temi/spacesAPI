@@ -21,6 +21,7 @@ class Order(models.Model):
     usage_start_date = models.DateTimeField(null=True, blank=True)
     usage_end_date = models.DateTimeField(null=True, blank=True)
     hours_booked = JSONBField(null=True, blank=True, default=dict, encoder=DjangoJSONEncoder)
+    days_booked = JSONBField(null=True, blank=True, default=dict, encoder=DjangoJSONEncoder)
     status = models.CharField(max_length=30)
     transaction_code = models.CharField(max_length=30, null=True)
     order_code = models.CharField(max_length=30)
