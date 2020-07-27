@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import date, timedelta, datetime
 import uuid
-from ..views.booking import Booking
 from ..models.spaces_category import SpaceCategory
 from ..models.agent import Agent
 from ..models.spaces import Space
