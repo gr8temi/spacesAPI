@@ -28,8 +28,8 @@ class Order(models.Model):
     order_type = models.ForeignKey(OrderType, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank = True, null = True)
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
-    order_time = models.DateTimeField(auto_now=True)
+    order_time = models.DateTimeField()
     created_at = models.DateTimeField( auto_now_add=True)
-
+    expiry_time = models.DateTimeField(blank=True, null=True)
     def __str__(self):
         return self.order_code

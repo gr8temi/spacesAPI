@@ -96,7 +96,7 @@ EMAIL_PORT = config("EMAIL_PORT", default=465)
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_BACKEND = config(
-    'EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+    'EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
 
 # Global configurations for rest framework
@@ -187,6 +187,10 @@ CELERY_TIMEZONE = 'Africa/Lagos'
 CELERY_BEAT_SCHEDULE = {
     'update_order_status': {
         'task': 'api.tasks.update_order_status',
+        'schedule': crontab()  # execute every minute
+    },
+    'send_mail_to_almost_expired_reservations': {
+        'task': 'api.tasks.send_mail_to_almost_expired_reservations',
         'schedule': crontab()  # execute every minute
     }
 }
