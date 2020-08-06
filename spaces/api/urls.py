@@ -7,7 +7,7 @@ from django.views.decorators.cache import cache_page
 from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace
-from .views.reservation import Reservation
+from .views.reservation import Reservation, PlaceReservation
 from .views.booking import BookingStatus, BookingView
 from .views import agent, customer
 from .views import space_category, space_type
@@ -18,7 +18,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 urlpatterns = [
 
     # register other routes here ...
-    path('v1/reservation/', Reservation.as_view(), name="reservation"),
+    path('v1/reservation/', PlaceReservation.as_view(), name="reservation"),
 
     path('v1/booking/', BookingView.as_view(), name="booking"),
     path('v1/booking/status/<slug:order_code>/',

@@ -52,7 +52,7 @@ class BookingStatus(APIView):
 
 class BookingView(PlaceOrder):
 
-    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde):
+    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time):
 
         order_data = {
             'amount': amount,
@@ -69,7 +69,8 @@ class BookingView(PlaceOrder):
             'extras': extras,
             'space': space_id,
             'duration': duration,
-            'hours_booked': hours_booked
+            'hours_booked': hours_booked,
+            'order_time':order_time,
         }
 
         order_serializer = OrderSerializer(data=order_data)
@@ -203,6 +204,7 @@ class BookingView(PlaceOrder):
             else:
                 if data["user"]:
                     user = User.objects.get(user_id=data["user"]).user_id
+                    user_email = User.objects.get(user_id=data["user"]).email
                 else:
                     user = ''
                 try:
@@ -212,7 +214,7 @@ class BookingView(PlaceOrder):
                             booked = days_booked
                         elif data["duration"] == "hourly":
                             booked = hours_booked
-
+                        order_time = datetime.now()
                         for days in booked:
                             start = datetime.fromisoformat(
                                 days['start_date'].replace('Z', '+00:00'))
@@ -220,15 +222,15 @@ class BookingView(PlaceOrder):
                                 days['end_date'].replace('Z', '+00:00'))
 
                             self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                            user, data["name"], data["company_email"], data["extras"], data["space"], data["duration"], [], order_cde)
+                                            user, data["name"], data["company_email"], data["extras"], data["space"], data["duration"], [], order_cde, order_time)
                         # notifications
                         sender = config(
                             "EMAIL_SENDER", default="space.ng@gmail.com")
 
                         # notification for customer booking space
                         subject_customer = "ORDER COMPLETED"
-                        to_customer = [data["email"]]
-                        customer_content = f"Dear {data['email']}, your Order has been completed. You booked space {space.name}. Thanks for your patronage"
+                        to_customer = [user_email]
+                        customer_content = f"Dear {user_email}, your Order has been completed. You booked space {space.name}. Thanks for your patronage"
 
                         # notification for agent that registered space
                         subject_agent = "YOU HAVE AN ORDER"
