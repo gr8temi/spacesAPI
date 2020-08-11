@@ -86,37 +86,46 @@ class BookingView(PlaceOrder):
             return {"error": order_serializer.errors, status: False}
 
     def booked_days(self, start_date, end_date, space_id, duration):
-        orders = Order.objects.filter(space=space_id)
+        orders = Order.objects.filter(space=space_id).exclude(status="cancelled")
 
         if duration == "hourly":
             active_orders = [
-                order for order in orders if order.usage_end_date.time() >= start_date.time()]
-            print({"active": active_orders})
+                order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
+            for active in active_orders:
+                print({"start": active.usage_start_date,
+                       "stop": active.usage_end_date})
         elif duration == "daily":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
         return active_orders
 
-    def order(self, active_order, start_date, duration):
-
+    def order(self, active_order, start_date, end_date, duration):
         start_date = datetime.fromisoformat(
             start_date.replace('Z', '+00:00'))
-        # if(duration == "hourly" and len(active_order) > 0):
-        #     return Response({"message": f"Space unavailable, pick a later date"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        end_date = datetime.fromisoformat(
+            end_date.replace('Z', '+00:00'))
+
         existing = []
         if len(active_order) > 0:
 
             for order in active_order:
+
                 if duration == "daily":
-                    order_end_date = pytz.utc.localize(order.usage_end_date).date()
+                    order_start_date = pytz.utc.localize(
+                        order.usage_start_date).date()
+                    order_end_date = pytz.utc.localize(
+                        order.usage_end_date).date()
                     start = start_date.date()
+                    end = end_date.date()
                 elif duration == "hourly":
-                    order_end_date = order.usage_end_date.time()
-                    
-                    start = start_date.time()
+                    order_end_date = pytz.utc.localize(order.usage_end_date)
+                    order_start_date = pytz.utc.localize(
+                        order.usage_start_date)
+                    start = start_date
+                    end = end_date
 
                 order_type = order.order_type.order_type
-                if start <= order_end_date:
+                if (start >= order_start_date and start_date <= order_end_date )or (end <= order_end_date and end >= order_start_date):
                     if order_type == "booking":
                         existing.append(
                             {"start_date": order.usage_start_date, "end_date": order.usage_end_date})
@@ -187,13 +196,13 @@ class BookingView(PlaceOrder):
                 for days in days_booked:
 
                     ordered = self.order(existing_bookings,
-                                         days["start_date"], data["duration"])
+                                         days["start_date"], days["end_date"], data["duration"])
                     exists.extend(ordered)
 
             elif data["duration"] == "hourly":
                 for hours in hours_booked:
                     ordered = self.order(existing_bookings,
-                                         hours["start_date"], data["duration"])
+                                         hours["start_date"], hours["end_date"], data["duration"])
                     exists.extend(ordered)
 
             if (bool(exists)):

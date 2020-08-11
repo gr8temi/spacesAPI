@@ -291,7 +291,6 @@ class PlaceReservation(PlaceOrder):
             for dates in dates_array:
                 start_day = calendar.day_name[datetime.fromisoformat(
                     dates["start_date"].replace('Z', '+00:00')).weekday()]
-
                 opening_period = self.check_all_day(availability, start_day)
                 if opening_period == True:
                     opened.append({"dates": dates, "opening": "all_day"})
@@ -325,39 +324,61 @@ class PlaceReservation(PlaceOrder):
             else:
                 return False
 
+    def check_day_difference(self, bookings, duration, now):
+
+        days_not_allowed = []
+        for book in bookings:
+            start_date = datetime.fromisoformat(
+                book["start_date"].replace('Z', '+00:00'))
+            if duration == "daily":
+                if start_date.date() - pytz.utc.localize((now+timedelta(days=1)).date()) < timedelta(days=1):
+                    days_not_allowed.append(book)
+            elif duration == "hourly":
+                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                    days_not_allowed.append(book)
+
+        return days_not_allowed
     # checks for booked dates
+
     def booked_days(self, start_date, end_date, space_id, duration):
         orders = Order.objects.filter(
             space=space_id).exclude(status="cancelled")
 
         if duration == "hourly":
             active_orders = [
-                order for order in orders if order.usage_end_date.time() >= start_date.time()]
+                order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
         elif duration == "daily":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
         return active_orders
 
-    def order(self, active_order, start_date, duration):
-
+    def order(self, active_order, start_date, end_date, duration):
         start_date = datetime.fromisoformat(
             start_date.replace('Z', '+00:00'))
+        end_date = datetime.fromisoformat(
+            end_date.replace('Z', '+00:00'))
 
         existing = []
         if len(active_order) > 0:
 
             for order in active_order:
+
                 if duration == "daily":
+                    order_start_date = pytz.utc.localize(
+                        order.usage_start_date).date()
                     order_end_date = pytz.utc.localize(
                         order.usage_end_date).date()
                     start = start_date.date()
+                    end = end_date.date()
                 elif duration == "hourly":
-                    order_end_date = order.usage_end_date.time()
-
-                    start = start_date.time()
+                    order_end_date = pytz.utc.localize(order.usage_end_date)
+                    order_start_date = pytz.utc.localize(
+                        order.usage_start_date)
+                    start = start_date
+                    end = end_date
 
                 order_type = order.order_type.order_type
-                if start <= order_end_date:
+                if (start >= order_start_date and start_date <= order_end_date) or (end <= order_end_date and end >= order_start_date):
                     if order_type == "booking":
                         existing.append(
                             {"start_date": order.usage_start_date, "end_date": order.usage_end_date})
@@ -398,12 +419,20 @@ class PlaceReservation(PlaceOrder):
         exists = []
         if duration == 'hourly':
             hours_booked = json.loads(json.dumps(data.get("hours_booked")))
-            
+            now = datetime.now()
+            check = self.check_day_difference(hours_booked, duration, now)
+
+
             invalid_time_array = self.invalid_time(hours_booked)
             if invalid_time_array:
                 return Response({"message": f"This time is not available ", "payload": {'invalid_time': invalid_time_array}}, status=status.HTTP_400_BAD_REQUEST)
             check_available_array = self.check_availability(
                 hours_booked, Availability, space, duration)
+            
+            if check:
+                return Response({"message": f"You can only place reservations 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+
+            
             if not check_available_array:
                 for hours in hours_booked:
                     start_date = datetime.fromisoformat(
@@ -417,16 +446,20 @@ class PlaceReservation(PlaceOrder):
                                         for avail in check_available_array if bool(avail.get("close_day"))])
 
                 return Response({"message": f"Space does not open before open time, and after close time or close days", "payload": {"dates": available_slots}}, status=status.HTTP_400_BAD_REQUEST)
-
+            print({"existing": existing_bookings})
             for hours in hours_booked:
                 ordered = self.order(existing_bookings,
-                                     hours["start_date"], duration)
+                                     hours["start_date"], hours["end_date"], duration)
                 exists.extend(ordered)
 
         elif duration == "daily":
             days_booked = json.loads(json.dumps(data.get("daily_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
+            check = self.check_day_difference(days_booked, duration, now)
+
+            if check:
+                return Response({"message": f"You can only place reservations 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
@@ -437,7 +470,7 @@ class PlaceReservation(PlaceOrder):
             for days in days_booked:
 
                 ordered = self.order(existing_bookings,
-                                     days["start_date"], duration)
+                                     days["start_date"], days["end_date"], duration)
                 exists.extend(ordered)
 
             # if not invalid_time_array:
@@ -451,6 +484,7 @@ class PlaceReservation(PlaceOrder):
         else:
             if data["user"]:
                 user = User.objects.get(user_id=data["user"]).user_id
+                customer_email = User.objects.get(user_id=data["user"]).email
             else:
                 user = ''
             try:
@@ -476,7 +510,7 @@ class PlaceReservation(PlaceOrder):
                     next_day = order_time + timedelta(days=1)
                     # notification for customer booking space
                     subject_customer = "RESERVATION COMPLETE"
-                    to_customer = [data["email"]]
+                    to_customer = [customer_email]
                     customer_content = f"Dear {data['email']}, your Reservation has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
 
                     # notification for agent that registered space
@@ -500,7 +534,7 @@ class PlaceReservation(PlaceOrder):
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def approve_reservation(self, orders, data, agent_mail, agent_name,space,customer):
+    def approve_reservation(self, orders, data, agent_mail, agent_name, space, customer):
         try:
             with transaction.atomic():
                 start_now = datetime.now()
@@ -530,7 +564,7 @@ class PlaceReservation(PlaceOrder):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def decline_reservation(self, orders, data, agent_mail, agent_name, space,customer):
+    def decline_reservation(self, orders, data, agent_mail, agent_name, space, customer):
         try:
             with transaction.atomic():
                 start_now = datetime.now()
@@ -559,7 +593,7 @@ class PlaceReservation(PlaceOrder):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def reservation_to_booking(self,orders, data, agent_mail, agent_name, space, transaction_code,customer):
+    def reservation_to_booking(self, orders, data, agent_mail, agent_name, space, transaction_code, customer):
         try:
             with transaction.atomic():
                 start_now = datetime.now()
@@ -584,7 +618,7 @@ class PlaceReservation(PlaceOrder):
                 send_mail(subject_customer2, customer_content2,
                           sender, to_customer)
 
-                return Response({"message": "Order completed", "status": f"{order.status}"}, status=status.HTTP_200_OK)             
+                return Response({"message": "Order completed", "status": f"{order.status}"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -597,7 +631,7 @@ class PlaceReservation(PlaceOrder):
         transaction_code = data['transaction_code']
         try:
             orders = Order.objects.filter(order_code=order_code)
-        except :
+        except:
             return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
         space = self.get_space(list(orders)[0].space.space_id)
 
@@ -608,12 +642,14 @@ class PlaceReservation(PlaceOrder):
         if order_code:
 
             if update_type == "approve":
-                self.approve_reservation(orders,data,agent_mail,agent_name, space,customer)
+                self.approve_reservation(
+                    orders, data, agent_mail, agent_name, space, customer)
             elif update_type == "decline":
-                self.decline_reservation(orders,data,agent_mail,agent_name, space,customer)
+                self.decline_reservation(
+                    orders, data, agent_mail, agent_name, space, customer)
             elif update_type == "book":
                 self.reservation_to_booking(
-                    orders, data, agent_mail, agent_name, space,transaction_code, customer)
+                    orders, data, agent_mail, agent_name, space, transaction_code, customer)
             else:
                 return Response({"message": "Invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
         else:
