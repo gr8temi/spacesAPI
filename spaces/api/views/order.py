@@ -17,8 +17,7 @@ class PlaceOrder(APIView):
 
     def get_agent(self, biz):
         agt = get_object_or_404(agent.Agent, business_name=biz)
-        space_agent = get_object_or_404(user.User, name=agt.user)
-        return space_agent
+        return agt
 
     def date_object(self, date):
         return datetime.strptime(date, '%Y-%m-%d %H:%M')
@@ -34,7 +33,7 @@ class PlaceOrder(APIView):
                     return True
                 else:
                     return ([each_day_availability['open_time'], each_day_availability['close_time']])
-            
+
         return False
 
     def invalid_time(self, start, end):

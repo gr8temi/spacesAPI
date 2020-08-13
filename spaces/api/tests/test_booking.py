@@ -1,26 +1,25 @@
-# import bcrypt
-# from django.test import TestCase
-# from rest_framework import status
-# from rest_framework.test import APITestCase
-# from django.urls import reverse
-# from django.utils import timezone
-# from datetime import date, timedelta, datetime
-# import json
-# from ..views.booking import Booking
-# from ..models.spaces_category import SpaceCategory
-# from ..models.agent import Agent
-# from ..models.spaces import Space
-# from ..models.user import User
-# from ..models.customer import Customer
-# from ..models.order_type import OrderType
-# from ..models.availabilities import Availability
-# from ..models.extras import Extra
-# from ..helper.helper import order_code
-# from .mock_data.space_data import space_creation_data, space_category_data, extra1, extra2, availability1, availability2, availability3_1, availability3_2, availability3_3, availability3_4, availability3_5, availability3_6, availability3_7, hourly_space_data, monthly_space_data, yearly_space_data
-# from .mock_data.order_data import order_data1, order_data3, order_data4, order_extra, hourly_order_data
-# from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
-# from .mock_data.order_data import order_type_booking, order_data, order_type_reservation
-
+import bcrypt
+from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APITestCase
+from django.urls import reverse
+from django.utils import timezone
+from datetime import date, timedelta, datetime
+import json
+from ..models.spaces_category import SpaceCategory
+from ..models.agent import Agent
+from ..models.spaces import Space
+from ..models.user import User
+from ..models.customer import Customer
+from ..models.order_type import OrderType
+from ..models.availabilities import Availability
+from ..models.extras import Extra
+from ..helper.helper import order_code
+from .mock_data.space_data import space_creation_data, space_category_data, extra1, extra2, availability1, availability2, availability3_1, availability3_2, availability3_3, availability3_4, availability3_5, availability3_6, availability3_7, hourly_space_data, monthly_space_data, yearly_space_data
+from .mock_data.order_data import order_data1, order_data3, order_data4, order_extra, hourly_order_data, booking_confirmed_data
+from .mock_data.registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
+from .mock_data.order_data import order_type_booking, order_data, order_type_reservation
+from rest_framework.test import APIClient
 
 # class TestBooking(APITestCase):
 
@@ -158,3 +157,31 @@
 #             self.url3, complete_order_data, HTTP_AUTHORIZATION=self.header)
 #         self.assertEqual(response2.status_code, 200)
 #         self.assertEqual(response2.data["message"], "Order completed")
+
+class TestBooking(APITestCase):
+    urls = 'my_app.urls'
+
+    def setUp(self):
+        self.data = booking_confirmed_data()
+        self.url = reverse('booking')
+        self.client = APIClient()
+
+    def test_booking(self):
+        
+        response1 = self.client.post(
+            self.url, self.data["hourly_booking"], format='json'
+        )
+       
+        self.assertEqual(response1.status_code,200)
+        response2 = self.client.post(
+            self.url, self.data["hourly_booking"], format='json'
+        )
+        self.assertEqual(response2.status_code, 409)
+
+    def test_old_booking(self):
+        response1 = self.client.post(
+            self.url, self.data["old_bookings"], format='json'
+        )
+        self.assertEqual(response1.status_code, 400)
+    
+
