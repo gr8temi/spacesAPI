@@ -407,11 +407,11 @@ class PlaceReservation(PlaceOrder):
         space_id = data["space"]
         name = data["name"]
         email = data['company_email']
-        space = self.get_space(space_id)
-        agent = self.get_agent(space.agent)
+        space = Space.objects.get(space_id=space_id)
+        agent = Agent.objects.get(business_name=space.agent.business_name)
 
-        agent_name = agent.name
-        agent_mail = agent.email
+        agent_name = agent.user.name
+        agent_mail = agent.user.email
 
         duration = space.duration
         order_cde = order_code()
