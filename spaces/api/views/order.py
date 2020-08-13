@@ -34,7 +34,7 @@ class PlaceOrder(APIView):
                     return True
                 else:
                     return ([each_day_availability['open_time'], each_day_availability['close_time']])
-            
+
         return False
 
     def invalid_time(self, start, end):

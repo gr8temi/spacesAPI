@@ -43,26 +43,36 @@ class BookingStatus(APIView):
             serializer = OrderSerializer(order)
             if str(order_type) == "booking":
                 return Response({"message": "Booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
-            elif str(order_type) == "reservation":
+            elif str(order_type) == "booking":
                 expiry_time = order.order_time + timedelta(seconds=21600)
-                return Response({"message": "Reservation fetched successfully", "payload": serializer.data, "expiration": expiry_time}, status=status.HTTP_200_OK)
+                return Response({"message": "Booking fetched successfully", "payload": serializer.data, "expiration": expiry_time}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class BookingView(PlaceOrder):
+    def invalid_time(self, date_array):
+        invalid_dates = []
+        for dates in date_array:
+            if datetime.fromisoformat(
+                dates["start_date"].replace('Z', '+00:00')) > datetime.fromisoformat(
+                    dates["end_date"].replace('Z', '+00:00')):
+                invalid_dates.append(dates)
+        if invalid_dates:
+            return invalid_dates
+        else:
+            return False
 
-    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time):
-
+    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type):
         order_data = {
             'amount': amount,
             'usage_start_date': start_date,
             'usage_end_date': end_date,
-            'status': 'booked',
+            'status': 'pending',
             'transaction_code': transaction_code,
             'no_of_guest': no_of_guest,
             'order_code': order_cde,
-            'order_type': self.get_order_type_id(order_type_name),
+            'order_type': f"{booking_type}",
             'user': user,
             'name': name,
             'company_email': email,
@@ -70,9 +80,9 @@ class BookingView(PlaceOrder):
             'space': space_id,
             'duration': duration,
             'hours_booked': hours_booked,
-            'order_time':order_time,
+            'order_time': order_time,
         }
-
+        
         order_serializer = OrderSerializer(data=order_data)
         if order_serializer.is_valid():
             order_serializer.save()
@@ -85,15 +95,78 @@ class BookingView(PlaceOrder):
         else:
             return {"error": order_serializer.errors, status: False}
 
+    def get_active_orders(self, start, space_id):
+        orders = Order.objects.filter(space=space_id)
+        active_orders = [
+            order for order in orders if order.usage_end_date >= start]
+        return active_orders
+
+    def check_availability(self, dates_array, model, space, duration):
+        space_availability = model.objects.filter(space=space.name)
+        availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
+                         'close_time': av.close_time} for av in space_availability]
+        if duration == "hourly":
+            opened = []
+            for dates in dates_array:
+                start_day = calendar.day_name[datetime.fromisoformat(
+                    dates["start_date"].replace('Z', '+00:00')).weekday()]
+                opening_period = self.check_all_day(availability, start_day)
+                if opening_period == True:
+                    opened.append({"dates": dates, "opening": "all_day"})
+                elif opening_period == False:
+                    opened.append({"dates": dates, "opening": "not_opened"})
+                elif len(opening_period) > 0:
+                    opening = [time.strftime("%m-%d-%Y, %H:%M")
+                               for time in opening_period]
+                    opened.append({"dates": dates, "opening": opening})
+
+            not_available_dates = []
+            for days in opened:
+                if days["opening"] != "all_day" and days["opening"] != "not_opened":
+                    open_time = datetime.strptime(
+                        days["opening"][0], "%m-%d-%Y, %H:%M").hour
+                    close_time = datetime.strptime(
+                        days["opening"][1], "%m-%d-%Y, %H:%M").hour
+                    if open_time > datetime.fromisoformat(
+                            days["dates"]["start_date"].replace('Z', '+00:00')).hour or close_time < datetime.fromisoformat(
+                            days["dates"]["end_date"].replace('Z', '+00:00')).hour:
+                        not_available_dates.append(
+                            {"dates": days["dates"], "open_time": open_time, "close_time": close_time})
+                elif days["opening"] == "not_opened":
+                    start_day = datetime.fromisoformat(
+                        days["dates"]["start_date"].replace('Z', '+00:00'))
+                    day = calendar.day_name[start_day.weekday()]
+                    not_available_dates.append(
+                        {"dates": days["dates"], "close_day": day})
+            if not_available_dates:
+                return not_available_dates
+            else:
+                return False
+
+    def check_day_difference(self, bookings, duration, now):
+
+        days_not_allowed = []
+        
+        for book in bookings:
+            start_date = datetime.fromisoformat(
+                book["start_date"].replace('Z', '+00:00'))
+            if duration == "daily":
+                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
+                    days_not_allowed.append(book)
+            elif duration == "hourly":
+                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                    days_not_allowed.append(book)
+
+        return days_not_allowed
+    # checks for booked dates
+
     def booked_days(self, start_date, end_date, space_id, duration):
-        orders = Order.objects.filter(space=space_id).exclude(status="cancelled")
+        orders = Order.objects.filter(
+            space=space_id).exclude(status="cancelled")
 
         if duration == "hourly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
-            for active in active_orders:
-                print({"start": active.usage_start_date,
-                       "stop": active.usage_end_date})
         elif duration == "daily":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
@@ -125,11 +198,11 @@ class BookingView(PlaceOrder):
                     end = end_date
 
                 order_type = order.order_type.order_type
-                if (start >= order_start_date and start_date <= order_end_date )or (end <= order_end_date and end >= order_start_date):
+                if (start >= order_start_date and start_date <= order_end_date) or (end <= order_end_date and end >= order_start_date):
                     if order_type == "booking":
                         existing.append(
                             {"start_date": order.usage_start_date, "end_date": order.usage_end_date})
-                    elif order_type == "reservation":
+                    elif order_type == "booking":
                         expiry_time = order.order_time + \
                             timedelta(seconds=21600)
 
@@ -144,125 +217,136 @@ class BookingView(PlaceOrder):
             return existing
 
     def post(self, request):
+
+        # if request.user:
+        #     user = getattr(request._request, 'user', None).id
+        # else:
+        #     user = ''
         data = request.data
         space_id = data["space"]
+        name = data["name"]
+        email = data['company_email']
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
-        orders = Order.objects.all()
-        order_array = []
-        for order in orders:
-            order_array.append(
-                {"usage_start_date": order.usage_start_date, "usage_end_date": order.usage_end_date})
-        duration = data["duration"]
-        name = data['name']
-        email = data['company_email']
-        days_booked = json.loads(json.dumps(data.get("daily_bookings")))
 
-        hours_booked = json.loads(json.dumps(data.get("hours_booked")))
         agent_name = agent.name
         agent_mail = agent.email
+
+        duration = space.duration
+        order_cde = order_code()
         existing_bookings = []
-        false_date = []
-        if data["duration"] == "hourly":
+        exists = []
+        if duration == 'hourly':
+            hours_booked = json.loads(json.dumps(data.get("hours_booked")))
+            now = datetime.now()
+            check = self.check_day_difference(hours_booked, duration, now)
 
-            for hours in hours_booked:
-                start_date = datetime.fromisoformat(
-                    hours["start_date"].replace('Z', '+00:00'))
-                if (start_date.date() >= datetime.now().date()):
+            invalid_time_array = self.invalid_time(hours_booked)
+            if invalid_time_array:
+                return Response({"message": f"This time is not available ", "payload": {'invalid_time': invalid_time_array}}, status=status.HTTP_400_BAD_REQUEST)
+            check_available_array = self.check_availability(
+                hours_booked, Availability, space, duration)
+
+            if check:
+                return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not check_available_array:
+                for hours in hours_booked:
+                    start_date = datetime.fromisoformat(
+                        hours["start_date"].replace('Z', '+00:00'))
                     existing_bookings.extend(self.booked_days(
-                        datetime.fromisoformat(hours["start_date"].replace('Z', '+00:00')), datetime.fromisoformat(hours["end_date"].replace('Z', '+00:00')), space_id, duration))
-                else:
-                    false_date.append(True)
+                        start_date, datetime.fromisoformat(hours["end_date"].replace('Z', '+00:00')), space_id, duration))
+            else:
+                available_slots = [{"open_time": avail["open_time"],
+                                    "close_time":avail["close_time"], "invalid_date":avail["dates"]} for avail in check_available_array if not bool(avail.get("close_day"))]
+                available_slots.extend([{"close_day": avail["close_day"], "invalid_date":avail["dates"]}
+                                        for avail in check_available_array if bool(avail.get("close_day"))])
 
-        elif data["duration"] == "daily":
+                return Response({"message": f"Space does not open before open time, and after close time or close days", "payload": {"dates": available_slots}}, status=status.HTTP_400_BAD_REQUEST)
+            for hours in hours_booked:
+                ordered = self.order(existing_bookings,
+                                     hours["start_date"], hours["end_date"], duration)
+                exists.extend(ordered)
 
+        elif duration == "daily":
+            days_booked = json.loads(json.dumps(data.get("daily_bookings")))
+            invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
+            now = datetime.now()
+            check = self.check_day_difference(days_booked, duration, now)
+
+            if check:
+                return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
                     days["start_date"].replace('Z', '+00:00')).date()
-                if (start_date >= datetime.now().date()):
-                    existing_bookings.extend(self.booked_days(
-                        datetime.fromisoformat(days["start_date"].replace('Z', '+00:00')), datetime.fromisoformat(days["end_date"].replace('Z', '+00:00')), space_id, duration))
-                else:
-                    false_date.append(True)
+                existing_bookings.extend(self.booked_days(
+                    datetime.fromisoformat(days["start_date"].replace('Z', '+00:00')), datetime.fromisoformat(days["end_date"].replace('Z', '+00:00')), space_id, duration))
 
-        # Get formatted existing bookings
-        exists = []
+            for days in days_booked:
 
-        if (not bool(false_date)):
-            if data["duration"] == "daily":
+                ordered = self.order(existing_bookings,
+                                     days["start_date"], days["end_date"], duration)
+                exists.extend(ordered)
 
-                for days in days_booked:
+            # if not invalid_time_array:
 
-                    ordered = self.order(existing_bookings,
-                                         days["start_date"], days["end_date"], data["duration"])
-                    exists.extend(ordered)
-
-            elif data["duration"] == "hourly":
-                for hours in hours_booked:
-                    ordered = self.order(existing_bookings,
-                                         hours["start_date"], hours["end_date"], data["duration"])
-                    exists.extend(ordered)
-
-            if (bool(exists)):
-                if data["duration"] == "daily":
-                    return Response({"message": f"Space is not available on the following days", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
-                elif data["duration"] == "hourly":
-                    return Response({"message": f"Space is not available on the following days", "payload": hours}, status=status.HTTP_409_CONFLICT)
-            else:
-                if data["user"]:
-                    user = User.objects.get(user_id=data["user"]).user_id
-                    user_email = User.objects.get(user_id=data["user"]).email
-                else:
-                    user = ''
-                try:
-                    with transaction.atomic():
-                        order_cde = order_code()
-                        if data["duration"] == "daily":
-                            booked = days_booked
-                        elif data["duration"] == "hourly":
-                            booked = hours_booked
-                        order_time = datetime.now()
-                        for days in booked:
-                            start = datetime.fromisoformat(
-                                days['start_date'].replace('Z', '+00:00'))
-                            end = datetime.fromisoformat(
-                                days['end_date'].replace('Z', '+00:00'))
-
-                            self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                            user, data["name"], data["company_email"], data["extras"], data["space"], data["duration"], [], order_cde, order_time)
-                        # notifications
-                        sender = config(
-                            "EMAIL_SENDER", default="space.ng@gmail.com")
-
-                        # notification for customer booking space
-                        subject_customer = "ORDER COMPLETED"
-                        to_customer = [user_email]
-                        customer_content = f"Dear {user_email}, your Order has been completed. You booked space {space.name}. Thanks for your patronage"
-
-                        # notification for agent that registered space
-                        subject_agent = "YOU HAVE AN ORDER"
-                        to_agent = [agent_mail]
-                        agent_content = f"Dear {agent_name}, you have an order placed for your space {space.name} listed on our platform."
-
-                        send_mail(subject_agent, agent_content,
-                                  sender, to_agent)
-                        send_mail(subject_customer, customer_content,
-                                  sender, to_customer)
-
-                        customer_details = {
-                            "id": user, "name": name, "email": email}
-
-                        return Response(
-                            {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start, "Booking end date": end},
-                                "message": f"Order completed"},
-                            status=status.HTTP_200_OK)
-
-                except IntegrityError as e:
-                    return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+            # pass
+        if (bool(exists)):
+            if duration == "daily":
+                return Response({"message": f"Space is not available on the following days", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
+            elif duration == "hourly":
+                return Response({"message": f"Space is not available on the following hours", "payload": hours}, status=status.HTTP_409_CONFLICT)
         else:
-            return Response({"message": "The date chosen is before today "}, status=status.HTTP_400_BAD_REQUEST)
-    #     pass
+            if data["user"]:
+                user = User.objects.get(user_id=data["user"]).user_id
+                customer_email = User.objects.get(user_id=data["user"]).email
+            else:
+                user = ''
+            try:
+                with transaction.atomic():
+                    order_cde = order_code()
+                    order_time = datetime.now()
+                    if duration == "daily":
+                        booked = days_booked
+                    elif duration == "hourly":
+                        booked = hours_booked
+                    booking_type = self.get_order_type_id(data["order_type"])
+                    for days in booked:
+                        start = datetime.fromisoformat(
+                            days['start_date'].replace('Z', '+00:00'))
+                        end = datetime.fromisoformat(
+                            days['end_date'].replace('Z', '+00:00'))
 
-    # pass
+                        self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
+                                        user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
+                    # notifications
+                    sender = config(
+                        "EMAIL_SENDER", default="space.ng@gmail.com")
+                    next_day = order_time + timedelta(days=1)
+                    # notification for customer booking space
+                    subject_customer = "BOOKING COMPLETE"
+                    to_customer = [customer_email]
+                    customer_content = f"Dear {to_customer}, your Booking has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
+
+                    # notification for agent that registered space
+                    subject_agent = "YOU HAVE A BOOKING"
+                    to_agent = [agent_mail]
+                    agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform. accept the booking now. Or it would expire by {next_day.time()} {next_day.date()}. "
+
+                    send_mail(subject_agent, agent_content,
+                              sender, to_agent)
+                    send_mail(subject_customer, customer_content,
+                              sender, to_customer)
+
+                    customer_details = {
+                        "id": user, "name": name, "email": email}
+
+                    return Response(
+                        {"payload": {**customer_details, "order_code": order_cde, "Booking dates": booked},
+                            "message": f"Booking completed"},
+                        status=status.HTTP_200_OK)
+
+            except IntegrityError as e:
+                return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)

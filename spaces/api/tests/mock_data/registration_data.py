@@ -1,5 +1,5 @@
 import bcrypt
-
+import random
 
 customer_pw="customer"
 cus_hashed = bcrypt.hashpw(customer_pw.encode('utf-8'), bcrypt.gensalt())
@@ -38,7 +38,7 @@ agent_hashed = bcrypt.hashpw(agent_pw.encode('utf-8'), bcrypt.gensalt())
 def user_registration_data():
     return {
     "name": "Ola Bimbo",
-    "email": "test@gmail.com",
+    "email": f"test{random.randint(0,100)}@gmail.com",
     "phone_number": "08022211134",
     "password": agent_hashed,
     "created_at": "2019-03-15 16:14:54",
