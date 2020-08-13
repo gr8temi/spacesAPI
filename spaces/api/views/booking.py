@@ -227,10 +227,11 @@ class BookingView(PlaceOrder):
         name = data["name"]
         email = data['company_email']
         space = self.get_space(space_id)
-        agent = self.get_agent(space.agent)
+        agent = self.get_agent(space.agent.business_name)
+
+
         agent_name = agent.user.name
         agent_mail = agent.user.email
-
 
         duration = space.duration
         order_cde = order_code()
