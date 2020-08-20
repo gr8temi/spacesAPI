@@ -96,7 +96,7 @@ EMAIL_PORT = config("EMAIL_PORT", default=465)
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_BACKEND = config(
-    'EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+    'EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
 
 # Global configurations for rest framework
@@ -105,6 +105,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
     ],
+    'EXCEPTION_HANDLER': 'spaces.exception_handler.custom_exception_handler',
 }
 
 

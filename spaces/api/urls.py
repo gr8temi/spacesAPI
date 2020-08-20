@@ -6,7 +6,7 @@ from django.views.decorators.cache import cache_page
 
 from .views.auth import login
 from .views.add_space import CreateSpace
-from .views.space import Spaces, SingleSpace
+from .views.space import Spaces, SingleSpace, EditSpace
 from .views.reservation import Reservation, PlaceReservation
 from .views.booking import BookingStatus, BookingView
 from .views import agent, customer
@@ -24,6 +24,7 @@ urlpatterns = [
     path('v1/booking/status/<slug:order_code>/',
          BookingStatus.as_view(), name='booking_status'),
     path('v1/space/<slug:space_id>/', SingleSpace.as_view(), name='single_space'),
+    path('v1/space/edit/<slug:space_id>/', EditSpace.as_view(), name='edit_space'),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)
          (Spaces.as_view()), name="spaces"),
