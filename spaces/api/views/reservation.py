@@ -594,7 +594,7 @@ class PlaceReservation(PlaceOrder):
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)    
     
     def approve_reservation_extension(self, orders, data, agent_mail, space, transaction_code, customer):
-        #logic to approve extension time
+        #to approve extension time
         try:
             with transaction.atomic():
                 start_now = datetime.now()
@@ -670,17 +670,21 @@ class PlaceReservation(PlaceOrder):
         agent = self.get_agent(space.agent)
         agent_mail = agent.email
         agent_name = agent.name
+        
         if order_code:
-
-            if update_type == "approve":
-                self.approve_reservation(
-                    orders, data, agent_mail, agent_name, space, customer)
-            elif update_type == "decline":
-                self.decline_reservation(
-                    orders, data, agent_mail, agent_name, space, customer)
-            elif update_type == "book":
-                self.reservation_to_booking(
-                    orders, data, agent_mail, agent_name, space, transaction_code, customer)
+            if update_type == "book":
+                    self.reservation_to_booking(
+                        orders, data, agent_mail, agent_name, space, transaction_code, customer)
+            elif update_type == "approve" or update_type == "decline":
+                if request.user.is_authenticated:
+                    if update_type == "approve":
+                            self.approve_reservation(
+                                orders, data, agent_mail, agent_name, space, customer)
+                    elif update_type == "decline":
+                        self.decline_reservation(
+                            orders, data, agent_mail, agent_name, space, customer)                    
+                else:
+                    return Response({"message": "Login as a space host to complete this action."})
             else:
                 return Response({"message": "Invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
         else:
