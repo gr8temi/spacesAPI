@@ -446,7 +446,7 @@ class PlaceReservation(PlaceOrder):
                                         for avail in check_available_array if bool(avail.get("close_day"))])
 
                 return Response({"message": f"Space does not open before open time, and after close time or close days", "payload": {"dates": available_slots}}, status=status.HTTP_400_BAD_REQUEST)
-            print({"existing": existing_bookings})
+            # print({"existing": existing_bookings})
             for hours in hours_booked:
                 ordered = self.order(existing_bookings,
                                      hours["start_date"], hours["end_date"], duration)
@@ -591,6 +591,37 @@ class PlaceReservation(PlaceOrder):
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
         except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)    
+    
+    def approve_reservation_extension(self, orders, data, agent_mail, space, transaction_code, customer):
+        #logic to approve extension time
+        try:
+            with transaction.atomic():
+                start_now = datetime.now()
+                for order in orders:
+                    if order.status == "pending":
+                        order.status = "reserved"
+                        order.expiry_time = start_now + timedelta(days=1)
+                        order.save()
+                # notifications
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                next_day = start_now + timedelta(days=1)
+                # notification for customer booking space
+                subject_customer = "EXTENSION FOR RESERVATION APPROVED"
+                to_customer = [customer.email]
+                customer_content = f"Dear {customer.name}, your request for Reservation extension has been Accepted by the space host. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST APPROVED A REQUEST FOR RESERVATION EXTENSION"
+                to_agent = [agent_mail]
+                agent_content = f"Dear {agent_name}, You have approved a request for reservation extension for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+        except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
     def reservation_to_booking(self, orders, data, agent_mail, agent_name, space, transaction_code, customer):
@@ -654,3 +685,42 @@ class PlaceReservation(PlaceOrder):
                 return Response({"message": "Invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestReservationExtension(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data["user"]
+        reason = data["reason"]
+        customer = get_object_or_404(User, user_id=user_id)
+        order_code = data['order_code']
+        try:
+            orders = Order.objects.filter(order_code=order_code)
+        except:
+            return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        space = self.get_space(list(orders)[0].space.space_id)
+        agent = self.get_agent(space.agent)
+        agent_mail = agent.email
+        agent_name = agent.name
+        # transaction_code = data['transaction_code']
+        
+        try:
+            # notifications
+            sender = config(
+                "EMAIL_SENDER", default="space.ng@gmail.com")
+        
+            subject_customer = "REQUEST FOR RESERVATION EXTENSION"
+            to_customer = [customer.email]
+            customer_content = f"Dear {customer.name}, you have requested for an extension of time on your reservation. You reserved space is {space.name}. Your request awaits approval of the space host, you will be notified once this is done. Thanks for your patronage."
+
+            # notification for agent that registered space
+            subject_agent = "YOU HAVE A REQUEST FOR RESERVATION EXTENSION"
+            to_agent = [agent_mail]
+            agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
+
+            send_mail(subject_agent, agent_content,
+                        sender, to_agent)
+            send_mail(subject_customer, customer_content,
+                        sender, to_customer)
+        except :
+            return Response({"error": "invalid"}, status=status.HTTP_400_BAD_REQUEST)
