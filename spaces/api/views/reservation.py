@@ -675,7 +675,7 @@ class PlaceReservation(PlaceOrder):
             if update_type == "book":
                     self.reservation_to_booking(
                         orders, data, agent_mail, agent_name, space, transaction_code, customer)
-            elif update_type == "approve" or update_type == "decline":
+            elif update_type == "approve" or update_type == "decline" or update_type == "approve_reservation_extension":
                 if request.user.is_authenticated:
                     if update_type == "approve":
                             self.approve_reservation(
@@ -683,6 +683,8 @@ class PlaceReservation(PlaceOrder):
                     elif update_type == "decline":
                         self.decline_reservation(
                             orders, data, agent_mail, agent_name, space, customer)                    
+                    elif update_type == "approve_reservation_extension":
+                        self.approve_reservation_extension(orders, data, agent_mail, space, transaction_code, customer)
                 else:
                     return Response({"message": "Login as a space host to complete this action."})
             else:
