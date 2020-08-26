@@ -593,7 +593,7 @@ class PlaceReservation(PlaceOrder):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)    
     
-    def approve_reservation_extension(self, orders, data, agent_mail, space, transaction_code, customer):
+    def approve_reservation_extension(self, orders, data, agent_mail, agent_name, space, transaction_code, customer):
         #to approve extension time
         try:
             with transaction.atomic():
@@ -624,6 +624,36 @@ class PlaceReservation(PlaceOrder):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
+    def decline_reservation_extension(self, orders, data, agent_mail, agent_name, space, customer):
+        try:
+            with transaction.atomic():
+                start_now = datetime.now()
+                for order in orders:
+                    if order.status == "pending":
+                        if order.expiry_time > start_now:
+                            order.status = "cancelled"
+                            order.save()
+                # notifications
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                # notification for customer
+                subject_customer = "REQUEST FOR RESERVATION EXTENSION  DECLINED"
+                to_customer = [customer.email]
+                customer_content = f"Dear {customer.name}, your  request for extension of Reservation has been Declined by the space host. Kindly proceed to pay before 24hours from your original order time. Thanks for your patronage"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST DECLINED A REQUEST FOR EXTENSION OF RESERVATION"
+                to_agent = [agent_mail]
+                agent_content = f"Dear {agent_name}, You have declined a request for extension of reservation for {space.name}listed on our platform."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)    
+    
+    
     def reservation_to_booking(self, orders, data, agent_mail, agent_name, space, transaction_code, customer):
         try:
             with transaction.atomic():
@@ -675,7 +705,7 @@ class PlaceReservation(PlaceOrder):
             if update_type == "book":
                     self.reservation_to_booking(
                         orders, data, agent_mail, agent_name, space, transaction_code, customer)
-            elif update_type == "approve" or update_type == "decline" or update_type == "approve_reservation_extension":
+            elif update_type == "approve" or update_type == "decline" or update_type == "approve_reservation_extension" or update_type == "decline_reservation_extension":
                 if request.user.is_authenticated:
                     if update_type == "approve":
                             self.approve_reservation(
@@ -684,7 +714,9 @@ class PlaceReservation(PlaceOrder):
                         self.decline_reservation(
                             orders, data, agent_mail, agent_name, space, customer)                    
                     elif update_type == "approve_reservation_extension":
-                        self.approve_reservation_extension(orders, data, agent_mail, space, transaction_code, customer)
+                        self.approve_reservation_extension(orders, data, agent_mail, agent_name, space, transaction_code, customer)
+                    elif update_type == "decline_reservation_extension":
+                        self.decline_reservation_extension(orders, data, agent_mail, agent_name, space, transaction_code, customer)
                 else:
                     return Response({"message": "Login as a space host to complete this action."})
             else:
@@ -696,19 +728,19 @@ class PlaceReservation(PlaceOrder):
 class RequestReservationExtension(APIView):
     def post(self, request):
         data = request.data
-        user_id = data["user"]
         reason = data["reason"]
-        customer = get_object_or_404(User, user_id=user_id)
         order_code = data['order_code']
         try:
             orders = Order.objects.filter(order_code=order_code)
         except:
             return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        # user_id = orders[0]
+        user_id = list(orders[0].user.user_id)
+        customer = get_object_or_404(User, user_id=user_id)
         space = self.get_space(list(orders)[0].space.space_id)
         agent = self.get_agent(space.agent)
         agent_mail = agent.email
         agent_name = agent.name
-        # transaction_code = data['transaction_code']
         
         try:
             # notifications
