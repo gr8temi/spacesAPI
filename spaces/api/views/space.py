@@ -16,7 +16,7 @@ from ..serializers.extra import ExtraSerializer
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 import os
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from ..permissions.is_agent_permission import UserIsAnAgent
 
 
@@ -79,6 +79,13 @@ class SingleSpace(APIView):
 
 class EditSpace(UpdateAPIView):
 
+    queryset = Space.objects.all()
+    serializer_class = SpaceSerializer
+    lookup_field = 'space_id'
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+
+class DeleteSpace(DestroyAPIView):
     queryset = Space.objects.all()
     serializer_class = SpaceSerializer
     lookup_field = 'space_id'
