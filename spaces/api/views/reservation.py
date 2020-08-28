@@ -409,9 +409,10 @@ class PlaceReservation(PlaceOrder):
         email = data['company_email']
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
-
-        agent_name = agent.name
-        agent_mail = agent.email
+        user_agent = get_object_or_404(User, name=agent.user)
+        # customer = get_object_or_404(User, user_id=user_id)
+        agent_name = agent.user
+        agent_mail = user_agent.email
 
         duration = space.duration
         order_cde = order_code()
