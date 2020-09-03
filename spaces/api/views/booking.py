@@ -1,13 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
 from rest_framework import status
 from datetime import date, timedelta, datetime
-from rest_framework.permissions import IsAuthenticated
 from decouple import config
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 import json
 import calendar
 import time
@@ -23,7 +19,8 @@ from .order import PlaceOrder
 from ..models.availabilities import Availability
 import pytz
 from django.db import transaction, IntegrityError
-
+from ..consumers.channel_layers import notification_creator
+from ..signals import subscriber
 
 class BookingStatus(APIView):
     def get_order(self, order_code):
@@ -344,7 +341,9 @@ class BookingView(PlaceOrder):
 
                     customer_details = {
                         "id": user, "name": name, "email": email}
-
+                    subscriber.connect(notification_creator)
+                    subscriber.send(sender=self.__class__,
+                            data={ "user_id": f"{agent.user.user_id}", "notification": f"You have a new booking {order_cde} "})
                     return Response(
                         {"payload": {**customer_details, "order_code": order_cde, "Booking dates": booked},
                             "message": f"Booking completed"},

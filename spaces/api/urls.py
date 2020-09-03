@@ -10,7 +10,7 @@ from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
 from .views.reservation import Reservation, PlaceReservation, RequestReservationExtension
 from .views.booking import BookingStatus, BookingView
 from .views import agent, customer
-from .views import space_category, space_type,favourite
+from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
@@ -22,7 +22,7 @@ urlpatterns = [
     path('v1/reservation/', PlaceReservation.as_view(), name="reservation"),
 
     path('v1/booking/', BookingView.as_view(), name="booking"),
-    path('v1/favourites/',favourite.AddFavorite.as_view(), name="favourites"),
+    path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
     path('v1/favourite/delete/<slug:favorite_id>/',
          favourite.DeleteFavourite.as_view(), name="delete_favourite"),
     path('v1/favourite/<slug:user_id>/',
@@ -30,8 +30,10 @@ urlpatterns = [
     path('v1/booking/status/<slug:order_code>/',
          BookingStatus.as_view(), name='booking_status'),
     path('v1/space/<slug:space_id>/', SingleSpace.as_view(), name='single_space'),
-    path('v1/space/edit/<slug:space_id>/', EditSpace.as_view(), name='edit_space'),
-    path('v1/space/delete/<slug:space_id>/', DeleteSpace.as_view(), name='delete_space'),
+    path('v1/space/edit/<slug:space_id>/',
+         EditSpace.as_view(), name='edit_space'),
+    path('v1/space/delete/<slug:space_id>/',
+         DeleteSpace.as_view(), name='delete_space'),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)
          (Spaces.as_view()), name="spaces"),
