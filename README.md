@@ -1,10 +1,10 @@
-# Welcome Bouncer REST API Backend
+# Welcome Spaces REST API Backend
 
 [![CircleCI](https://circleci.com/gh/decagonhq/bouncer-restapi/tree/master.svg?style=svg&circle-token=f84852fd9b9ee23b40fdfcf2d2e38dc5f65cb1e2)](https://circleci.com/gh/decagonhq/bouncer-restapi/tree/master)
 
 Squad 3 - REST API backend for [Bouncer Application](https://bouncer-restapi.herokuapp.com/)
 
-## Technolgies
+## Technologies
 
 * [Python 3.7](https://python.org) : Base development programming language
 * [Bash Scripting](https://www.codecademy.com/learn/learn-the-command-line/modules/bash-scripting) : Create convinient script for easy development experience
@@ -12,7 +12,7 @@ Squad 3 - REST API backend for [Bouncer Application](https://bouncer-restapi.her
 * [Django Framework](https://www.djangoproject.com/) : Host development framework built on top of python
 * [Django Rest Framework](https://www.django-rest-framework.org/) : Provides API development tools for easy API development
 * [CircleCI]() : Continous Integration and Deployment
-* [Docker Engine and Docker Compose](https://www.docker.com/) : Containerization of the appication and services orchestration
+* [Docker Engine and Docker Compose](https://www.docker.com/) : Containerization of the application and services orchestration
 
 ## Getting Started
 

@@ -183,3 +183,12 @@ data = {
     order_code: string,
     transaction_code: string
 }
+
+#### Request extension (method post)
+````
+Route = "api/v1/request-reservation-extension"
+````
+data = {
+    reason: string,
+    order_code: string
+}

@@ -1,16 +1,21 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.http import HttpResponse
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from datetime import datetime, date, timedelta
 from decouple import config
-from django.core.mail import send_mail
 import calendar
 import json
 import pytz
+from datetime import datetime, date, timedelta
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.decorators import permission_classes
+from rest_framework import status
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.db import transaction, IntegrityError
+from django.core.mail import send_mail
+
 
 from ..models.user import User
 from ..models.agent import Agent
@@ -21,7 +26,7 @@ from ..models.availabilities import Availability
 from ..helper.helper import order_code
 from ..serializers.order import OrderSerializer
 from .order import PlaceOrder
-from django.db import transaction, IntegrityError
+from ..permissions.is_agent_permission import UserIsAnAgent
 
 
 class Reservation(PlaceOrder):
@@ -331,7 +336,7 @@ class PlaceReservation(PlaceOrder):
             start_date = datetime.fromisoformat(
                 book["start_date"].replace('Z', '+00:00'))
             if duration == "daily":
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1)).date()) < timedelta(days=1):
+                if start_date.date() - (now+timedelta(days=1)).date() < timedelta(days=1):
                     days_not_allowed.append(book)
             elif duration == "hourly":
                 if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
@@ -378,7 +383,7 @@ class PlaceReservation(PlaceOrder):
                     end = end_date
 
                 order_type = order.order_type.order_type
-                if (start >= order_start_date and start_date <= order_end_date) or (end <= order_end_date and end >= order_start_date):
+                if (start >= order_start_date and start <= order_end_date) or (end <= order_end_date and end >= order_start_date):
                     if order_type == "booking":
                         existing.append(
                             {"start_date": order.usage_start_date, "end_date": order.usage_end_date})
@@ -409,9 +414,9 @@ class PlaceReservation(PlaceOrder):
         email = data['company_email']
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
-
-        agent_name = agent.name
-        agent_mail = agent.email
+        # customer = get_object_or_404(User, user_id=user_id)
+        agent_name = agent.user.name
+        agent_mail = agent.user.email
 
         duration = space.duration
         order_cde = order_code()
@@ -422,17 +427,15 @@ class PlaceReservation(PlaceOrder):
             now = datetime.now()
             check = self.check_day_difference(hours_booked, duration, now)
 
-
             invalid_time_array = self.invalid_time(hours_booked)
             if invalid_time_array:
                 return Response({"message": f"This time is not available ", "payload": {'invalid_time': invalid_time_array}}, status=status.HTTP_400_BAD_REQUEST)
             check_available_array = self.check_availability(
                 hours_booked, Availability, space, duration)
-            
+
             if check:
                 return Response({"message": f"You can only place reservations 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
 
-            
             if not check_available_array:
                 for hours in hours_booked:
                     start_date = datetime.fromisoformat(
@@ -446,7 +449,7 @@ class PlaceReservation(PlaceOrder):
                                         for avail in check_available_array if bool(avail.get("close_day"))])
 
                 return Response({"message": f"Space does not open before open time, and after close time or close days", "payload": {"dates": available_slots}}, status=status.HTTP_400_BAD_REQUEST)
-            print({"existing": existing_bookings})
+            # print({"existing": existing_bookings})
             for hours in hours_booked:
                 ordered = self.order(existing_bookings,
                                      hours["start_date"], hours["end_date"], duration)
@@ -456,6 +459,7 @@ class PlaceReservation(PlaceOrder):
             days_booked = json.loads(json.dumps(data.get("daily_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
+            now = datetime.now()
             check = self.check_day_difference(days_booked, duration, now)
 
             if check:
@@ -639,18 +643,164 @@ class PlaceReservation(PlaceOrder):
         agent = self.get_agent(space.agent)
         agent_mail = agent.email
         agent_name = agent.name
-        if order_code:
 
-            if update_type == "approve":
-                self.approve_reservation(
-                    orders, data, agent_mail, agent_name, space, customer)
-            elif update_type == "decline":
-                self.decline_reservation(
-                    orders, data, agent_mail, agent_name, space, customer)
-            elif update_type == "book":
+        if order_code:
+            if update_type == "book":
                 self.reservation_to_booking(
                     orders, data, agent_mail, agent_name, space, transaction_code, customer)
+            elif update_type == "approve" or update_type == "decline":
+                if request.user.is_authenticated:
+                    if update_type == "approve":
+                        self.approve_reservation(
+                            orders, data, agent_mail, agent_name, space, customer)
+                    elif update_type == "decline":
+                        self.decline_reservation(
+                            orders, data, agent_mail, agent_name, space, customer)
+                else:
+                    return Response({"message": "Login as a space host to complete this action."})
             else:
                 return Response({"message": "Invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestReservationExtension(PlaceOrder):
+    def post(self, request):
+        data = request.data
+        reason = data["reason"]
+        order_code = data['order_code']
+        try:
+            orders = Order.objects.filter(order_code=order_code)
+        except:
+            return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        # user_id = orders[0]
+        user_id = list(orders)[0].user.user_id
+        customer = get_object_or_404(User, user_id=user_id)
+        space = self.get_space(list(orders)[0].space.space_id)
+        agent = self.get_agent(space.agent)
+        agent_mail = agent.user.email
+        agent_name = agent.user.name
+
+        try:
+            # notifications
+            sender = config(
+                "EMAIL_SENDER", default="space.ng@gmail.com")
+
+            subject_customer = "REQUEST FOR RESERVATION EXTENSION"
+            to_customer = [customer.email]
+            customer_content = f"Dear {customer.name}, you have requested for an extension of time on your reservation. You reserved space is {space.name}. Your request awaits approval of the space host, you will be notified once this is done. Thanks for your patronage."
+
+            # notification for agent that registered space
+            subject_agent = "YOU HAVE A REQUEST FOR RESERVATION EXTENSION"
+            to_agent = [agent_mail]
+            agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
+
+            send_mail(subject_agent, agent_content,
+                      sender, to_agent)
+            send_mail(subject_customer, customer_content,
+                      sender, to_customer)
+            return Response({"message": "Request for extension sent to agent"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "invalid"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def approve_reservation_extension(self, orders, data, agent_mail, agent_name, space, customer):
+        # to approve extension time
+        try:
+            with transaction.atomic():
+                start_now = datetime.now()
+                for order in orders:
+                    if order.status == "pending":
+                        order.status = "reserved"
+                        order.expiry_time = start_now + timedelta(days=1)
+                        order.save()
+                # notifications
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                next_day = start_now + timedelta(days=1)
+                # notification for customer booking space
+                subject_customer = "EXTENSION FOR RESERVATION APPROVED"
+                to_customer = [customer.email]
+                customer_content = f"Dear {customer.name}, your request for Reservation extension has been Accepted by the space host. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST APPROVED A REQUEST FOR RESERVATION EXTENSION"
+                to_agent = [agent_mail]
+                agent_content = f"Dear {agent_name}, You have approved a request for reservation extension for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+                
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+    def decline_reservation_extension(self, orders, data, agent_mail, agent_name, space, customer):
+        try:
+            with transaction.atomic():
+                start_now = datetime.now()
+                for order in orders:
+                    if order.status == "pending":
+                        if order.expiry_time > start_now:
+                            order.status = "cancelled"
+                            order.save()
+                # notifications
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                # notification for customer
+                subject_customer = "REQUEST FOR RESERVATION EXTENSION  DECLINED"
+                to_customer = [customer.email]
+                customer_content = f"Dear {customer.name}, your  request for extension of Reservation has been Declined by the space host. Kindly proceed to pay before 24hours from your original order time. Thanks for your patronage"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST DECLINED A REQUEST FOR EXTENSION OF RESERVATION"
+                to_agent = [agent_mail]
+                agent_content = f"Dear {agent_name}, You have declined a request for extension of reservation for {space.name}listed on our platform."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+    @permission_classes([IsAuthenticated, UserIsAnAgent])
+    def put(self, request):
+        data = request.data
+        user_id = data["user"]
+        update_type = data["update_type"]
+        customer = get_object_or_404(User, user_id=user_id)
+        order_code = data['order_code']
+        try:
+            orders = Order.objects.filter(order_code=order_code)
+        except:
+            return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        space = self.get_space(list(orders)[0].space.space_id)
+
+        # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!!
+        agent = self.get_agent(space.agent)
+        agent_mail = agent.user.email
+        agent_name = agent.user.name
+        print(order_code)
+        if order_code:
+            print("here")
+            if request.user.is_authenticated:
+                if update_type == "approve_reservation_extension":
+                    self.approve_reservation_extension(
+                        orders, data, agent_mail, agent_name, space, customer)
+                    return Response({"message": "Request for Extension Approved"}, status=status.HTTP_200_OK)
+
+                elif update_type == "decline_reservation_extension":
+                    self.decline_reservation_extension(
+                        orders, data, agent_mail, agent_name, space, customer)
+                    return Response({"message": "Request for Extension Declined"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"message": "invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                return Response({"message": "Login as a space host to complete this action."})
+        else:
+            return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        print("got here")
