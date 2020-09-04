@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,9 +9,13 @@ from rest_framework.permissions import IsAuthenticated
 
 
 from ..models.spaces import Space
+from ..models.agent import Agent
 from ..serializers.space import SpaceSerializer
 from ..serializers.availabilty import AvailabilitySerializer
 from ..serializers.extra import ExtraSerializer
+
+from ..signals import subscriber
+from ..consumers.channel_layers import notification_creator
 
 
 class CreateSpace(APIView):
@@ -50,7 +55,7 @@ class CreateSpace(APIView):
             'rules': data['rules'],
             'cancellation_rules': data['cancellation_rules']
         }
-
+        user_id = Agent.objects.get(agent_id= uuid.UUID(data["agent"])).user.user_id #TODO: Catch error if it fails
         spaceDataSerializer = SpaceSerializer(data=space_data)
         availability = data['availability']
         extras = data['extras']
@@ -65,6 +70,10 @@ class CreateSpace(APIView):
             save_to_model(space_id, extras, ExtraSerializer)
 
             name = spaceDataSerializer.data["name"]
+            subscriber.connect(notification_creator)
+            subscriber.send(sender=self.__class__,
+                            data={"name":space_id,"user_id":f"{user_id}", "notification":f"{space_id} was successfully created"})
+
             return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
 
         return Response({"message": "Check your input, some fields might be missing", "error": spaceDataSerializer.errors}, status=status.HTTP_400_BAD_REQUEST)

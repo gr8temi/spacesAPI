@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'api',
     'corsheaders',
     'algoliasearch_django',
+    'channels',
 
 ]
 
@@ -82,7 +83,7 @@ sentry_sdk.init(
 ROOT_URLCONF = 'spaces.urls'
 
 WSGI_APPLICATION = 'spaces.wsgi.application'
-
+ASGI_APPLICATION = "spaces.routing.application"
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -194,4 +195,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'api.tasks.send_mail_to_almost_expired_reservations',
         'schedule': crontab()  # execute every minute
     }
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [config("REDIS_URL")],
+        },
+    },
 }

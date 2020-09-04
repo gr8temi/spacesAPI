@@ -28,6 +28,9 @@ from ..serializers.order import OrderSerializer
 from .order import PlaceOrder
 from ..permissions.is_agent_permission import UserIsAnAgent
 
+from django.db import transaction, IntegrityError
+from ..consumers.channel_layers import notification_creator
+from ..signals import subscriber
 
 class Reservation(PlaceOrder):
 
@@ -529,7 +532,9 @@ class PlaceReservation(PlaceOrder):
 
                     customer_details = {
                         "id": user, "name": name, "email": email}
-
+                    subscriber.connect(notification_creator)
+                    subscriber.send(sender=self.__class__,
+                                    data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new Reservation {order_cde} "})
                     return Response(
                         {"payload": {**customer_details, "order_code": order_cde, "Reservation dates": booked},
                             "message": f"Reservation completed"},
