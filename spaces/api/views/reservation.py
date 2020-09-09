@@ -704,6 +704,9 @@ class RequestReservationExtension(PlaceOrder):
                       sender, to_agent)
             send_mail(subject_customer, customer_content,
                       sender, to_customer)
+            subscriber.connect(notification_creator)
+            subscriber.send(sender=self.__class__,
+                            data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new Reservation extension request {order_code} "})
             return Response({"message": "Request for extension sent to agent"}, status=status.HTTP_200_OK)
         except:
             return Response({"error": "invalid"}, status=status.HTTP_400_BAD_REQUEST)
@@ -807,5 +810,3 @@ class RequestReservationExtension(PlaceOrder):
                 return Response({"message": "Login as a space host to complete this action."})
         else:
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        print("got here")
