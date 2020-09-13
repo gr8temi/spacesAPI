@@ -32,211 +32,27 @@ from django.db import transaction, IntegrityError
 from ..consumers.channel_layers import notification_creator
 from ..signals import subscriber
 
-class Reservation(PlaceOrder):
+class ReservationDetail(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def post(self, request):
+    def get_object(self, order_code):
+        try:
+            return Order.objects.get(order_code=order_code)
+        except Order.DoesNotExist:
+            return Response({"message": "reservation not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user:
-            user = getattr(request._request, 'user', None).id
-        else:
-            user = ''
+    def get(self, request, order_code, format=None):
+        order = self.get_object(order_code)
+        serializer = OrderSerializer(order)
+        return Response({"message":"reservation fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
 
-        data = request.data
-        start = datetime.fromisoformat(
-            data['usage_start_date'].replace('Z', '+00:00'))
-        end = datetime.fromisoformat(
-            data['usage_end_date'].replace('Z', '+00:00'))
-        start_day = calendar.day_name[start.weekday()]
-        end_day = calendar.day_name[end.weekday()]
-        end_time = end.hour
-        start_time = start.hour
-        start_date = start.day
-        end_date = end.day
-        start_month = start.month
-        end_month = end.month
-        start_year = start.year
-        end_year = end.year
+class ReservationList(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-        space_id = data["space"]
-        order_type_name = data["order_type"]
-        name = data["name"]
-        email = data['company_email']
-        extras = json.dumps(data['extras'])
-        amount = data['amount']
-        no_of_guest = data['no_of_guest']
-        space = self.get_space(space_id)
-        agent = self.get_agent(space.agent)
-
-        agent_name = agent.name
-        agent_mail = agent.email
-
-        today = timezone.now().date()
-        duration = space.duration
-        space_availability = Availability.objects.filter(space=space.name)
-        availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
-                         'close_time': av.close_time} for av in space_availability]
-
-        now = timezone.now()
-        reservation_expiry = now + timedelta(seconds=21600)
-        order_cde = order_code()
-
-        if duration == 'hourly':
-            hours_booked = json.dumps(data['hours_booked'])
-        else:
-            hours_booked = ''
-
-        def make_reservation():
-
-            order_data = {
-                'amount': amount,
-                'usage_start_date': start,
-                'usage_end_date': end,
-                'status': 'pending',
-                'transaction_code': "none",
-                'order_code': order_cde,
-                'order_type': self.get_order_type_id(order_type_name),
-                'no_of_guest': no_of_guest,
-                'user': user,
-                'name': name,
-                'company_email': email,
-                'extras': extras,
-                'space': space_id,
-                'duration': duration,
-                'hours_booked': hours_booked,
-
-            }
-
-            order_serializer = OrderSerializer(data=order_data)
-            if order_serializer.is_valid():
-                order_serializer.save()
-
-                sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
-
-                # notification for customer
-                subject_customer = "SPACE RESERVED"
-                to_customer = [email]
-                customer_content = f"Dear {name}, You reserved space {space.name} for use from {start_date} to {end_date}, your order code is {order_cde}. Kindly proceed to make payment and complete order by supplying your order code upon login before {reservation_expiry}. Thanks for your patronage"
-
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
-
-                customer_details = {"id": user, "name": name, "email": email}
-
-                return Response(
-                    {"payload": {**customer_details, "booking_start_date": start_date, "booking_end_date": end_date, "order_code": order_cde},
-                        "message": f"{space.name} reserved from 2020-04-27 to 2020-04-29"},
-                    status=status.HTTP_200_OK
-                )
-            else:
-                return Response({"error": order_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        def get_active_orders(start):
-            orders = Order.objects.filter(space=space_id)
-            active_orders = [
-                order for order in orders if order.usage_end_date >= start]
-            return active_orders
-
-        def reserve(active_orders, start_date, duration_type):
-            if active_orders:
-                for order in active_orders:
-                    order_end_date = order.usage_end_date
-                    order_type = order.order_type.order_type
-
-                    if start_date <= order_end_date:
-                        if order_type == "booking":
-                            return Response({"message": f"Space unavailable, pick a duration_type later than {active_orders[-1].usage_end_date} or check another space"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-                        elif order_type == "reservation":
-                            expiry_time = order.order_time + \
-                                timedelta(seconds=21600)
-
-                            return Response({"message": f"Recheck space availablity at {expiry_time} or pick another day later than {active_orders[-1].usage_end_date}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-                        else:
-                            return Response({'message': 'Invalid order type'})
-                    else:
-                        return make_reservation()
-            else:
-                return make_reservation()
-
-        active_orders = get_active_orders(start)
-        opening_period = self.check_all_day(availability, start_day)
-
-        if duration == 'hourly':
-            if self.invalid_time(start_time, end_time):
-                if opening_period == True:
-                    return reserve(active_orders, start_date, 'time')
-                else:
-                    opening = [time.strftime("%m-%d-%Y, %H:%M")
-                               for time in opening_period]
-                    open_time = opening[0]
-                    close_time = opening[1]
-                    if open_time > start_time:
-                        return Response({"message": f"Space opens between {open_time} to {close_time}"}, status=status.HTTP_400_BAD_REQUEST)
-                    else:
-                        return reserve(active_orders, start)
-            else:
-                return Response({"message": "Usage end time must be a later than start time"}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif duration == 'daily':
-            if self.invalid_time(start_date, end_date):
-                return reserve(active_orders, start, date)
-            else:
-                return Response({"message": "Usage end date must be a later than start date"}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif duration == 'monthly':
-            if self.invalid_time(start_month, end_month):
-                return reserve(active_orders, start)
-            else:
-                return Response({"message": "Usage end month must be a later than start month"}, status=status.HTTP_400_BAD_REQUEST)
-
-        else:
-            if self.invalid_time(start_year, end_year):
-                return reserve(active_orders, start, 'year')
-            else:
-                return Response({"message": "Usage end year must be a later than start year"}, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
-        data = request.data
-        user = request.user
-        customer = get_object_or_404(User, user_id=user.id)
-        order_code = data['order_code']
-        transaction_code = data['transaction_code']
-        order = get_object_or_404(Order, order_code=order_code)
-        space = self.get_space(order.space.space_id)
-
-        # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!!
-        agent = self.get_agent(space.agent)
-
-        if order.status == "pending":
-            if order_code:
-                if transaction_code != "none":
-
-                    order.transaction_code = transaction_code
-                    order.status = "booked"
-                    order.save()
-
-                    sender = config(
-                        "EMAIL_SENDER", default="space.ng@gmail.com")
-                    subject_agent = "YOU HAVE A RESERVED ORDER"
-                    to_agent = [agent.email]
-                    agent_content = f"Dear {agent.name}, space {space.name} listed on our platform has been reser from {order.usage_start_date} to {order.usage_end_date}."
-
-                    subject_customer2 = "ORDER COMPLETED"
-                    to_customer = [customer.email]
-                    customer_content2 = f"Dear {customer.name}, Your order {order_code} for {space.name} has been completed. Thanks for your patronage"
-
-                    send_mail(subject_agent, agent_content, sender, to_agent)
-                    send_mail(subject_customer2, customer_content2,
-                              sender, to_customer)
-
-                    return Response({"message": "Order completed", "status": f"{order.status}"}, status=status.HTTP_200_OK)
-                else:
-                    return Response({"message": "Kindly make payment to proceed"}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'message': 'Provide order code to proceed'})
-        else:
-            return Response({"message": "Reservation has expired, click on booking link to make a fresh booking"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
+    def get(self,request,format=None):
+        orders = Order.objects.filter(order_type__order_type="reservation")
+        serializer = OrderSerializer(orders, many=True)
+        return Response({"message": "reservations fetched", "payload": serializer.data}, status=status.HTTP_200_OK)
 class PlaceReservation(PlaceOrder):
 
     def invalid_time(self, date_array):
@@ -405,19 +221,12 @@ class PlaceReservation(PlaceOrder):
             return existing
 
     def post(self, request):
-
-        # if request.user:
-        #     user = getattr(request._request, 'user', None).id
-        # else:
-        #     user = ''
-
         data = request.data
         space_id = data["space"]
         name = data["name"]
         email = data['company_email']
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
-        # customer = get_object_or_404(User, user_id=user_id)
         agent_name = agent.user.name
         agent_mail = agent.user.email
 
@@ -809,3 +618,6 @@ class RequestReservationExtension(PlaceOrder):
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
         
         print("got here")
+
+
+# class SingleReservation
