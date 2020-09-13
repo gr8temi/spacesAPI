@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,6 +22,8 @@ import pytz
 from django.db import transaction, IntegrityError
 from ..consumers.channel_layers import notification_creator
 from ..signals import subscriber
+from ..permissions.is_agent_permission import UserIsAnAgent
+
 
 class BookingStatus(APIView):
     def get_order(self, order_code):
@@ -35,14 +38,10 @@ class BookingStatus(APIView):
         order = self.get_order(order_code)
 
         if order:
-
             order_type = order.order_type
             serializer = OrderSerializer(order)
             if str(order_type) == "booking":
                 return Response({"message": "Booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
-            elif str(order_type) == "booking":
-                expiry_time = order.order_time + timedelta(seconds=21600)
-                return Response({"message": "Booking fetched successfully", "payload": serializer.data, "expiration": expiry_time}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -351,3 +350,13 @@ class BookingView(PlaceOrder):
 
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+class BookingList(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+    def get(self,request, format=None):
+        bookings = Order.objects.filter(order_type__order_type="booking")
+        serializer = OrderSerializer(bookings, many=True)
+
+        return Response({"message":"Bookings fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+
