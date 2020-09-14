@@ -7,7 +7,7 @@ from django.views.decorators.cache import cache_page
 from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
-from .views.reservation import Reservation, PlaceReservation, RequestReservationExtension
+from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension
 from .views.booking import BookingStatus, BookingView, BookingList
 from .views import agent, customer
 from .views import space_category, space_type, favourite
@@ -20,7 +20,8 @@ urlpatterns = [
     # register other routes here ...
     path('v1/request-reservation-extension/', RequestReservationExtension.as_view(), name="request_extension"),
     path('v1/reservation/', PlaceReservation.as_view(), name="reservation"),
-
+    path('v1/all-reservations/', ReservationList.as_view(), name="all_reservations"),
+    path('v1/single-reservation/<slug:reservation_id>/', ReservationDetail.as_view(), name="single_reservation"),
     path('v1/booking/', BookingView.as_view(), name="booking"),
     path('v1/all-bookings/', BookingList.as_view(), name="all_bookings"),
     path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
