@@ -1,28 +1,38 @@
+import json
+import pytz
+import calendar
+import time
+from datetime import date, timedelta, datetime
+from decouple import config
+
+from django.db import transaction, IntegrityError
+from django.core.mail import send_mail
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from datetime import date, timedelta, datetime
-from decouple import config
-from django.core.mail import send_mail
-import json
-import calendar
-import time
+
 from ..models.spaces import Space
 from ..models.order import Order
 from ..models.agent import Agent
+from ..models.customer import Customer
 from ..models.user import User
 from ..models.order_type import OrderType
+from ..models.cancelation import Cancellation
+from ..models.availabilities import Availability
+
 from ..helper.helper import order_code
+
 from ..serializers.order import OrderSerializer
 from ..serializers.user import UserSerializer
-from .order import PlaceOrder
-from ..models.availabilities import Availability
-import pytz
-from django.db import transaction, IntegrityError
+from ..serializers.cancelation import CancellationSerializer
+
 from ..consumers.channel_layers import notification_creator
 from ..signals import subscriber
+
 from ..permissions.is_agent_permission import UserIsAnAgent
+from .order import PlaceOrder
 
 
 class BookingStatus(APIView):
@@ -78,7 +88,7 @@ class BookingView(PlaceOrder):
             'hours_booked': hours_booked,
             'order_time': order_time,
         }
-        
+
         order_serializer = OrderSerializer(data=order_data)
         if order_serializer.is_valid():
             order_serializer.save()
@@ -142,7 +152,7 @@ class BookingView(PlaceOrder):
     def check_day_difference(self, bookings, duration, now):
 
         days_not_allowed = []
-        
+
         for book in bookings:
             start_date = datetime.fromisoformat(
                 book["start_date"].replace('Z', '+00:00'))
@@ -342,7 +352,7 @@ class BookingView(PlaceOrder):
                         "id": user, "name": name, "email": email}
                     subscriber.connect(notification_creator)
                     subscriber.send(sender=self.__class__,
-                            data={ "user_id": f"{agent.user.user_id}", "notification": f"You have a new booking {order_cde} "})
+                                    data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking {order_cde} "})
                     return Response(
                         {"payload": {**customer_details, "order_code": order_cde, "Booking dates": booked},
                             "message": f"Booking completed"},
@@ -351,12 +361,84 @@ class BookingView(PlaceOrder):
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class BookingList(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def get(self,request, format=None):
+    def get(self, request, format=None):
         bookings = Order.objects.filter(order_type__order_type="booking")
         serializer = OrderSerializer(bookings, many=True)
 
-        return Response({"message":"Bookings fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": "Bookings fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
 
+
+class BookingCancellation(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_agent(self, agent_id):
+        try:
+            return Agent.objects.get(agent_id=agent_id)
+        except Agent.DoesNotExist:
+            return Response({"message": "Agent not found"}, status=status.HTTP_NOT_FOUND)
+    def get_customer(self, customer_id):
+        try:
+            return Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"message": "Customer not found"}, status=status.HTTP_NOT_FOUND)
+
+    def post(self, request):
+        reason = request.data["reason"]
+        booking_code = request.data["booking_code"]
+        agent_id = request.data["agent_id"]
+        customer_id = request.data["customer_id"]
+
+        agent = self.get_agent(agent_id)
+        customer = self.get_customer(customer_id)
+        agent_mail = agent.user.email
+        customer_mail = customer.user.email
+        agent_name = agent.user.name
+        customer_name = customer.user.name
+        booking = Order.objects.filter(order_code=booking_code).first()
+        if not booking:
+            return Response({"message": f"booking with code {booking_code} not found"}, status=status.HTTP_NOT_FOUND)
+        cancellation_data = {
+            "reason": reason,
+            "agent": agent_id,
+            "customer": customer_id,
+            "booking": f"{booking.orders_id}"
+        }
+        serializer = CancellationSerializer(data=cancellation_data)
+
+        if serializer.is_valid():
+            serializer.save()
+            sender = config(
+                "EMAIL_SENDER", default="space.ng@gmail.com")
+            
+            # notification for customer booking space
+            subject_customer = "BOOKING CANCELLATION REQUEST SENT"
+            to_customer = [customer_mail]
+            customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
+
+            # notification for agent that registered space
+            subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
+            to_agent = [agent_mail]
+            agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of booking with code {booking_code} and this is the reason
+            {reason}.
+            kindly visit dashboard to accept or decline request """
+
+            send_mail(subject_agent, agent_content,
+                      sender, to_agent)
+            send_mail(subject_customer, customer_content,
+                      sender, to_customer)
+            subscriber.connect(notification_creator)
+            subscriber.send(sender=self.__class__,
+                            data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking cancellation request for booking {booking_code} "})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BookingCancellationActions(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+    def put(self,request, cancellation_id):
+        pass
