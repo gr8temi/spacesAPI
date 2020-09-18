@@ -1,3 +1,4 @@
+import uuid
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -24,21 +25,40 @@ class SpaceTypeView(APIView):
 
     def get(self, request):
         space_type = SpaceType.objects.all()
-        if space_type:
-            serializer = SpaceTypeSerializer(space_type, many=True)
-            return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"message": "fetch was not successful"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = SpaceTypeSerializer(space_type, many=True)
+        return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
     def post(self, request, format="json"):
 
         data = request.data
         name = data["space_type"]
-
-        if SpaceType.objects.filter(space_type=name):
+        category = data["space_category"]
+        if SpaceType.objects.filter(space_type=name, space_category__category_id=uuid.UUID(category)):
             return Response({"message": "Space type already exists"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = SpaceTypeSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             type_of_space = serializer.data["space_type"]
             return Response({"payload": serializer.data, "message": f"Space Type {type_of_space.upper()} created"}, status=status.HTTP_201_CREATED)
+
+class SpaceTypeDetail(APIView):
+    def get(self, request, space_type_id):
+
+        try:
+            space_type = SpaceType.objects.get(space_type_id=uuid.UUID(space_type_id))
+        except SpaceType.DoesNotExist:
+            return Response({"message": "Spacetype Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = SpaceTypeSerializer(space_type)
+
+        return Response({"message":"SpaceType Fetch Successful", "payload":serializer.data}, status=status.HTTP_200_OK)
+
+
+class SpaceTypeByCategory(APIView):
+    def get(self, request, category_id):
+        space_types = SpaceType.objects.filter(
+                space_category__category_id=uuid.UUID(category_id))
+        serializer = SpaceTypeSerializer(space_types, many=True)
+
+        return Response({"message":"SpaceType Fetch Successful", "payload":serializer.data}, status=status.HTTP_200_OK)

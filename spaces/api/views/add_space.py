@@ -26,9 +26,9 @@ class CreateSpace(APIView):
         data = request.data
 
         name = data['name']
-        space_category = data['space_category']
+        space_type = data['space_type']
         existing = Space.objects.filter(
-            name=name, space_category=space_category)
+            name=name, space_type=space_type)
 
         def save_to_model(space_id, field, serializer):
             for i in range(len(field)):
@@ -39,9 +39,9 @@ class CreateSpace(APIView):
         space_data = {
             'name': data['name'],
             'description': data['description'],
-            # data['space_category'],
+            # data['space_type'],
             # "2ce6293c-f8cf-41d4-9d77-bed08a9d74e5",
-            'space_category': data['space_category'],
+            'space_type': data['space_type'],
             'address': data['address'],
             'gmap': data['gmap'],
             'capacity': data['capacity'],
@@ -51,7 +51,6 @@ class CreateSpace(APIView):
             'images': data['images'],
             # 'videos': data['videos'],
             'amenities': data['amenities'],
-            'carspace': data['carspace'],
             'rules': data['rules'],
             'cancellation_rules': data['cancellation_rules']
         }

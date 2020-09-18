@@ -2,12 +2,13 @@ import bcrypt
 from django.test import TestCase
 from ..models.spaces import Space
 from ..models.spaces_category import SpaceCategory
+from ..models.space_type import SpaceType
 from ..models.user import User
 from ..models.agent import Agent
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
-from .mock_data.space_data import space_creation_data, space_category_data
+from .mock_data.space_data import space_creation_data, space_category_data, space_type_data
 from .mock_data.registration_data import user_registration_data, agent_registration_data
 
 
@@ -15,11 +16,12 @@ class DeleteSpaceTest(APITestCase):
     def setUp(self):
         self.space_category = SpaceCategory.objects.create(
             **space_category_data())
+        self.space_type = SpaceType.objects.create(**space_type_data(self.space_category))
         self.user = User.objects.create(**user_registration_data())
         self.agent = Agent.objects.create(
             user=self.user, **agent_registration_data())
         self.space = Space.objects.create(
-            **space_creation_data(), agent=self.agent, space_category=self.space_category)
+            **space_creation_data(), agent=self.agent, space_type=self.space_type)
         self.data = {"email": self.user.email, "password": "agent"}
         self.login_url = reverse('login')
         self.response = self.client.post(self.login_url, self.data)

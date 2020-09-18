@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from .spaces_category import SpaceCategory
+from .space_type import SpaceType
 from .agent import Agent
 from django.contrib.postgres.fields import ArrayField, JSONField
 import json
@@ -19,8 +19,8 @@ class Space(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     description = models.TextField()
-    space_category = models.ForeignKey(
-        SpaceCategory, on_delete=models.DO_NOTHING)
+    space_type = models.ForeignKey(
+        SpaceType, on_delete=models.DO_NOTHING, null=True)
     address = JSONField(encoder=DjangoJSONEncoder)
     gmap = JSONField(encoder=DjangoJSONEncoder)
     number_of_bookings = models.IntegerField(null=True, blank=True, default=0)
