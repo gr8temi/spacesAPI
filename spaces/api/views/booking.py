@@ -5,6 +5,7 @@ import time
 from datetime import date, timedelta, datetime
 from decouple import config
 
+from django.shortcuts import get_object_or_404
 from django.db import transaction, IntegrityError
 from django.core.mail import send_mail
 
@@ -380,6 +381,7 @@ class BookingCancellation(APIView):
             return Agent.objects.get(agent_id=agent_id)
         except Agent.DoesNotExist:
             return Response({"message": "Agent not found"}, status=status.HTTP_NOT_FOUND)
+
     def get_customer(self, customer_id):
         try:
             return Customer.objects.get(customer_id=customer_id)
@@ -391,7 +393,6 @@ class BookingCancellation(APIView):
         booking_code = request.data["booking_code"]
         agent_id = request.data["agent_id"]
         customer_id = request.data["customer_id"]
-
         agent = self.get_agent(agent_id)
         customer = self.get_customer(customer_id)
         agent_mail = agent.user.email
@@ -413,7 +414,7 @@ class BookingCancellation(APIView):
             serializer.save()
             sender = config(
                 "EMAIL_SENDER", default="space.ng@gmail.com")
-            
+
             # notification for customer booking space
             subject_customer = "BOOKING CANCELLATION REQUEST SENT"
             to_customer = [customer_mail]
@@ -440,5 +441,76 @@ class BookingCancellation(APIView):
 class BookingCancellationActions(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def put(self,request, cancellation_id):
-        pass
+    def approve_cancellation(self, bookings, agent_email, agent_name, customer_email, customer_name):
+        # to approve extension time
+        try:
+            with transaction.atomic():
+                for booking in bookings:
+                    booking.status = "cancelled"
+                    booking.save()
+                # notifications
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                # notification for customer booking space
+                subject_customer = "REQUEST FOR CANCELLATION APPROVED"
+                to_customer = [customer_email]
+                customer_content = f"Dear {customer_name}, your request for booking cancellation as been approved by the Space Host. Refund would be processed shortly"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST APPROVED A REQUEST FOR BOOKING CANCELLATION"
+                to_agent = [agent_email]
+                agent_content = f"Dear {agent_name}, You have approved a request for Booking cancellation."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+                return Response({"message":"Booking cancellation request success"}, status=status.HTTP_200_OK)
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+    def decline_cancellation_request(self,reason, agent_email, agent_name, customer_email, customer_name):
+        # to approve extension time
+        try:
+            with transaction.atomic():
+                sender = config(
+                    "EMAIL_SENDER", default="space.ng@gmail.com")
+                # notification for customer booking space
+                subject_customer = "REQUEST FOR CANCELLATION DECLINED"
+                to_customer = [customer_email]
+                customer_content = f"Dear {customer_name}, your request for booking cancellation as been DECLINED by the Space Host. for the following reason \n {reason}"
+
+                # notification for agent that registered space
+                subject_agent = "YOU JUST DECLINED A REQUEST FOR BOOKING CANCELLATION"
+                to_agent = [agent_email]
+                agent_content = f"Dear {agent_name}, You have Declined a request for Booking cancellation."
+
+                send_mail(subject_agent, agent_content,
+                          sender, to_agent)
+                send_mail(subject_customer, customer_content,
+                          sender, to_customer)
+                return Response({"message": "Booking cancellation request declined"}, status=status.HTTP_200_OK)
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, cancellation_id):
+        update_type = request.data["update_type"]
+
+        try:
+            cancel = Cancellation.objects.get(cancellation_id=cancellation_id)
+        except Cancellation.DoesNotExist:
+            return Response({"message": "Cancellation ID not found"}, status=status.HTTP_NOT_FOUND)
+
+        customer_email = cancel.customer.user.email
+        agent_email = cancel.agent.user.email
+        booking_code = cancel.booking.order_code
+        agent_name = cancel.agent.user.name
+        customer_name = cancel.customer.user.name
+
+        bookings = Order.objects.filter(order_code=booking_code)
+        if update_type == "accept":
+            return self.approve_cancellation(bookings, agent_email, agent_name, customer_email, customer_name)
+        elif update_type == "decline":
+            reason = request.data["reason"]
+            return self.decline_cancellation_request(
+                reason, agent_email, agent_name, customer_email, customer_name)

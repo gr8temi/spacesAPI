@@ -3,10 +3,13 @@ import json
 import pytz
 from ...models.spaces import Space
 from ...models.spaces_category import SpaceCategory
+from ...models.space_type import SpaceType
 from ...models.user import User
 from ...models.agent import Agent
+from ...models.customer import Customer
+from .registration_data import user_registration_data, agent_registration_data, customer_registration_data, customer_login_data
 from ...models.availabilities import Availability
-from .space_data import space_creation_data, space_category_data, extras_data, availability_data, hourly_space_data
+from .space_data import space_creation_data, space_category_data, extras_data, availability_data, hourly_space_data, space_type_data
 from .registration_data import user_registration_data, agent_registration_data
 from ...models.order_type import OrderType
 
@@ -96,14 +99,17 @@ def order_type_reservation():
 
 def create_space():
     space_category = SpaceCategory.objects.create(**space_category_data())
+    space_type = SpaceType.objects.create(
+        **space_type_data(space_category))
+
     user = User.objects.create(**user_registration_data())
     agent = Agent.objects.create(
         user=user, **agent_registration_data())
     daily_space = Space.objects.create(
-        **space_creation_data(), agent=agent, space_category=space_category)
+        **space_creation_data(), agent=agent, space_type=space_type)
     booking = OrderType.objects.create(order_type="booking")
     hourly_space = Space.objects.create(
-        **hourly_space_data(), agent=agent, space_category=space_category)
+        **hourly_space_data(), agent=agent, space_type=space_type)
     for avail in availability_data()["availability"]:
         Availability.objects.create(space=hourly_space.name,day=avail["day"], all_day=avail["all_day"],open_time=avail["open_time"],close_time=avail["close_time"])
 
@@ -170,4 +176,39 @@ def booking_confirmed_data():
                          "duration": "daily",
                          }
 
+    }
+
+def booking_data():
+    daily_space, hourly_space, user = create_space()
+    order_type = OrderType.objects.get_or_create(order_type="booking")[0]
+    return {"hours_booked":
+            [
+                {"start_date": "2020-11-11T10:00:00.000Z",
+                    "end_date": "2020-11-11T12:00:00.000Z"},
+                {"start_date": "2020-12-15T10:30:00.000Z",
+                    "end_date": "2020-12-15T12:30:00.000Z"}
+            ],
+            "transaction_code": "-7vRrIja=cXbDrD",
+            "no_of_guest": 0,
+            "order_type": order_type,
+            "space": hourly_space,
+            "name": "Adams Temi",
+            "company_email": "gr8temi@gmail.com",
+            "extras": [{"name": "gym", "amount": 200}],
+            "amount": 8700,
+            "user": user,
+            'order_time': datetime.now()
+            }
+def cancellation_request_data():
+    user_agent = User.objects.create(**user_registration_data())
+    agent = Agent.objects.create(
+        user=user_agent, **agent_registration_data())
+    # create customer
+    user_customer = User.objects.create(
+        **customer_registration_data())
+    customer = Customer.objects.create(user=user_customer)
+    return {
+        "reason": "reason is this",
+        "customer_id": f"{customer.customer_id}",
+        "agent_id": f"{agent.agent_id}"
     }

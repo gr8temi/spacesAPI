@@ -10,5 +10,5 @@ from .models.spaces import Space
 class SpaceIndex(AlgoliaIndex):
     custom_objectID = 'space_id'
     settings = {'searchableAttributes': [
-        'name', 'price', 'availability', 'location']}
+        'name', 'amount', 'availability', 'address', 'space_type', 'gmap', 'capacity']}
     index_name = 'Spaces'

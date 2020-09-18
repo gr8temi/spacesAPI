@@ -32,6 +32,7 @@ from django.db import transaction, IntegrityError
 from ..consumers.channel_layers import notification_creator
 from ..signals import subscriber
 
+
 class ReservationDetail(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
@@ -44,15 +45,18 @@ class ReservationDetail(APIView):
     def get(self, request, order_code, format=None):
         order = self.get_object(order_code)
         serializer = OrderSerializer(order)
-        return Response({"message":"reservation fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": "reservation fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
 
 class ReservationList(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def get(self,request,format=None):
+    def get(self, request, format=None):
         orders = Order.objects.filter(order_type__order_type="reservation")
         serializer = OrderSerializer(orders, many=True)
         return Response({"message": "reservations fetched", "payload": serializer.data}, status=status.HTTP_200_OK)
+
+
 class PlaceReservation(PlaceOrder):
 
     def invalid_time(self, date_array):
@@ -545,7 +549,7 @@ class RequestReservationExtension(PlaceOrder):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
-                
+
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -616,7 +620,7 @@ class RequestReservationExtension(PlaceOrder):
                 return Response({"message": "Login as a space host to complete this action."})
         else:
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         print("got here")
 
 

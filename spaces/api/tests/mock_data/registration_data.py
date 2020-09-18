@@ -26,6 +26,10 @@ def customer_login_data():
         'email': 'customer@gmail.com',
         'password': "customer"}
 
+def agent_login_data():
+    return{
+        
+    }
 def agent_registration_data():
     return {
         "business_name": "best4less",

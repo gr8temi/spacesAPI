@@ -8,7 +8,7 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
 from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension
-from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation
+from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions
 from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
@@ -31,7 +31,8 @@ urlpatterns = [
          BookingStatus.as_view(), name='booking_status'),
     path('v1/booking-cancellation/', BookingCancellation.as_view(),
          name="booking_cancellation"),
-
+    path('v1/booking-cancellation/<slug:cancellation_id>/',
+         BookingCancellationActions.as_view(), name="booking_cancellation_actions"),
     path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
     path('v1/favourite/delete/<slug:favorite_id>/',
          favourite.DeleteFavourite.as_view(), name="delete_favourite"),
@@ -51,6 +52,10 @@ urlpatterns = [
          (space_category.SpacesCategory.as_view()), name="categories"),
     path('v1/space-type/', cache_page(CACHE_TTL)
          (space_type.SpaceTypeView.as_view()), name="space_type"),
+    path('v1/space-type/<slug:space_type_id>/', cache_page(CACHE_TTL)
+         (space_type.SpaceTypeDetail.as_view()), name="space_type_detail"),
+    path('v1/space-type-category/<slug:category_id>/', cache_page(CACHE_TTL)
+         (space_type.SpaceTypeByCategory.as_view()), name="space_type_by_category"),
 
     # match route that has not been registered above
     path('v1/auth/login/', login.UserLogin.as_view(), name='login'),

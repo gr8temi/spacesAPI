@@ -136,3 +136,9 @@ def space_category_data():
     return {
         "space_category": "Hall"
     }
+
+def space_type_data(category):
+    return {
+        "space_type": "Hall",
+        "space_category": category
+    }

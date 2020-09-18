@@ -7,7 +7,7 @@ Route = "api/v1/spaces/"
 data = {
 name:string
 description: string,
-space_category: category's UUID,
+space_type: spaceType UUID,
 address: dict,
 gmap: dict,
 number_of_bookings:integer,
