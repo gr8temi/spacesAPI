@@ -31,5 +31,12 @@ class Order(models.Model):
     order_time = models.DateTimeField()
     created_at = models.DateTimeField( auto_now_add=True)
     expiry_time = models.DateTimeField(blank=True, null=True)
+
+    def space_name(self):
+        return self.space.name
+    
+    def agent_name(self):
+        return self.space.agent.user.name
+
     def __str__(self):
         return self.order_code
