@@ -157,15 +157,19 @@ class BookingView(PlaceOrder):
         for book in bookings:
             start_date = datetime.fromisoformat(
                 book["start_date"].replace('Z', '+00:00'))
-            if duration == "daily":
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
-                    days_not_allowed.append(book)
-            elif duration == "hourly":
+            if duration == "hourly":
                 if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                    days_not_allowed.append(book)
+            else:
+                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
 
         return days_not_allowed
-    # checks for booked dates
+
+    # def repeated_booking_dates(self, bookings): continue from here
+    #     if duration == "daily" or duration == "monthly":
+
+            # checks for booked dates
 
     def booked_days(self, start_date, end_date, space_id, duration):
         print({"space":space_id})
@@ -176,7 +180,7 @@ class BookingView(PlaceOrder):
         if duration == "hourly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
-        elif duration == "daily":
+        elif duration == "daily" or duration == "monthly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
         print({"active": active_orders})
@@ -193,7 +197,7 @@ class BookingView(PlaceOrder):
 
             for order in active_order:
 
-                if duration == "daily":
+                if duration == "daily" or duration == "monthly":
                     order_start_date = pytz.utc.localize(
                         order.usage_start_date).date()
                     order_end_date = pytz.utc.localize(
@@ -280,8 +284,9 @@ class BookingView(PlaceOrder):
                                      hours["start_date"], hours["end_date"], duration)
                 exists.extend(ordered)
 
-        elif duration == "daily":
-            days_booked = json.loads(json.dumps(data.get("daily_bookings")))
+        elif duration == "daily" or duration == "monthly":
+            days_booked = json.loads(json.dumps(data.get("daily_bookings"))) or json.loads(
+                json.dumps(data.get("monthly_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
             now = datetime.now()
@@ -302,9 +307,6 @@ class BookingView(PlaceOrder):
                                      days["start_date"], days["end_date"], duration)
                 exists.extend(ordered)
 
-            # if not invalid_time_array:
-
-            # pass
         if (bool(exists)):
             if duration == "daily":
                 return Response({"message": f"Space is not available on the following days", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
@@ -320,7 +322,7 @@ class BookingView(PlaceOrder):
                 with transaction.atomic():
                     order_cde = order_code()
                     order_time = datetime.now()
-                    if duration == "daily":
+                    if duration == "daily" or duration == "monthly":
                         booked = days_booked
                     elif duration == "hourly":
                         booked = hours_booked
@@ -441,11 +443,11 @@ class BookingCancellationActions(APIView):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
-                return Response({"message":"Booking cancellation request success"}, status=status.HTTP_200_OK)
+                return Response({"message": "Booking cancellation request success"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def decline_cancellation_request(self,reason, agent_email, agent_name, customer_email, customer_name):
+    def decline_cancellation_request(self, reason, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
