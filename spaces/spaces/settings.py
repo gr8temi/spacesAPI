@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'algoliasearch_django',
     'channels',
+    'subscriptions',
 
 ]
 
