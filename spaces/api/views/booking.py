@@ -168,8 +168,10 @@ class BookingView(PlaceOrder):
     # checks for booked dates
 
     def booked_days(self, start_date, end_date, space_id, duration):
+        print({"space":space_id})
         orders = Order.objects.filter(
             space=space_id).exclude(status="cancelled")
+        print(orders)
 
         if duration == "hourly":
             active_orders = [
@@ -177,6 +179,7 @@ class BookingView(PlaceOrder):
         elif duration == "daily":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
+        print({"active": active_orders})
         return active_orders
 
     def order(self, active_order, start_date, end_date, duration):
@@ -231,13 +234,13 @@ class BookingView(PlaceOrder):
         #     user = ''
         data = request.data
         space_id = data["space"]
+        print(space_id)
         name = data["name"]
         email = data['company_email']
         # space = self.get_space(space_id)
         # agent = self.get_agent(space.agent.business_name)
         space = Space.objects.get(space_id=space_id)
         agent = Agent.objects.get(business_name=space.agent.business_name)
-
         agent_name = agent.user.name
         agent_mail = agent.user.email
 
@@ -330,34 +333,7 @@ class BookingView(PlaceOrder):
 
                         self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
                                         user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
-                    # notifications
-                    sender = config(
-                        "EMAIL_SENDER", default="space.ng@gmail.com")
-                    next_day = order_time + timedelta(days=1)
-                    # notification for customer booking space
-                    subject_customer = "BOOKING COMPLETE"
-                    to_customer = [customer_email]
-                    customer_content = f"Dear {to_customer}, your Booking has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
-
-                    # notification for agent that registered space
-                    subject_agent = "YOU HAVE A BOOKING"
-                    to_agent = [agent_mail]
-                    agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform. accept the booking now. Or it would expire by {next_day.time()} {next_day.date()}. "
-
-                    send_mail(subject_agent, agent_content,
-                              sender, to_agent)
-                    send_mail(subject_customer, customer_content,
-                              sender, to_customer)
-
-                    customer_details = {
-                        "id": user, "name": name, "email": email}
-                    subscriber.connect(notification_creator)
-                    subscriber.send(sender=self.__class__,
-                                    data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking {order_cde} "})
-                    return Response(
-                        {"payload": {**customer_details, "order_code": order_cde, "Booking dates": booked},
-                            "message": f"Booking completed"},
-                        status=status.HTTP_200_OK)
+                    return Response({"message": f"Awaiting payment", "payload":{"order_code":order_cde}},status=status.HTTP_200_OK)
 
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -514,3 +490,63 @@ class BookingCancellationActions(APIView):
             reason = request.data["reason"]
             return self.decline_cancellation_request(
                 reason, agent_email, agent_name, customer_email, customer_name)
+
+
+class UpdateReferenceCode(APIView):
+    def get_orders(self,order_code):
+        try:
+            return Order.objects.filter(order_code=order_code)
+        except Order.DoesNotExist:
+            return False
+
+    def put(self, request, order_code):
+        orders = self.get_orders(order_code)
+        print(request.data)
+        if not orders:
+            return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+        transaction_code = request.data["reference"]
+        print(transaction_code)
+        if not transaction_code:
+            return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+        booked = []
+        for order_obj in orders:
+            order_obj.transaction_code = transaction_code
+            booked.append({"start_date":order_obj.usage_start_date, "end_date":order_obj.usage_end_date})
+            order_obj.save()
+
+        order = orders.first()
+        customer_email = order.user.email
+        agent = order.space.agent
+        agent_mail = agent.user.email
+        agent_name = agent.user.name
+        customer_name = order.name
+        space = order.space
+
+        # notifications
+        sender = config(
+            "EMAIL_SENDER", default="space.ng@gmail.com")
+
+        # notification for customer booking space
+        subject_customer = "BOOKING COMPLETE"
+        to_customer = [customer_email]
+        customer_content = f"Dear {to_customer}, your Booking has been completed"
+
+        # notification for agent that registered space
+        subject_agent = "YOU HAVE A BOOKING"
+        to_agent = [agent_mail]
+        agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform."
+
+        send_mail(subject_agent, agent_content,
+                  sender, to_agent)
+        send_mail(subject_customer, customer_content,
+                  sender, to_customer)
+
+        subscriber.connect(notification_creator)
+        subscriber.send(sender=self.__class__,
+                        data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking {order_code} "})
+        customer_details = {
+            "id": order.user.user_id, "name": customer_name, "email": customer_email}
+
+        return Response(
+            {"payload": {**customer_details, "order_code": order_code, "Booking dates": booked},
+             "message": f"Booking completed"},)

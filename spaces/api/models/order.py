@@ -23,7 +23,7 @@ class Order(models.Model):
     hours_booked = JSONBField(null=True, blank=True, default=dict, encoder=DjangoJSONEncoder)
     days_booked = JSONBField(null=True, blank=True, default=dict, encoder=DjangoJSONEncoder)
     status = models.CharField(max_length=30)
-    transaction_code = models.CharField(max_length=30, null=True)
+    transaction_code = models.CharField(max_length=30, null=True, blank=True)
     order_code = models.CharField(max_length=30)
     order_type = models.ForeignKey(OrderType, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank = True, null = True)

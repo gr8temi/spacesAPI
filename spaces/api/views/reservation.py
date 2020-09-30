@@ -303,8 +303,9 @@ class PlaceReservation(PlaceOrder):
                 return Response({"message": f"Space is not available on the following hours", "payload": hours}, status=status.HTTP_409_CONFLICT)
         else:
             if data["user"]:
-                user = User.objects.get(user_id=data["user"]).user_id
-                customer_email = User.objects.get(user_id=data["user"]).email
+                user_obj = User.objects.get(user_id=data["user"])
+                user = user_obj.user_id
+                customer_email = user_obj.email
             else:
                 user = ''
             try:
@@ -331,7 +332,7 @@ class PlaceReservation(PlaceOrder):
                     # notification for customer booking space
                     subject_customer = "RESERVATION COMPLETE"
                     to_customer = [customer_email]
-                    customer_content = f"Dear {data['email']}, your Reservation has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
+                    customer_content = f"Dear {data['name']}, your Reservation has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
 
                     # notification for agent that registered space
                     subject_agent = "YOU HAVE A RESERVATION"

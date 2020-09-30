@@ -1,3 +1,4 @@
+import subscriptions
 from spaces.views import home, index, email
 from django.urls import path, re_path, include
 from rest_framework_simplejwt.views import (
@@ -7,6 +8,9 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
+    # Subscription URLS
+    path('subscriptions/', include('subscriptions.urls')),
+
     # match api index route request
     re_path(r'^(?:api/?)$', index),
 
