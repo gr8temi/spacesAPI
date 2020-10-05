@@ -1,7 +1,7 @@
 import random
 import string
 from django.core.mail import send_mail
-
+from decouple import config
 # This function generates 8 random alphanumeric characters
 def random_string_generator(size=8, chars=string.ascii_lowercase + string.digits + string.ascii_uppercase):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -23,3 +23,17 @@ def order_code(size=6, chars=string.digits):
     digit = ''.join(random.choice(chars) for _ in range(size))
     code = f"234Spaces-{digit}"
     return code
+
+def reference_code(size=8, chars=string.digits):
+    digit = ''.join(random.choice(chars) for _ in range(size))
+    code = f"234Spaces-{digit}-sub"
+    return code
+
+def send_subscription_mail(subject,to,name, content):
+    sender = config(
+        "EMAIL_SENDER", default="space.ng@gmail.com")
+
+    # notification for customer booking space
+    to_agent = [to]
+    send_mail(subject, content,
+              sender, to_agent)
