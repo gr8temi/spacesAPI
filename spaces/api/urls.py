@@ -12,6 +12,7 @@ from .views.booking import BookingStatus, BookingView, BookingList, BookingCance
 from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
+from .views.subscription import Subscribe, SubscribeActions, UpdateRecurring
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
@@ -33,7 +34,8 @@ urlpatterns = [
          name="booking_cancellation"),
     path('v1/booking-cancellation/<slug:cancellation_id>/',
          BookingCancellationActions.as_view(), name="booking_cancellation_actions"),
-    path('v1/booking/update/<slug:order_code>/', UpdateReferenceCode.as_view(), name="update_reference"),
+    path('v1/booking/update/<slug:order_code>/',
+         UpdateReferenceCode.as_view(), name="update_reference"),
 
     path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
     path('v1/favourite/delete/<slug:favorite_id>/',
@@ -78,6 +80,10 @@ urlpatterns = [
     path('v1/auth/reset-password/',
          reset_password.ResetPassword.as_view(), name='reset-password'),
 
-    # re_path(r'^(?:.*)$', notfound),
+    # Subscription
+    path("v1/subscribe/", Subscribe.as_view(), name='subscribe'),
+    path("v1/subscription/complete/<slug:reference_code>/",
+         SubscribeActions.as_view(), name="complete_subscriptions"),
+    path("v1/subscription/update-recurring/<slug:reference_code>/", UpdateRecurring.as_view(), name="update-subscription-recurring")
 
 ]

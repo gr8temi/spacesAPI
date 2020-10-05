@@ -1,13 +1,20 @@
-from celery.task.schedules import crontab
-from celery.decorators import periodic_task
-from spaces import celery
-from .models.order import Order
-from django.utils import timezone
-from datetime import timedelta, datetime
 from decouple import config
+from datetime import timedelta, datetime
+
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.db.models import Q
 from django.db import transaction, IntegrityError
+
+from celery.task.schedules import crontab
+from celery.decorators import periodic_task
+
+from spaces import celery
+from spaces.paystack import paystack
+
+from .models.order import Order
+from .models.subscription import SubscriptionPerAgent
+from .helper.helper import send_subscription_mail
 now = timezone.now()
 
 
@@ -119,3 +126,48 @@ def send_mail_to_almost_expired_reservations():
 
         send_mail(subject_customer, customer_content,
                   sender, to_customer)
+
+
+@periodic_task(run_every=(crontab(hour='*/12')), name="charge_all_expired_subscriptions", ignore_result=False)
+def charge_all_expired_subscriptions():
+    expired_subscriptions = SubscriptionPerAgent.objects.filter(
+        Q(next_due_date__lte=datetime.now()) & Q(is_cancelled=False))
+    successful_subscriptions = []
+    unsuccessful_subscriptions = []
+    for subscription in expired_subscriptions:
+        auth_code = subscription.authorization_code
+        email = subscription.agent.user.email
+        amount = subscription.subscription.cost *100
+        payment = paystack.transaction.charge(authorization_code=auth_code,
+                                              email=email,
+                                              amount=amount)
+        if payment["status"]:
+            subscription.paid= True
+            subscription.paid_at = datetime.strptime(
+                payment["data"]["transaction_date"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
+            subscription.save()
+            successful_subscriptions.append(subscription)
+        else:
+            subscription.paid = False
+            subscription.save()
+            unsuccessful_subscriptions.append(subscription)
+
+    for subscription in successful_subscriptions:
+        email = subscription.agent.user.email
+        name = subscription.agent.user.name
+        expiry_date = subscription.next_due_date.strftime("%Y-%m-%d, %H:%M:%S")
+        subscription_type = subscription.subscription.subscription_type
+        subject = "YOUR SUBSCRIPTION IS SUCCESSFULL"
+        content = f"Your {subscription_type} has been renewed. And expires on {expiry_date}. Thanks for using our services"
+
+        send_subscription_mail(subject=subject, to=email,name=name, content=content)
+    
+    for subscription in unsuccessful_subscriptions:
+        email = subscription.agent.user.email
+        name = subscription.agent.user.name
+        expiry_date = subscription.next_due_date.strftime("%Y-%m-%d, %H:%M:%S")
+        subscription_type = subscription.subscription.subscription_type
+        subject = "YOUR SUBSCRIPTION COULD NOT BE COMPLETED"
+        content = f"Your {subscription_type} could not be completed. Kindly try paying again from your settings page. Thanks for using our services"
+
+        send_subscription_mail(subject=subject, to=email,name=name, content=content)

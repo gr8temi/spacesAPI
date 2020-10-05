@@ -39,21 +39,29 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.postgres',
+    'django.contrib.admin',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sessions',
+    'django.contrib.sites',
     'rest_framework',
     'django_rest_passwordreset',
     'api',
     'corsheaders',
     'algoliasearch_django',
     'channels',
-    'subscriptions',
 
 ]
-
+SITE_ID = 1
 # Middlewares
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -100,6 +108,10 @@ EMAIL_USE_SSL = False
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 # Global configurations for rest framework
 REST_FRAMEWORK = {
@@ -159,7 +171,7 @@ PASSWORD_HASSHERS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'
 
 USE_I18N = True
 
@@ -195,6 +207,10 @@ CELERY_BEAT_SCHEDULE = {
     'send_mail_to_almost_expired_reservations': {
         'task': 'api.tasks.send_mail_to_almost_expired_reservations',
         'schedule': crontab()  # execute every minute
+    },
+    'charge_all_expired_subscriptions':{
+        'task': 'api.tasks.charge_all_expired_subscriptions',
+        'schedule': crontab()
     }
 }
 
@@ -206,3 +222,22 @@ CHANNEL_LAYERS = {
         },
     },
 }
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
