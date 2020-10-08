@@ -7,8 +7,8 @@ from django.views.decorators.cache import cache_page
 from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
-from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension
-from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions, UpdateReferenceCode
+from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension, PreviousReservationPerUser, UpcomingReservationPerUser
+from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions, UpdateReferenceCode, PreviousBookingPerUser, UpcomingBookingPerUser
 from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
@@ -25,6 +25,10 @@ urlpatterns = [
     path('v1/all-reservations/', ReservationList.as_view(), name="all_reservations"),
     path('v1/single-reservation/<slug:reservation_id>/',
          ReservationDetail.as_view(), name="single_reservation"),
+    path('v1/reservation/previous-reservation/<slug:user_id>/',
+         PreviousReservationPerUser.as_view(), name="previous_reservation"),
+    path('v1/reservation/upcoming-reservation/<slug:user_id>/',
+         UpcomingReservationPerUser.as_view(), name="upcoming_reservation"),
 
     path('v1/booking/', BookingView.as_view(), name="booking"),
     path('v1/all-bookings/', BookingList.as_view(), name="all_bookings"),
@@ -36,6 +40,10 @@ urlpatterns = [
          BookingCancellationActions.as_view(), name="booking_cancellation_actions"),
     path('v1/booking/update/<slug:order_code>/',
          UpdateReferenceCode.as_view(), name="update_reference"),
+    path('v1/booking/previous-booking/<slug:user_id>/',
+         PreviousBookingPerUser.as_view(), name="previous_booking"),
+    path('v1/booking/upcoming-booking/<slug:user_id>/',
+         UpcomingBookingPerUser.as_view(), name="upcoming_booking"),
 
     path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
     path('v1/favourite/delete/<slug:favorite_id>/',
@@ -84,6 +92,7 @@ urlpatterns = [
     path("v1/subscribe/", Subscribe.as_view(), name='subscribe'),
     path("v1/subscription/complete/<slug:reference_code>/",
          SubscribeActions.as_view(), name="complete_subscriptions"),
-    path("v1/subscription/update-recurring/<slug:reference_code>/", UpdateRecurring.as_view(), name="update-subscription-recurring")
+    path("v1/subscription/update-recurring/<slug:reference_code>/",
+         UpdateRecurring.as_view(), name="update-subscription-recurring")
 
 ]

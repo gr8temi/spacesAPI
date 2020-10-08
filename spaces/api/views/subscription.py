@@ -62,12 +62,11 @@ class SubscribeActions(APIView):
             return Response({"message", "Subscription does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         previous_paid_at = agent_subscription.paid_at
-
-        if previous_paid_at >= datetime.strptime(
+        if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
                 verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid==True:
             return Response({"message": f"Payment made is already active and expires {agent_subscription.next_due_date}"})
 
-        if previous_paid_at >= datetime.strptime(
+        if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
             verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid == False:
             return Response({"message": f"This payment has either expired at this date {agent_subscription.next_due_date}"})
         
@@ -96,6 +95,7 @@ class SubscribeActions(APIView):
 
             agent_subscription.next_due_date = due_date
             agent_subscription.paid = True
+            
             agent_subscription.paid_at = datetime.strptime(
                 verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
             agent_subscription.authorization_code = authorization_code
