@@ -626,3 +626,37 @@ class RequestReservationExtension(PlaceOrder):
 
 
 # class SingleReservation
+
+
+class PreviousReservationPerUser(APIView):
+    
+    def get(self, request, user_id):
+        order_type = OrderType.objects.get(order_type="reservation")
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        reservations = Order.objects.filter(order_type=order_type, user=user)
+        now = datetime.now()
+        reservations.filter(usage_end_date__lt=now)
+
+        serializer = OrderSerializer(reservations, many=True)
+
+        return Response({"message":"Previous reservation fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+
+class UpcomingReservationPerUser(APIView):
+
+    def get(self, request, user_id):
+        order_type = OrderType.objects.get(order_type="reservation")
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        reservations = Order.objects.filter(order_type=order_type, user=user)
+        now = datetime.now()
+        reservations.filter(usage_end_date__gt=now)
+
+        serializer = OrderSerializer(reservations, many=True)
+
+        return Response({"message": "Upcoming reservation fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+

@@ -550,3 +550,36 @@ class UpdateReferenceCode(APIView):
         return Response(
             {"payload": {**customer_details, "order_code": order_code, "Booking dates": booked},
              "message": f"Booking completed"},)
+
+class PreviousBookingPerUser(APIView):
+
+    def get(self, request, user_id):
+        order_type = OrderType.objects.get(order_type="booking")
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        bookings = Order.objects.filter(order_type=order_type, user=user)
+        now = datetime.now()
+        bookings.filter(usage_end_date__lt=now)
+
+        serializer = OrderSerializer(bookings, many=True)
+
+        return Response({"message":"Previous booking fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+
+class UpcomingBookingPerUser(APIView):
+
+    def get(self, request, user_id):
+        order_type = OrderType.objects.get(order_type="booking")
+        try:
+            user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        bookings = Order.objects.filter(order_type=order_type, user=user)
+        now = datetime.now()
+        bookings.filter(usage_end_date__gt=now)
+
+        serializer = OrderSerializer(bookings, many=True)
+
+        return Response({"message": "Upcoming booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
