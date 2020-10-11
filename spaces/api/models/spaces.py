@@ -40,7 +40,7 @@ class Space(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def space_type_name(self):
-        return self.space_type.space_type
+        return self.space_type
 
     def __str__(self):
         return self.name
