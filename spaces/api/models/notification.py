@@ -10,3 +10,6 @@ class Notification(models.Model):
     user_id = models.UUIDField(null=True)
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.notification_id
