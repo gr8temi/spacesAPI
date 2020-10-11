@@ -12,7 +12,6 @@ from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
 
-
 class CustomerList(APIView):
     # permission_classes=[IsAuthenticated,]
 
@@ -36,7 +35,7 @@ class CustomerDetail(APIView):
             serializer = CustomerSerializer(customer)
             return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, customer_id):
         customer = self.get_object(customer_id)
@@ -49,7 +48,7 @@ class CustomerDetail(APIView):
                 return Response({"payload": serializer.data, "message": "Customer successfully updated"}, status=status.HTTP_200_OK)
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, customer_id, format=None):
         customer = self.get_object(customer_id)
@@ -57,7 +56,7 @@ class CustomerDetail(APIView):
             customer.delete()
             return Response({"message": "Customer successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class CustomerRegister(APIView):
@@ -130,3 +129,31 @@ class CustomerRegister(APIView):
             else:
                 return Response({"error": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": f"Customer {check.name} Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+class FetchByPhoneNumber(APIView):
+    
+    def get_object(self, phone_number):
+        try:
+            return Customer.objects.get(user__phone_number=phone_number)
+        except Customer.DoesNotExist:
+            return Response({"message":"Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def get(self, request, phone_number):
+        customer = self.get_object(phone_number)
+        serializer = CustomerSerializer(customer)
+        return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
+
+
+class FetchByEmail(APIView):
+
+    def get_object(self, email):
+        try:
+            return Customer.objects.get(user__email=email)
+        except Customer.DoesNotExist:
+            return Response({"message": "Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, email):
+        customer = self.get_object(email)
+        serializer = CustomerSerializer(customer)
+        return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
