@@ -157,18 +157,30 @@ class BookingView(PlaceOrder):
         for book in bookings:
             start_date = datetime.fromisoformat(
                 book["start_date"].replace('Z', '+00:00'))
-            if duration == "daily":
+            end_date = datetime.fromisoformat(
+                book["end_date"].replace('Z', '+00:00'))
+            if duration == "hourly":
+                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                    days_not_allowed.append(book)
+            elif duration == "daily":
                 if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
-            elif duration == "hourly":
-                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+            elif duration == "monthly":
+                print((end_date.date() - start_date.date()).days)
+                if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
+                    return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
+                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
 
         return days_not_allowed
-    # checks for booked dates
+
+    # def repeated_booking_dates(self, bookings): continue from here
+    #     if duration == "daily" or duration == "monthly":
+
+        # checks for booked dates
 
     def booked_days(self, start_date, end_date, space_id, duration):
-        print({"space":space_id})
+        print({"space": space_id})
         orders = Order.objects.filter(
             space=space_id).exclude(status="cancelled")
         print(orders)
@@ -176,10 +188,9 @@ class BookingView(PlaceOrder):
         if duration == "hourly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
-        elif duration == "daily":
+        elif duration == "daily" or duration == "monthly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
-        print({"active": active_orders})
         return active_orders
 
     def order(self, active_order, start_date, end_date, duration):
@@ -193,7 +204,7 @@ class BookingView(PlaceOrder):
 
             for order in active_order:
 
-                if duration == "daily":
+                if duration == "daily" or duration == "monthly":
                     order_start_date = pytz.utc.localize(
                         order.usage_start_date).date()
                     order_end_date = pytz.utc.localize(
@@ -208,7 +219,7 @@ class BookingView(PlaceOrder):
                     end = end_date
 
                 order_type = order.order_type.order_type
-                if (start >= order_start_date and start_date <= order_end_date) or (end <= order_end_date and end >= order_start_date):
+                if (start >= order_start_date and start <= order_end_date) or (end <= order_end_date and end >= order_start_date):
                     if order_type == "booking":
                         existing.append(
                             {"start_date": order.usage_start_date, "end_date": order.usage_end_date})
@@ -227,11 +238,6 @@ class BookingView(PlaceOrder):
             return existing
 
     def post(self, request):
-
-        # if request.user:
-        #     user = getattr(request._request, 'user', None).id
-        # else:
-        #     user = ''
         data = request.data
         space_id = data["space"]
         print(space_id)
@@ -241,8 +247,6 @@ class BookingView(PlaceOrder):
         # agent = self.get_agent(space.agent.business_name)
         space = Space.objects.get(space_id=space_id)
         agent = Agent.objects.get(business_name=space.agent.business_name)
-        agent_name = agent.user.name
-        agent_mail = agent.user.email
 
         duration = space.duration
         order_cde = order_code()
@@ -280,15 +284,19 @@ class BookingView(PlaceOrder):
                                      hours["start_date"], hours["end_date"], duration)
                 exists.extend(ordered)
 
-        elif duration == "daily":
-            days_booked = json.loads(json.dumps(data.get("daily_bookings")))
+        elif duration == "daily" or duration == "monthly":
+            days_booked = json.loads(json.dumps(data.get("daily_bookings"))) or json.loads(
+                json.dumps(data.get("monthly_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
             now = datetime.now()
             check = self.check_day_difference(days_booked, duration, now)
-
+            print(check)
             if check:
-                return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                if duration == "daily" or duration == "hourly":
+                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day and bookings must be in monthly intervals"}, status=status.HTTP_400_BAD_REQUEST)
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
@@ -302,14 +310,13 @@ class BookingView(PlaceOrder):
                                      days["start_date"], days["end_date"], duration)
                 exists.extend(ordered)
 
-            # if not invalid_time_array:
-
-            # pass
         if (bool(exists)):
             if duration == "daily":
                 return Response({"message": f"Space is not available on the following days", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
             elif duration == "hourly":
                 return Response({"message": f"Space is not available on the following hours", "payload": hours}, status=status.HTTP_409_CONFLICT)
+            elif duration == "monthly":
+                return Response({"message": f"Space is not available on the following month", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
         else:
             if data["user"]:
                 user = User.objects.get(user_id=data["user"]).user_id
@@ -320,7 +327,7 @@ class BookingView(PlaceOrder):
                 with transaction.atomic():
                     order_cde = order_code()
                     order_time = datetime.now()
-                    if duration == "daily":
+                    if duration == "daily" or duration == "monthly":
                         booked = days_booked
                     elif duration == "hourly":
                         booked = hours_booked
@@ -333,7 +340,7 @@ class BookingView(PlaceOrder):
 
                         self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
                                         user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
-                    return Response({"message": f"Awaiting payment", "payload":{"order_code":order_cde}},status=status.HTTP_200_OK)
+                    return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
 
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -441,11 +448,11 @@ class BookingCancellationActions(APIView):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
-                return Response({"message":"Booking cancellation request success"}, status=status.HTTP_200_OK)
+                return Response({"message": "Booking cancellation request success"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def decline_cancellation_request(self,reason, agent_email, agent_name, customer_email, customer_name):
+    def decline_cancellation_request(self, reason, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
@@ -493,7 +500,7 @@ class BookingCancellationActions(APIView):
 
 
 class UpdateReferenceCode(APIView):
-    def get_orders(self,order_code):
+    def get_orders(self, order_code):
         try:
             return Order.objects.filter(order_code=order_code)
         except Order.DoesNotExist:
@@ -511,7 +518,8 @@ class UpdateReferenceCode(APIView):
         booked = []
         for order_obj in orders:
             order_obj.transaction_code = transaction_code
-            booked.append({"start_date":order_obj.usage_start_date, "end_date":order_obj.usage_end_date})
+            booked.append({"start_date": order_obj.usage_start_date,
+                           "end_date": order_obj.usage_end_date})
             order_obj.save()
 
         order = orders.first()
@@ -551,6 +559,7 @@ class UpdateReferenceCode(APIView):
             {"payload": {**customer_details, "order_code": order_code, "Booking dates": booked},
              "message": f"Booking completed"},)
 
+
 class PreviousBookingPerUser(APIView):
 
     def get(self, request, user_id):
@@ -565,7 +574,8 @@ class PreviousBookingPerUser(APIView):
 
         serializer = OrderSerializer(bookings, many=True)
 
-        return Response({"message":"Previous booking fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": "Previous booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
 
 class UpcomingBookingPerUser(APIView):
 
@@ -582,4 +592,3 @@ class UpcomingBookingPerUser(APIView):
         serializer = OrderSerializer(bookings, many=True)
 
         return Response({"message": "Upcoming booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
-
