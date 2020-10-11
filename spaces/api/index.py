@@ -11,7 +11,7 @@ from .models.order import Order
 class SpaceIndex(AlgoliaIndex):
     custom_objectID = 'space_id'
     fields = ("space_id", "name", "description", "space_type_name", "address", "gmap",
-              "number_of_bookings", "capacity", "amount", "agent", "duration", "images", "amenities")
+              "number_of_bookings", "capacity", "amount", "agent", "duration", "images", "amenities", "active")
     settings = {'searchableAttributes': [
         'name', 'amount', 'availability', 'address', 'space_type', 'gmap', 'capacity']}
     index_name = 'Spaces'
