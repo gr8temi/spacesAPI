@@ -38,6 +38,7 @@ class Space(models.Model):
     objects = SpaceManager()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
 
     def space_type_name(self):
         return self.space_type
