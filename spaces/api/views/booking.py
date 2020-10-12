@@ -25,7 +25,7 @@ from ..models.availabilities import Availability
 
 from ..helper.helper import order_code
 
-from ..serializers.order import OrderSerializer
+from ..serializers.order import OrderSerializer, OrdersFetchSerializer
 from ..serializers.user import UserSerializer
 from ..serializers.cancelation import CancellationSerializer
 
@@ -166,7 +166,6 @@ class BookingView(PlaceOrder):
                 if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
             elif duration == "monthly":
-                print((end_date.date() - start_date.date()).days)
                 if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
                     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
                 if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
@@ -180,10 +179,8 @@ class BookingView(PlaceOrder):
         # checks for booked dates
 
     def booked_days(self, start_date, end_date, space_id, duration):
-        print({"space": space_id})
         orders = Order.objects.filter(
             space=space_id).exclude(status="cancelled")
-        print(orders)
 
         if duration == "hourly":
             active_orders = [
@@ -240,7 +237,6 @@ class BookingView(PlaceOrder):
     def post(self, request):
         data = request.data
         space_id = data["space"]
-        print(space_id)
         name = data["name"]
         email = data['company_email']
         # space = self.get_space(space_id)
@@ -291,7 +287,6 @@ class BookingView(PlaceOrder):
             # Gets all existing bookings
             now = datetime.now()
             check = self.check_day_difference(days_booked, duration, now)
-            print(check)
             if check:
                 if duration == "daily" or duration == "hourly":
                     return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
@@ -508,11 +503,9 @@ class UpdateReferenceCode(APIView):
 
     def put(self, request, order_code):
         orders = self.get_orders(order_code)
-        print(request.data)
         if not orders:
             return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
         transaction_code = request.data["reference"]
-        print(transaction_code)
         if not transaction_code:
             return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
         booked = []
@@ -572,7 +565,7 @@ class PreviousBookingPerUser(APIView):
         now = datetime.now()
         bookings.filter(usage_end_date__lt=now)
 
-        serializer = OrderSerializer(bookings, many=True)
+        serializer = OrdersFetchSerializer(bookings, many=True)
 
         return Response({"message": "Previous booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
 
@@ -589,6 +582,6 @@ class UpcomingBookingPerUser(APIView):
         now = datetime.now()
         bookings.filter(usage_end_date__gt=now)
 
-        serializer = OrderSerializer(bookings, many=True)
+        serializer = OrdersFetchSerializer(bookings, many=True)
 
         return Response({"message": "Upcoming booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)

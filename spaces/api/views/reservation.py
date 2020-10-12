@@ -265,7 +265,6 @@ class PlaceReservation(PlaceOrder):
                                         for avail in check_available_array if bool(avail.get("close_day"))])
 
                 return Response({"message": f"Space does not open before open time, and after close time or close days", "payload": {"dates": available_slots}}, status=status.HTTP_400_BAD_REQUEST)
-            # print({"existing": existing_bookings})
             for hours in hours_booked:
                 ordered = self.order(existing_bookings,
                                      hours["start_date"], hours["end_date"], duration)
@@ -601,9 +600,7 @@ class RequestReservationExtension(PlaceOrder):
         agent = self.get_agent(space.agent)
         agent_mail = agent.user.email
         agent_name = agent.user.name
-        print(order_code)
         if order_code:
-            print("here")
             if request.user.is_authenticated:
                 if update_type == "approve_reservation_extension":
                     self.approve_reservation_extension(
@@ -622,7 +619,6 @@ class RequestReservationExtension(PlaceOrder):
         else:
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        print("got here")
 
 
 # class SingleReservation
