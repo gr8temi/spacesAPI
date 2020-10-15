@@ -37,6 +37,12 @@ class Order(models.Model):
     
     def agent_name(self):
         return self.space.agent.user.name
+    
+    def duration(self):
+        return self.space.duration
+    
+    def images(self):
+        return self.space.images
 
     def __str__(self):
         return self.order_code
