@@ -20,7 +20,7 @@ class SpaceIndex(AlgoliaIndex):
 @register(Order)
 class BookingIndex(AlgoliaIndex):
     custom_objectID = 'orders_id'
-    fields = ("orders_id", "amount", "name", "company_email", "no_of_guest", "extras", "usage_start_date",
+    fields = ("orders_id", "amount", "agent_id", "name", "company_email", "no_of_guest", "extras", "usage_start_date",
               "usage_end_date", "hours_booked", "days_booked", "status", "order_code", "order_type", "space_name", "agent_name", "duration", "images")
     settings = {'searchableAttributes': [
         'name',

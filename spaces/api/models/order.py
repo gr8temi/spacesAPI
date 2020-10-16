@@ -38,6 +38,9 @@ class Order(models.Model):
     def agent_name(self):
         return self.space.agent.user.name
     
+    def agent_id(self):
+        return self.space.agent.agent_id
+    
     def duration(self):
         return self.space.duration
     
