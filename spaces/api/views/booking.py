@@ -358,13 +358,13 @@ class BookingCancellation(APIView):
         try:
             return Agent.objects.get(agent_id=agent_id)
         except Agent.DoesNotExist:
-            return Response({"message": "Agent not found"}, status=status.HTTP_404_NOT_FOUND)
+            return False
 
     def get_customer(self, customer_id):
         try:
             return Customer.objects.get(customer_id=customer_id)
         except Customer.DoesNotExist:
-            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            return False
 
     def post(self, request):
         reason = request.data["reason"]
@@ -372,7 +372,14 @@ class BookingCancellation(APIView):
         agent_id = request.data["agent_id"]
         customer_id = request.data["customer_id"]
         agent = self.get_agent(agent_id)
+
         customer = self.get_customer(customer_id)
+        if not agent:
+            return esponse({"message": "Agent not found"},
+                     status=status.HTTP_404_NOT_FOUND)
+        if not customer:
+            return Response({"message": "Customer not found"},
+                     status=status.HTTP_404_NOT_FOUND)
         agent_mail = agent.user.email
         customer_mail = customer.user.email
         agent_name = agent.user.name
