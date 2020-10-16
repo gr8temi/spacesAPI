@@ -13,4 +13,4 @@ class Cancellation(models.Model):
     status = models.CharField(max_length=10,default="pending")
 
     def __str__(self):
-        return self.cancellation_id
+        return f"{self.cancellation_id}"
