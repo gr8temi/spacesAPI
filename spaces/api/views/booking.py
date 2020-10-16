@@ -375,7 +375,7 @@ class BookingCancellation(APIView):
 
         customer = self.get_customer(customer_id)
         if not agent:
-            return esponse({"message": "Agent not found"},
+            return Response({"message": "Agent not found"},
                      status=status.HTTP_404_NOT_FOUND)
         if not customer:
             return Response({"message": "Customer not found"},
