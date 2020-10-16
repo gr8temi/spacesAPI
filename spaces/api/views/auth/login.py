@@ -36,8 +36,11 @@ class UserLogin(APIView):
                     document = bool(agent.document)
                     return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document), status=status.HTTP_200_OK, )
                 else:
-                    customer = Customer.objects.get(user=user)
-                    return Response(dict(message="Login was successful", token=token, agent=False, customer_id=customer.customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
+                    try:
+                        customer_id = Customer.objects.get(user=user).customer_id
+                    except Customer.DoesNotExist:
+                        customer_id=False
+                    return Response(dict(message="Login was successful", token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
 
             else:
                 return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)

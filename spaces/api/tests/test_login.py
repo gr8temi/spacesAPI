@@ -1,5 +1,5 @@
 from rest_framework import status
-from .mock_data import registration_data,auth_data
+from .mock_data import registration_data, auth_data
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.urls import reverse
@@ -11,10 +11,11 @@ import bcrypt
 class TestLogin(APITestCase):
     def setUp(self):
         data = registration_data.auth_registration_data()
-        hashed = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        hashed = bcrypt.hashpw(
+            data['password'].encode('utf-8'), bcrypt.gensalt())
         token = 'sometoken'
         user = User.objects.create(
-            
+
             email="spaces234@gmail.com",
             password=hashed,
             
