@@ -75,7 +75,7 @@ class BookingView(PlaceOrder):
             'amount': amount,
             'usage_start_date': start_date,
             'usage_end_date': end_date,
-            'status': 'pending',
+            'status': 'booked',
             'transaction_code': transaction_code,
             'no_of_guest': no_of_guest,
             'order_code': order_cde,
