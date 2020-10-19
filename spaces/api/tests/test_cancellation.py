@@ -17,7 +17,7 @@ class TestBookingCancellationRequest(APITestCase):
         self.data = booking_data()
         self.url = reverse('booking_cancellation')
         self.booking = Order.objects.create(**self.data)
-        self.booking_code = self.booking.order_code
+        self.order_id = self.booking.orders_id
         self.user_agent = User.objects.create(**user_registration_data())
         self.agent = Agent.objects.create(
             user=self.user_agent, **agent_registration_data())
@@ -27,7 +27,7 @@ class TestBookingCancellationRequest(APITestCase):
         self.customer = Customer.objects.create(user=self.user_customer)
         self.cancellation_data = {"reason": "reason is this",
                                   "customer_id": f"{self.customer.customer_id}",
-                                  "agent_id": f"{self.agent.agent_id}", "booking_code": self.booking_code}
+                                  "agent_id": f"{self.agent.agent_id}", "order_id": self.order_id}
         self.client = APIClient()
         self.login_data = {**customer_login_data()}
         self.agent_login_data = {"email":self.agent.user.email, "password":"agent"}
