@@ -368,7 +368,7 @@ class BookingCancellation(APIView):
 
     def post(self, request):
         reason = request.data["reason"]
-        booking_code = request.data["booking_code"]
+        order_id = request.data["order_id"]
         agent_id = request.data["agent_id"]
         customer_id = request.data["customer_id"]
         agent = self.get_agent(agent_id)
@@ -384,20 +384,17 @@ class BookingCancellation(APIView):
         customer_mail = customer.user.email
         agent_name = agent.user.name
         customer_name = customer.user.name
-        booking = Order.objects.filter(order_code=booking_code)
-        single_order = booking.first()
-        if not booking:
-            return Response({"message": f"booking with code {booking_code} not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        for book in booking:
-            book.status = "book cancellation"
-            book.save()
-            
+        try:
+            booking = Order.objects.get(orders_id=order_id)
+        except Order.DoesNotExist:
+            return Response({"message": f"No order with the given booking id {order_id} found"}, status=status.HTTP_404_NOT_FOUND)
+        booking.status = "cancelation request"
+        booking.save()
         cancellation_data = {
             "reason": reason,
             "agent": agent_id,
             "customer": customer_id,
-            "booking": f"{single_order.orders_id}"
+            "booking": f"{booking.orders_id}"
         }
         serializer = CancellationSerializer(data=cancellation_data)
 
@@ -414,7 +411,7 @@ class BookingCancellation(APIView):
             # notification for agent that registered space
             subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
             to_agent = [agent_mail]
-            agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of booking with code {booking_code} and this is the reason
+            agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
             {reason}.
             kindly visit dashboard to accept or decline request """
 
@@ -424,7 +421,7 @@ class BookingCancellation(APIView):
                       sender, to_customer)
             subscriber.connect(notification_creator)
             subscriber.send(sender=self.__class__,
-                            data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking cancellation request for booking {booking_code} "})
+                            data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking cancellation request for booking {booking.order_code} "})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
