@@ -384,14 +384,20 @@ class BookingCancellation(APIView):
         customer_mail = customer.user.email
         agent_name = agent.user.name
         customer_name = customer.user.name
-        booking = Order.objects.filter(order_code=booking_code).first()
+        booking = Order.objects.filter(order_code=booking_code)
+        single_order = booking.first()
         if not booking:
             return Response({"message": f"booking with code {booking_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        for book in booking:
+            book.status = "book cancellation"
+            book.save()
+            
         cancellation_data = {
             "reason": reason,
             "agent": agent_id,
             "customer": customer_id,
-            "booking": f"{booking.orders_id}"
+            "booking": f"{single_order.orders_id}"
         }
         serializer = CancellationSerializer(data=cancellation_data)
 
