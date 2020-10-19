@@ -47,5 +47,8 @@ class Order(models.Model):
     def images(self):
         return self.space.images
 
+    def user_id(self):
+        return self.user.user_id
+
     def __str__(self):
         return self.order_code
