@@ -27,7 +27,7 @@ from ..helper.helper import order_code
 
 from ..serializers.order import OrderSerializer, OrdersFetchSerializer
 from ..serializers.user import UserSerializer
-from ..serializers.cancelation import CancellationSerializer
+from ..serializers.cancelation import CancellationSerializer, CancellationFetchSerializer
 
 from ..consumers.channel_layers import notification_creator
 from ..signals import subscriber
@@ -595,3 +595,21 @@ class UpcomingBookingPerUser(APIView):
         serializer = OrdersFetchSerializer(bookings, many=True)
 
         return Response({"message": "Upcoming booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
+class BookingCancellationPerUser(APIView):
+
+    def get(self,request,customer_id):
+
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        cancellation = Cancellation.objects.filter(customer=customer)
+        
+        if not cancellation:
+            return Response({"message": "No cancellation made"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer =  CancellationFetchSerializer(cancellation, many=True)
+
+        return Response({"message": "Cancellations successfully fetched", "payload": serializer.data}, status=status.HTTP_404_NOT_FOUND)
