@@ -8,7 +8,7 @@ from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
 from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension, PreviousReservationPerUser, UpcomingReservationPerUser
-from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions, UpdateReferenceCode, PreviousBookingPerUser, UpcomingBookingPerUser
+from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions, UpdateReferenceCode, PreviousBookingPerUser, UpcomingBookingPerUser, BookingCancellationPerUser
 from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
@@ -44,6 +44,8 @@ urlpatterns = [
          PreviousBookingPerUser.as_view(), name="previous_booking"),
     path('v1/booking/upcoming-booking/<slug:user_id>/',
          UpcomingBookingPerUser.as_view(), name="upcoming_booking"),
+    path('v1/cancellation/<slug:customer_id>/',
+         BookingCancellationPerUser.as_view(), name="customer_cancellations"),
 
     path('v1/favourites/', favourite.AddFavorite.as_view(), name="favourites"),
     path('v1/favourite/delete/<slug:favorite_id>/',
@@ -71,20 +73,22 @@ urlpatterns = [
 
     # match route that has not been registered above
     path('v1/auth/login/', login.UserLogin.as_view(), name='login'),
-    
+
     path('v1/auth/agents/signup/',
          agent.AgentRegister.as_view(), name='agent_register'),
     path('v1/agents/', agent.AgentList.as_view(), name='agents'),
     path('v1/auth/agent/<uuid:agent_id>/',
          agent.AgentDetail.as_view(), name='agent_details'),
-    
+
     path('v1/auth/customers/signup/',
          customer.CustomerRegister.as_view(), name='customer_register'),
     path('v1/customers/', customer.CustomerList.as_view(), name='customers'),
     path('v1/auth/customer/<uuid:customer_id>/',
          customer.CustomerDetail.as_view(), name='customer_details'),
-    path('v1/customer/email/<email>/', customer.FetchByEmail.as_view(), name="customer_by_email"),
-    path('v1/customer/phone_number/<slug:phone_number>/', customer.FetchByPhoneNumber.as_view(), name="customer_by_phone_number"),
+    path('v1/customer/email/<email>/',
+         customer.FetchByEmail.as_view(), name="customer_by_email"),
+    path('v1/customer/phone_number/<slug:phone_number>/',
+         customer.FetchByPhoneNumber.as_view(), name="customer_by_phone_number"),
     path('v1/auth/verify-email/',
          verify_email.VerifyEmail.as_view(), name="verify-email"),
     path('v1/auth/forgot-password/',
