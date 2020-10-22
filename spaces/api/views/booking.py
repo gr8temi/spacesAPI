@@ -612,4 +612,4 @@ class BookingCancellationPerUser(APIView):
 
         serializer =  CancellationFetchSerializer(cancellation, many=True)
 
-        return Response({"message": "Cancellations successfully fetched", "payload": serializer.data}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "Cancellations successfully fetched", "payload": serializer.data}, status=status.HTTP_200_OK)
