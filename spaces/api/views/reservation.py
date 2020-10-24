@@ -487,10 +487,13 @@ class RequestReservationExtension(PlaceOrder):
         data = request.data
         reason = data["reason"]
         order_code = data['order_code']
-        try:
-            orders = Order.objects.filter(order_code=order_code)
-        except:
-            return Response({"message": "orders with order code {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+        orders = Order.objects.filter(order_code=order_code)
+        if not orders:
+            return Response({"message": "orders with order id {order_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        for order in orders:
+            order.status = "extension"
+            order.save()
         # user_id = orders[0]
         user_id = list(orders)[0].user.user_id
         customer = get_object_or_404(User, user_id=user_id)
