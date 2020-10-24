@@ -429,13 +429,14 @@ class BookingCancellation(APIView):
 class BookingCancellationActions(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def approve_cancellation(self, bookings, agent_email, agent_name, customer_email, customer_name):
+    def approve_cancellation(self, booking,cancel, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
-                for booking in bookings:
-                    booking.status = "cancelled"
-                    booking.save()
+                booking.status = "cancelled"
+                booking.save()
+                cancel.status = "accept"
+                cancel.save()
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -457,10 +458,12 @@ class BookingCancellationActions(APIView):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def decline_cancellation_request(self, reason, agent_email, agent_name, customer_email, customer_name):
+    def decline_cancellation_request(self,cancel, reason, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
+                cancel.status = "declined"
+                cancel.save()
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
                 # notification for customer booking space
@@ -491,16 +494,18 @@ class BookingCancellationActions(APIView):
 
         customer_email = cancel.customer.user.email
         agent_email = cancel.agent.user.email
-        booking_code = cancel.booking.order_code
+        booking_id = cancel.booking.orders_id
         agent_name = cancel.agent.user.name
         customer_name = cancel.customer.user.name
-
-        bookings = Order.objects.filter(order_code=booking_code)
+        try:
+            booking = Order.objects.get(orders_id=booking_id)
+        except Order.DoesNotExist:
+            return Response({"message": "No booking for this cancellation request found"}, status=status.HTTP_404_NOT_FOUND)
         if update_type == "accept":
-            return self.approve_cancellation(bookings, agent_email, agent_name, customer_email, customer_name)
+            return self.approve_cancellation(booking, cancel, agent_email, agent_name, customer_email, customer_name)
         elif update_type == "decline":
             reason = request.data["reason"]
-            return self.decline_cancellation_request(
+            return self.decline_cancellation_request(cancel,
                 reason, agent_email, agent_name, customer_email, customer_name)
 
 
