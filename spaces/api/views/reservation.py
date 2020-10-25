@@ -483,6 +483,16 @@ class PlaceReservation(PlaceOrder):
 
 
 class RequestReservationExtension(PlaceOrder):
+
+    def get(self, request, order_code):
+        orders = Order.objects.filter(order_code=order_code)
+        if not orders:
+            return Response({"message": "We couldn't find any reservations with the given order code"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = OrderSerializer(orders, many=True)
+
+        return Response({"message": "ex"})
+            
     def post(self, request):
         data = request.data
         reason = data["reason"]
@@ -530,8 +540,8 @@ class RequestReservationExtension(PlaceOrder):
             with transaction.atomic():
                 start_now = datetime.now()
                 for order in orders:
-                    if order.status == "pending":
-                        order.status = "reserved"
+                    if order.status == "extension":
+                        order.status = "pending"
                         order.expiry_time = start_now + timedelta(days=1)
                         order.save()
                 # notifications
@@ -561,9 +571,9 @@ class RequestReservationExtension(PlaceOrder):
             with transaction.atomic():
                 start_now = datetime.now()
                 for order in orders:
-                    if order.status == "pending":
+                    if order.status == "extension":
                         if order.expiry_time > start_now:
-                            order.status = "cancelled"
+                            order.status = "declined"
                             order.save()
                 # notifications
                 sender = config(
