@@ -109,7 +109,7 @@ class BookingView(PlaceOrder):
         return active_orders
 
     def check_availability(self, dates_array, model, space, duration):
-        space_availability = model.objects.filter(space=space.name)
+        space_availability = model.objects.filter(space=space)
         availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
                          'close_time': av.close_time} for av in space_availability]
         if duration == "hourly":
