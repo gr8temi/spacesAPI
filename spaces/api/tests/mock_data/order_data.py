@@ -111,7 +111,7 @@ def create_space():
     hourly_space = Space.objects.create(
         **hourly_space_data(), agent=agent, space_type=space_type)
     for avail in availability_data()["availability"]:
-        Availability.objects.create(space=hourly_space.name,day=avail["day"], all_day=avail["all_day"],open_time=avail["open_time"],close_time=avail["close_time"])
+        Availability.objects.create(space=hourly_space,day=avail["day"], all_day=avail["all_day"],open_time=avail["open_time"],close_time=avail["close_time"])
 
 
     return (daily_space, hourly_space, user)

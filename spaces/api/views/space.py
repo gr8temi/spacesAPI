@@ -35,17 +35,17 @@ class SingleSpace(APIView):
         except:
             return False
 
-    def get_availability(self, space_id):
+    def get_availability(self, space):
         try:
-            return Availability.objects.filter(space=space_id)
+            return Availability.objects.filter(space=space)
         except Exception as err:
 
             return False
 
-    def get_extra(self, space_id):
+    def get_extra(self, space):
         try:
 
-            return Extra.objects.filter(space=space_id)
+            return Extra.objects.filter(space=space)
         except Exception as err:
 
             return False
@@ -62,8 +62,8 @@ class SingleSpace(APIView):
         space = self.get_space(space_id)
 
         if space:
-            availability = self.get_availability(space.name)
-            extras = self.get_extra(space.name)
+            availability = self.get_availability(space)
+            extras = self.get_extra(space)
 
             booked = self.get_booked(space_id)
 
