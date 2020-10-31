@@ -89,7 +89,7 @@ class AgentRegister(APIView):
             else:
                 return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"errorss": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"errors": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         data = request.data

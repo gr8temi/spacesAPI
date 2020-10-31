@@ -459,8 +459,8 @@ class PlaceReservation(PlaceOrder):
 
         # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!!
         agent = self.get_agent(space.agent)
-        agent_mail = agent.email
-        agent_name = agent.name
+        agent_mail = agent.user.email
+        agent_name = agent.user.name
 
         if order_code:
             if update_type == "book":
