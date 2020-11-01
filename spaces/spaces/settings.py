@@ -248,8 +248,8 @@ if not DEBUG:
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
         os.path.join(BASE_DIR, "spaces/spaces-276407-b2777f038d99.json")
     )
-    STATICFILES_STORAGE = 'gcloud.GoogleCloudStaticFileStorage'
-    DEFAULT_FILE_STORAGE = 'gcloud.GoogleCloudStaticFileStorage'
+    STATICFILES_STORAGE = 'spaces.gcloud.GoogleCloudStaticFileStorage'
+    DEFAULT_FILE_STORAGE = 'spaces.gcloud.GoogleCloudStaticFileStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
     GS_STATIC_BUCKET_NAME = config("GS_STATIC_BUCKET_NAME")
     STATIC_URL = f'https://storage.googleapis.com/{GS_STATIC_BUCKET_NAME}/'
