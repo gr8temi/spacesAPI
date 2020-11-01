@@ -252,5 +252,3 @@ if not DEBUG:
     DEFAULT_FILE_STORAGE = 'spaces.gcloud.GoogleCloudStaticFileStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
     GS_STATIC_BUCKET_NAME = config("GS_STATIC_BUCKET_NAME")
-    STATIC_URL = f'https://storage.googleapis.com/{GS_STATIC_BUCKET_NAME}/'
-    STATIC_ROOT = "static/"
