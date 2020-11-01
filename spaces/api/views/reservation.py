@@ -350,7 +350,7 @@ class PlaceReservation(PlaceOrder):
                                     data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new Reservation {order_cde} "})
                     return Response(
                         {"payload": {**customer_details, "order_code": order_cde, "Reservation dates": booked},
-                            "message": f"Reservation completed"},
+                            "message": f"Reservation completed Waiting for a response from Space Host"},
                         status=status.HTTP_200_OK)
 
             except IntegrityError as e:
@@ -383,6 +383,7 @@ class PlaceReservation(PlaceOrder):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
+                return Response({"message": "Reservation Accepted", "status": f"{order.status}"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -412,6 +413,8 @@ class PlaceReservation(PlaceOrder):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
+                return Response({"message": "Reservation Declined", "status": f"{order.status}"}, status=status.HTTP_200_OK)
+
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
