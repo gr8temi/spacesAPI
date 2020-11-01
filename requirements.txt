@@ -12,6 +12,7 @@ bcrypt==3.1.7
 billiard==3.6.3.0
 boto3==1.15.16
 botocore==1.18.16
+cachetools==4.1.1
 celery==4.4.2
 certifi==2019.11.28
 cffi==1.14.0
@@ -31,6 +32,13 @@ django-rest-passwordreset==1.1.0
 django-storages==1.10.1
 djangorestframework==3.10.3
 djangorestframework-simplejwt==4.4.0
+google-api-core==1.23.0
+google-auth==1.23.0
+google-cloud-core==1.4.3
+google-cloud-storage==1.32.0
+google-crc32c==1.0.0
+google-resumable-media==1.1.0
+googleapis-common-protos==1.52.0
 hiredis==1.1.0
 hyperlink==20.0.1
 idna==2.9
@@ -40,6 +48,7 @@ jmespath==0.10.0
 kombu==4.6.8
 msgpack==0.6.2
 paystackapi==2.0.0
+protobuf==3.13.0
 psycopg2==2.8.4
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
@@ -53,6 +62,7 @@ python-decouple==3.3
 pytz==2019.3
 redis==3.4.1
 requests==2.23.0
+rsa==4.6
 s3transfer==0.3.3
 sentry-sdk==0.14.3
 service-identity==18.1.0

@@ -17,6 +17,8 @@ from datetime import timedelta
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from celery.schedules import crontab
+from google.oauth2 import service_account
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -242,8 +244,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 if not DEBUG:
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        os.path.join(BASE_DIR, "spaces/spaces-276407-b2777f038d99.json")
+    )
+    STATICFILES_STORAGE = 'gcloud.GoogleCloudStaticFileStorage'
+    DEFAULT_FILE_STORAGE = 'gcloud.GoogleCloudStaticFileStorage'
+    GS_PROJECT_ID = config("GS_PROJECT_ID")
+    GS_STATIC_BUCKET_NAME = config("GS_STATIC_BUCKET_NAME")
+    STATIC_URL = f'https://storage.googleapis.com/{GS_STATIC_BUCKET_NAME}/'
+    STATIC_ROOT = "static/"
