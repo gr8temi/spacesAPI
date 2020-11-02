@@ -111,7 +111,7 @@ class PlaceReservation(PlaceOrder):
         return active_orders
 
     def check_availability(self, dates_array, model, space, duration):
-        space_availability = model.objects.filter(space=space.name)
+        space_availability = model.objects.filter(space=space)
         availability = [{'day': av.day, 'all_day': av.all_day, 'open_time': av.open_time,
                          'close_time': av.close_time} for av in space_availability]
         if duration == "hourly":
@@ -365,6 +365,8 @@ class PlaceReservation(PlaceOrder):
                         order.status = "reserved"
                         order.order_time = start_now
                         order.save()
+                    else:
+                        return Response({"message":"You can't approve this reservation because it's status is not pending"}, status=status.HTTP_400_BAD_REQUEST)
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -396,6 +398,8 @@ class PlaceReservation(PlaceOrder):
                         order.status = "cancelled"
                         order.order_time = start_now
                         order.save()
+                    else:
+                        return Response({"message": "You can't decline this reservation because it's status is not pending"}, status=status.HTTP_400_BAD_REQUEST)
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -467,16 +471,20 @@ class PlaceReservation(PlaceOrder):
 
         if order_code:
             if update_type == "book":
-                self.reservation_to_booking(
+                reserved_to_booking = self.reservation_to_booking(
                     orders, data, agent_mail, agent_name, space, transaction_code, customer)
+                return reserved_to_booking
             elif update_type == "approve" or update_type == "decline":
                 if request.user.is_authenticated:
                     if update_type == "approve":
-                        self.approve_reservation(
+                        approve_reservation = self.approve_reservation(
                             orders, data, agent_mail, agent_name, space, customer)
+                        return approve_reservation
                     elif update_type == "decline":
-                        self.decline_reservation(
+                        decline_reservation = self.decline_reservation(
                             orders, data, agent_mail, agent_name, space, customer)
+                        return decline_reservation
+                        
                 else:
                     return Response({"message": "Login as a space host to complete this action."})
             else:
@@ -547,6 +555,8 @@ class RequestReservationExtension(PlaceOrder):
                         order.status = "pending"
                         order.expiry_time = start_now + timedelta(days=1)
                         order.save()
+                    else:
+                        return Response({"message": "You can't approve this reservation extension request because it's status is not pending"}, status=status.HTTP_400_BAD_REQUEST)
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -565,6 +575,7 @@ class RequestReservationExtension(PlaceOrder):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
+                return Response({"message": "Request for Extension Approved"}, status=status.HTTP_200_OK)
 
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -578,6 +589,9 @@ class RequestReservationExtension(PlaceOrder):
                         if order.expiry_time > start_now:
                             order.status = "declined"
                             order.save()
+                    else:
+                        return Response({"message": "You can't decline this reservation extension request because it's status is not extension"}, status=status.HTTP_400_BAD_REQUEST)
+
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -595,6 +609,7 @@ class RequestReservationExtension(PlaceOrder):
                           sender, to_agent)
                 send_mail(subject_customer, customer_content,
                           sender, to_customer)
+                return Response({"message": "Request for Extension Declined"}, status=status.HTTP_200_OK)
 
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -619,14 +634,14 @@ class RequestReservationExtension(PlaceOrder):
         if order_code:
             if request.user.is_authenticated:
                 if update_type == "approve_reservation_extension":
-                    self.approve_reservation_extension(
+                    approve_extension_request=self.approve_reservation_extension(
                         orders, data, agent_mail, agent_name, space, customer)
-                    return Response({"message": "Request for Extension Approved"}, status=status.HTTP_200_OK)
+                    return approve_extension_request
 
                 elif update_type == "decline_reservation_extension":
-                    self.decline_reservation_extension(
+                    decline_reservation_extension = self.decline_reservation_extension(
                         orders, data, agent_mail, agent_name, space, customer)
-                    return Response({"message": "Request for Extension Declined"}, status=status.HTTP_200_OK)
+                    return decline_reservation_extension
                 else:
                     return Response({"message": "invalid update type"}, status=status.HTTP_400_BAD_REQUEST)
 

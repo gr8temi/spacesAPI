@@ -73,7 +73,7 @@ def format_expire_array(expire_array):
 @periodic_task(run_every=(crontab(minute='*/60')), name="send_mail_to_almost_expired_reservations", ignore_result=False)
 def send_mail_to_almost_expired_reservations():
     reservations = Order.objects.filter(
-        Q(status="reserved") | Q(status="pending"))
+        Q(status="reserved") | Q(status="pending") | Q(status="declined"))
     almost_expired_two_hours = {}
     almost_expired_one_hour = {}
     for reservation in reservations:
