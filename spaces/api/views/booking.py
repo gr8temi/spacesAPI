@@ -160,15 +160,15 @@ class BookingView(PlaceOrder):
             end_date = datetime.fromisoformat(
                 book["end_date"].replace('Z', '+00:00'))
             if duration == "hourly":
-                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                if start_date < pytz.utc.localize(now):
                     days_not_allowed.append(book)
             elif duration == "daily":
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
+                if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
             elif duration == "monthly":
                 # if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
                 #     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
+                if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
 
         return days_not_allowed
@@ -251,12 +251,17 @@ class BookingView(PlaceOrder):
         if duration == 'hourly':
             hours_booked = json.loads(json.dumps(data.get("hours_booked")))
             now = datetime.now()
+            check = self.check_day_difference(hours_booked, duration, now)
 
             invalid_time_array = self.invalid_time(hours_booked)
             if invalid_time_array:
                 return Response({"message": f"This time is not available ", "payload": {'invalid_time': invalid_time_array}}, status=status.HTTP_400_BAD_REQUEST)
             check_available_array = self.check_availability(
                 hours_booked, Availability, space, duration)
+
+            if check:
+                return Response({"message": f"You are booking a pass time. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
+
             if not check_available_array:
                 for hours in hours_booked:
                     start_date = datetime.fromisoformat(
@@ -281,6 +286,13 @@ class BookingView(PlaceOrder):
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
             now = datetime.now()
+            check = self.check_day_difference(days_booked, duration, now)
+            if check:
+                if duration == "daily" or duration == "hourly":
+                    return Response({"message": f"You are booking a pass date. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"message": f"You are booking a pass month. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
+
             for days in days_booked:
                 start_date = datetime.fromisoformat(
                     days["start_date"].replace('Z', '+00:00')).date()
