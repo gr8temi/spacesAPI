@@ -23,7 +23,7 @@ from ..models.order_type import OrderType
 from ..models.cancelation import Cancellation
 from ..models.availabilities import Availability
 
-from ..helper.helper import order_code
+from ..helper.helper import order_code, add_months
 
 from ..serializers.order import OrderSerializer, OrdersFetchSerializer
 from ..serializers.user import UserSerializer
@@ -166,8 +166,8 @@ class BookingView(PlaceOrder):
                 if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
             elif duration == "monthly":
-                if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
-                    return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
+                # if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
+                #     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
                 if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
                     days_not_allowed.append(book)
 
@@ -251,17 +251,12 @@ class BookingView(PlaceOrder):
         if duration == 'hourly':
             hours_booked = json.loads(json.dumps(data.get("hours_booked")))
             now = datetime.now()
-            check = self.check_day_difference(hours_booked, duration, now)
 
             invalid_time_array = self.invalid_time(hours_booked)
             if invalid_time_array:
                 return Response({"message": f"This time is not available ", "payload": {'invalid_time': invalid_time_array}}, status=status.HTTP_400_BAD_REQUEST)
             check_available_array = self.check_availability(
                 hours_booked, Availability, space, duration)
-
-            if check:
-                return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
-
             if not check_available_array:
                 for hours in hours_booked:
                     start_date = datetime.fromisoformat(
@@ -286,13 +281,6 @@ class BookingView(PlaceOrder):
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
             now = datetime.now()
-            check = self.check_day_difference(days_booked, duration, now)
-            if check:
-                if duration == "daily" or duration == "hourly":
-                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day and bookings must be in monthly intervals"}, status=status.HTTP_400_BAD_REQUEST)
-
             for days in days_booked:
                 start_date = datetime.fromisoformat(
                     days["start_date"].replace('Z', '+00:00')).date()
