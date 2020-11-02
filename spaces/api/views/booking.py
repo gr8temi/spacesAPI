@@ -160,15 +160,15 @@ class BookingView(PlaceOrder):
             end_date = datetime.fromisoformat(
                 book["end_date"].replace('Z', '+00:00'))
             if duration == "hourly":
-                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+                if start_date < pytz.utc.localize(now):
                     days_not_allowed.append(book)
             elif duration == "daily":
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
+                if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
             elif duration == "monthly":
-                if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
-                    return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
-                if start_date.date() - pytz.utc.localize((now+timedelta(days=1))).date() < timedelta(days=1):
+                # if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
+                #     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
+                if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
 
         return days_not_allowed
@@ -260,7 +260,7 @@ class BookingView(PlaceOrder):
                 hours_booked, Availability, space, duration)
 
             if check:
-                return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": f"You are booking a pass time. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not check_available_array:
                 for hours in hours_booked:
@@ -289,9 +289,9 @@ class BookingView(PlaceOrder):
             check = self.check_day_difference(days_booked, duration, now)
             if check:
                 if duration == "daily" or duration == "hourly":
-                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"message": f"You are booking a pass date. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response({"message": f"You can only place bookings 24 hours ahead and not on the same day and bookings must be in monthly intervals"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"message": f"You are booking a pass month. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
