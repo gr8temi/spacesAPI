@@ -251,4 +251,4 @@ if not DEBUG:
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
-    GS_STATIC_BUCKET_NAME = config("GS_STATIC_BUCKET_NAME")
+    GS_BUCKET_NAME = config("GS_BUCKET_NAME")
