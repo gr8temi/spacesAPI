@@ -44,6 +44,9 @@ class Space(models.Model):
 
     def space_type_name(self):
         return self.space_type
+    
+    def category_name(self):
+        return self.space_type.space_category
 
     def __str__(self):
         return self.name
