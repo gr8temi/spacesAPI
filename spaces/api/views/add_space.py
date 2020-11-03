@@ -25,8 +25,8 @@ class CreateSpace(APIView):
 
         data = request.data
 
-        name = data['name']
-        space_type = data['space_type']
+        name = data.get('name')
+        space_type = data.get('space_type')
         existing = Space.objects.filter(
             name=name, space_type=space_type)
 
@@ -37,38 +37,40 @@ class CreateSpace(APIView):
                     serialized.save()
 
         space_data = {
-            'name': data['name'],
-            'description': data['description'],
-            # data['space_type'],
+            'name': data.get('name'),
+            'description': data.get('description'),
+            # data.get('space_type'),
             # "2ce6293c-f8cf-41d4-9d77-bed08a9d74e5",
-            'space_type': data['space_type'],
-            'address': data['address'],
-            'gmap': data['gmap'],
-            'capacity': data['capacity'],
-            'amount': data['amount'],
-            'agent': data['agent'],
-            'duration': data['duration'],
-            'images': data['images'],
-            # 'videos': data['videos'],
-            'amenities': data['amenities'],
-            'rules': data['rules'],
-            'cancellation_rules': data['cancellation_rules']
+            'space_type': data.get('space_type'),
+            'address': data.get('address'),
+            'gmap': data.get('gmap'),
+            'capacity': data.get('capacity'),
+            'state': data.get('state'),
+            'city': data.get('city'),
+            'amount': data.get('amount'),
+            'agent': data.get('agent'),
+            'duration': data.get('duration'),
+            'images': data.get('images'),
+            # 'videos': data.get('videos'),
+            'amenities': data.get('amenities'),
+            'rules': data.get('rules'),
+            'cancellation_rules': data.get('cancellation_rules')
         }
-        user_id = Agent.objects.get(agent_id= uuid.UUID(data["agent"])).user.user_id #TODO: Catch error if it fails
+        user_id = Agent.objects.get(agent_id= uuid.UUID(data.get("agent"))).user.user_id #TODO: Catch error if it fails
         spaceDataSerializer = SpaceSerializer(data=space_data)
-        availability = data['availability']
-        extras = data['extras']
+        availability = data.get('availability')
+        extras = data.get('extras')
 
         if bool(existing):
             return Response({"message": f"Space with name {name} already exists in this category"}, status=status.HTTP_400_BAD_REQUEST)
 
         elif spaceDataSerializer.is_valid():
             spaceDataSerializer.save()
-            space_id = spaceDataSerializer.data["name"]
+            space_id = spaceDataSerializer.data.get("name")
             save_to_model(space_id, availability, AvailabilitySerializer)
             save_to_model(space_id, extras, ExtraSerializer)
 
-            name = spaceDataSerializer.data["name"]
+            name = spaceDataSerializer.data.get("name")
             subscriber.connect(notification_creator)
             subscriber.send(sender=self.__class__,
                             data={"name":space_id,"user_id":f"{user_id}", "notification":f"{space_id} was successfully created"})

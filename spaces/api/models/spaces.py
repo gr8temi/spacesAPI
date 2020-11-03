@@ -22,6 +22,8 @@ class Space(models.Model):
     space_type = models.ForeignKey(
         SpaceType, on_delete=models.DO_NOTHING, null=True)
     address = JSONField(encoder=DjangoJSONEncoder)
+    city = models.CharField( max_length=50, null=True)
+    state = models.CharField(max_length=50, null=True)
     gmap = JSONField(encoder=DjangoJSONEncoder)
     number_of_bookings = models.IntegerField(null=True, blank=True, default=0)
     capacity = models.IntegerField()

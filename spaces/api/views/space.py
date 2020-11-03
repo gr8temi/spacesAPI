@@ -1,9 +1,6 @@
 from rest_framework.permissions import IsAuthenticated
-from django.conf import settings
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from ..models.spaces import Space
 from ..models.order import Order
@@ -13,12 +10,8 @@ from ..serializers.space import SpaceSerializer
 from ..serializers.order import OrderSerializer
 from ..serializers.availabilty import AvailabilitySerializer
 from ..serializers.extra import ExtraSerializer
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.views.decorators.cache import cache_page
-import os
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from ..permissions.is_agent_permission import UserIsAnAgent
-
 
 class Spaces(APIView):
     def get(self, request, format="json"):
@@ -90,3 +83,4 @@ class DeleteSpace(DestroyAPIView):
     serializer_class = SpaceSerializer
     lookup_field = 'space_id'
     permission_classes = [IsAuthenticated & UserIsAnAgent]
+
