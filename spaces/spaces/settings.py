@@ -248,7 +248,7 @@ if not DEBUG:
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
         os.path.join(BASE_DIR, "spaces/spaces-276407-b2777f038d99.json")
     )
-    STATICFILES_STORAGE = 'spaces.gcloud.GoogleCloudStaticFileStorage'
-    DEFAULT_FILE_STORAGE = 'spaces.gcloud.GoogleCloudStaticFileStorage'
+    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
     GS_STATIC_BUCKET_NAME = config("GS_STATIC_BUCKET_NAME")

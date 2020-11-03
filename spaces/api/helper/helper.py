@@ -1,3 +1,5 @@
+import datetime
+import calendar
 import random
 import string
 from django.core.mail import send_mail
@@ -37,3 +39,11 @@ def send_subscription_mail(subject,to,name, content):
     to_agent = [to]
     send_mail(subject, content,
               sender, to_agent)
+
+
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = sourcedate.year + month // 12
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+    return datetime.date(year, month, day)

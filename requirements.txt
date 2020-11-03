@@ -32,6 +32,8 @@ django-rest-passwordreset==1.1.0
 django-storages==1.10.1
 djangorestframework==3.10.3
 djangorestframework-simplejwt==4.4.0
+geographiclib==1.50
+geopy==2.0.0
 google-api-core==1.23.0
 google-auth==1.23.0
 google-cloud-core==1.4.3

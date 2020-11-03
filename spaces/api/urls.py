@@ -7,6 +7,7 @@ from django.views.decorators.cache import cache_page
 from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace
+from .views.utilities import SpaceLocation
 from .views.reservation import ReservationDetail, PlaceReservation, ReservationList, RequestReservationExtension, PreviousReservationPerUser, UpcomingReservationPerUser
 from .views.booking import BookingStatus, BookingView, BookingList, BookingCancellation, BookingCancellationActions, UpdateReferenceCode, PreviousBookingPerUser, UpcomingBookingPerUser, BookingCancellationPerUser
 from .views import agent, customer
@@ -61,6 +62,7 @@ urlpatterns = [
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)
          (Spaces.as_view()), name="spaces"),
+     path('v1/cities/', SpaceLocation.as_view(), name="cities" ),
 
     path('v1/categories/', cache_page(CACHE_TTL)
          (space_category.SpacesCategory.as_view()), name="categories"),
