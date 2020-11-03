@@ -71,7 +71,7 @@ class PlaceReservation(PlaceOrder):
         else:
             return False
 
-    def reserve_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time):
+    def reserve_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, order_expiry_time):
 
         order_data = {
             'amount': amount,
@@ -90,6 +90,7 @@ class PlaceReservation(PlaceOrder):
             'duration': duration,
             'hours_booked': hours_booked,
             'order_time': order_time,
+            'expiry_time': order_expiry_time,
         }
 
         order_serializer = OrderSerializer(data=order_data)
@@ -292,9 +293,6 @@ class PlaceReservation(PlaceOrder):
                                      days["start_date"], days["end_date"], duration)
                 exists.extend(ordered)
 
-            # if not invalid_time_array:
-
-            # pass
         if (bool(exists)):
             if duration == "daily":
                 return Response({"message": f"Space is not available on the following days", "payload": days_booked}, status=status.HTTP_409_CONFLICT)
@@ -311,6 +309,7 @@ class PlaceReservation(PlaceOrder):
                 with transaction.atomic():
                     order_cde = order_code()
                     order_time = datetime.now()
+                    order_expiry_time = order_time + timedelta(hours=24)
                     if duration == "daily":
                         booked = days_booked
                     elif duration == "hourly":
@@ -323,7 +322,7 @@ class PlaceReservation(PlaceOrder):
                             days['end_date'].replace('Z', '+00:00'))
 
                         self.reserve_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                           user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time)
+                                           user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, order_expiry_time)
                     # notifications
                     sender = config(
                         "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -366,7 +365,7 @@ class PlaceReservation(PlaceOrder):
                         order.order_time = start_now
                         order.save()
                     else:
-                        return Response({"message":"You can't approve this reservation because it's status is not pending"}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"message": "You can't approve this reservation because it's status is not pending"}, status=status.HTTP_400_BAD_REQUEST)
                 # notifications
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
@@ -484,7 +483,7 @@ class PlaceReservation(PlaceOrder):
                         decline_reservation = self.decline_reservation(
                             orders, data, agent_mail, agent_name, space, customer)
                         return decline_reservation
-                        
+
                 else:
                     return Response({"message": "Login as a space host to complete this action."})
             else:
@@ -499,11 +498,11 @@ class RequestReservationExtension(PlaceOrder):
         orders = Order.objects.filter(order_code=order_code)
         if not orders:
             return Response({"message": "We couldn't find any reservations with the given order code"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = OrderSerializer(orders, many=True)
 
         return Response({"message": "ex"})
-            
+
     def post(self, request):
         data = request.data
         reason = data["reason"]
@@ -511,7 +510,7 @@ class RequestReservationExtension(PlaceOrder):
         orders = Order.objects.filter(order_code=order_code)
         if not orders:
             return Response({"message": "orders with order id {order_id} not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         for order in orders:
             order.status = "extension"
             order.save()
@@ -634,7 +633,7 @@ class RequestReservationExtension(PlaceOrder):
         if order_code:
             if request.user.is_authenticated:
                 if update_type == "approve_reservation_extension":
-                    approve_extension_request=self.approve_reservation_extension(
+                    approve_extension_request = self.approve_reservation_extension(
                         orders, data, agent_mail, agent_name, space, customer)
                     return approve_extension_request
 
@@ -651,12 +650,11 @@ class RequestReservationExtension(PlaceOrder):
             return Response({"message": "Order code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 # class SingleReservation
 
 
 class PreviousReservationPerUser(APIView):
-    
+
     def get(self, request, user_id):
         order_type = OrderType.objects.get(order_type="reservation")
         try:
@@ -669,7 +667,8 @@ class PreviousReservationPerUser(APIView):
 
         serializer = OrderSerializer(reservations, many=True)
 
-        return Response({"message":"Previous reservation fetched successfully", "payload":serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": "Previous reservation fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
 
 class UpcomingReservationPerUser(APIView):
 
@@ -686,4 +685,3 @@ class UpcomingReservationPerUser(APIView):
         serializer = OrderSerializer(reservations, many=True)
 
         return Response({"message": "Upcoming reservation fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
-
