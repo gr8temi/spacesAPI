@@ -36,7 +36,7 @@ class Order(models.Model):
     order_time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     expiry_time = models.DateTimeField(blank=True, null=True)
-    notes = models.TextField()
+    notes = models.TextField(blank=True)
 
     def space_name(self):
         return self.space.name
