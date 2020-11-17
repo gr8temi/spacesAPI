@@ -173,11 +173,6 @@ class BookingView(PlaceOrder):
 
         return days_not_allowed
 
-    # def repeated_booking_dates(self, bookings): continue from here
-    #     if duration == "daily" or duration == "monthly":
-
-        # checks for booked dates
-
     def booked_days(self, start_date, end_date, space_id, duration):
         orders = Order.objects.filter(
             space=space_id).exclude(status="cancelled")
@@ -327,14 +322,20 @@ class BookingView(PlaceOrder):
                     elif duration == "hourly":
                         booked = hours_booked
                     booking_type = self.get_order_type_id(data["order_type"])
+                    booking_error = ""
                     for days in booked:
                         start = datetime.fromisoformat(
                             days['start_date'].replace('Z', '+00:00'))
                         end = datetime.fromisoformat(
                             days['end_date'].replace('Z', '+00:00'))
 
-                        self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                        user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
+                        booking = self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
+                                                  user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
+                        if "error" in booking:
+                            booking_error = booking["error"]
+                            break
+                    if booking_error:
+                        return Response({"message":booking_error},status=status.HTTP_400_BAD_REQUEST)
                     return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
 
             except IntegrityError as e:
@@ -376,10 +377,10 @@ class BookingCancellation(APIView):
         customer = self.get_customer(customer_id)
         if not agent:
             return Response({"message": "Agent not found"},
-                     status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
         if not customer:
             return Response({"message": "Customer not found"},
-                     status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
         agent_mail = agent.user.email
         customer_mail = customer.user.email
         agent_name = agent.user.name
@@ -429,7 +430,7 @@ class BookingCancellation(APIView):
 class BookingCancellationActions(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-    def approve_cancellation(self, booking,cancel, agent_email, agent_name, customer_email, customer_name):
+    def approve_cancellation(self, booking, cancel, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
@@ -458,7 +459,7 @@ class BookingCancellationActions(APIView):
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
-    def decline_cancellation_request(self,cancel, reason, agent_email, agent_name, customer_email, customer_name):
+    def decline_cancellation_request(self, cancel, reason, agent_email, agent_name, customer_email, customer_name):
         # to approve extension time
         try:
             with transaction.atomic():
@@ -506,7 +507,7 @@ class BookingCancellationActions(APIView):
         elif update_type == "decline":
             reason = request.data["reason"]
             return self.decline_cancellation_request(cancel,
-                reason, agent_email, agent_name, customer_email, customer_name)
+                                                     reason, agent_email, agent_name, customer_email, customer_name)
 
 
 class UpdateReferenceCode(APIView):
@@ -601,20 +602,21 @@ class UpcomingBookingPerUser(APIView):
 
         return Response({"message": "Upcoming booking fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
 
+
 class BookingCancellationPerUser(APIView):
 
-    def get(self,request,customer_id):
+    def get(self, request, customer_id):
 
         try:
             customer = Customer.objects.get(customer_id=customer_id)
         except Customer.DoesNotExist:
             return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         cancellation = Cancellation.objects.filter(customer=customer)
-        
+
         if not cancellation:
             return Response({"message": "No cancellation made"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer =  CancellationFetchSerializer(cancellation, many=True)
+        serializer = CancellationFetchSerializer(cancellation, many=True)
 
         return Response({"message": "Cancellations successfully fetched", "payload": serializer.data}, status=status.HTTP_200_OK)
