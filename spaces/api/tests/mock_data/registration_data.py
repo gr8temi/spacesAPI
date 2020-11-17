@@ -52,7 +52,7 @@ def user_registration_data():
     return {
         "name": "Ola Bimbo",
         "email": f"test{random.randint(0,100)}@gmail.com",
-        "phone_number": f"0802{random.randint(0,9)}211134",
+        "phone_number": f"0802{random.randint(0,9)}21{random.randint(0,9)}134",
         "password": agent_hashed,
         "created_at": "2019-03-15 16:14:54",
         "email_verified": True,
