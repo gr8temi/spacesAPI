@@ -4,7 +4,7 @@ from decouple import config
 from django.core.mail import send_mail
 from ..models.customer import Customer
 from ..models.user import User
-from ..serializers.customer import CustomerSerializer
+from ..serializers.customer import CustomerSerializer, CustomerSerializerDetail
 from ..serializers.user import UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,12 +12,13 @@ from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
 
+
 class CustomerList(APIView):
     # permission_classes=[IsAuthenticated,]
 
     def get(self, request, format=None):
         queryset = Customer.objects.all()
-        serializer = CustomerSerializer(queryset, many=True)
+        serializer = CustomerSerializerDetail(queryset, many=True)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
 
@@ -32,7 +33,7 @@ class CustomerDetail(APIView):
     def get(self, request, customer_id, format=None):
         customer = self.get_object(customer_id)
         if bool(customer):
-            serializer = CustomerSerializer(customer)
+            serializer = CustomerSerializerDetail(customer)
             return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -132,16 +133,16 @@ class CustomerRegister(APIView):
 
 
 class FetchByPhoneNumber(APIView):
-    
+
     def get_object(self, phone_number):
         try:
             return Customer.objects.get(user__phone_number=phone_number)
         except Customer.DoesNotExist:
-            return Response({"message":"Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    
+            return Response({"message": "Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
     def get(self, request, phone_number):
         customer = self.get_object(phone_number)
-        serializer = CustomerSerializer(customer)
+        serializer = CustomerSerializerDetail(customer)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
 
@@ -155,5 +156,5 @@ class FetchByEmail(APIView):
 
     def get(self, request, email):
         customer = self.get_object(email)
-        serializer = CustomerSerializer(customer)
+        serializer = CustomerSerializerDetail(customer)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)

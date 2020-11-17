@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from ..models.space_type import SpaceType
-from ..serializers.space_type import SpaceTypeSerializer
+from ..serializers.space_type import SpaceTypeSerializer, SpaceTypeSerializerDetails
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 import os
@@ -26,7 +26,7 @@ class SpaceTypeView(APIView):
     def get(self, request):
         space_type = SpaceType.objects.all()
 
-        serializer = SpaceTypeSerializer(space_type, many=True)
+        serializer = SpaceTypeSerializerDetails(space_type, many=True)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
     def post(self, request, format="json"):
@@ -50,7 +50,7 @@ class SpaceTypeDetail(APIView):
         except SpaceType.DoesNotExist:
             return Response({"message": "Spacetype Not Found"}, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = SpaceTypeSerializer(space_type)
+        serializer = SpaceTypeSerializerDetails(space_type)
 
         return Response({"message":"SpaceType Fetch Successful", "payload":serializer.data}, status=status.HTTP_200_OK)
 
@@ -59,6 +59,6 @@ class SpaceTypeByCategory(APIView):
     def get(self, request, category_id):
         space_types = SpaceType.objects.filter(
                 space_category__category_id=uuid.UUID(category_id))
-        serializer = SpaceTypeSerializer(space_types, many=True)
+        serializer = SpaceTypeSerializerDetails(space_types, many=True)
 
         return Response({"message":"SpaceType Fetch Successful", "payload":serializer.data}, status=status.HTTP_200_OK)

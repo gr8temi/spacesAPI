@@ -56,9 +56,10 @@ class CreateSpace(APIView):
             'rules': data.get('rules'),
             'cancellation_rules': data.get('cancellation_rules')
         }
-        user_id = Agent.objects.get(agent_id= uuid.UUID(data.get("agent"))).user.user_id #TODO: Catch error if it fails
+        user_id = Agent.objects.get(agent_id=uuid.UUID(
+            data.get("agent"))).user.user_id  # TODO: Catch error if it fails
         spaceDataSerializer = SpaceSerializer(data=space_data)
-        availability = data.get('availability')
+        availability = data['availability']
         extras = data.get('extras')
 
         if bool(existing):
@@ -66,14 +67,18 @@ class CreateSpace(APIView):
 
         elif spaceDataSerializer.is_valid():
             spaceDataSerializer.save()
-            space_id = spaceDataSerializer.data.get("name")
-            save_to_model(space_id, availability, AvailabilitySerializer)
-            save_to_model(space_id, extras, ExtraSerializer)
+            space_name = spaceDataSerializer.data.get("name")
+            try:
+                space_id = Space.objects.get(name=space_name).space_id
+            except:
+                return Response({"message": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
+            save_to_model(f"{space_id}", availability, AvailabilitySerializer)
+            save_to_model(f"{space_id}", extras, ExtraSerializer)
 
             name = spaceDataSerializer.data.get("name")
             subscriber.connect(notification_creator)
             subscriber.send(sender=self.__class__,
-                            data={"name":space_id,"user_id":f"{user_id}", "notification":f"{space_id} was successfully created"})
+                            data={"name": space_id, "user_id": f"{user_id}", "notification": f"{space_id} was successfully created"})
 
             return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
 
