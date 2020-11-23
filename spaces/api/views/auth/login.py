@@ -25,6 +25,7 @@ class UserLogin(APIView):
                 refresh = RefreshToken.for_user(user)
 
                 token = {
+                    'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }
                 if user.is_agent == True:
