@@ -281,7 +281,8 @@ class PlaceReservation(PlaceOrder):
                 exists.extend(ordered)
 
         elif duration == "daily":
-            days_booked = json.loads(json.dumps(data.get("daily_bookings")))
+            days_booked = json.loads(json.dumps(data.get("daily_bookings"))) or json.loads(
+                json.dumps(data.get("monthly_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
             # Gets all existing bookings
             now = datetime.now()
@@ -320,11 +321,10 @@ class PlaceReservation(PlaceOrder):
                     order_time = datetime.now()
                     order_expiry_time = order_time + timedelta(hours=24)
                     booked = {}
-                    if duration == "daily":
+                    if duration == "daily" or duration == "monthly":
                         booked = days_booked
                     elif duration == "hourly":
                         booked = hours_booked
-
                     for days in booked:
                         start = datetime.fromisoformat(
                             days['start_date'].replace('Z', '+00:00'))
