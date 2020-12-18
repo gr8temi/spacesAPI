@@ -14,6 +14,7 @@ from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
 from .views.subscription import Subscribe, SubscribeActions, UpdateRecurring
+from .views.rating import RateASpace
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
@@ -103,6 +104,9 @@ urlpatterns = [
     path("v1/subscription/complete/<slug:reference_code>/",
          SubscribeActions.as_view(), name="complete_subscriptions"),
     path("v1/subscription/update-recurring/<slug:reference_code>/",
-         UpdateRecurring.as_view(), name="update-subscription-recurring")
+         UpdateRecurring.as_view(), name="update-subscription-recurring"),
+     
+     # ratings
+     path("v1/rating/", RateASpace.as_view(), name="create-a-rating" )
 
 ]

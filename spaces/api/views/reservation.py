@@ -71,7 +71,7 @@ class PlaceReservation(PlaceOrder):
         else:
             return False
 
-    def reserve_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, order_expiry_time):
+    def reserve_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, order_expiry_time, notes):
 
         order_data = {
             'amount': amount,
@@ -91,6 +91,7 @@ class PlaceReservation(PlaceOrder):
             'hours_booked': hours_booked,
             'order_time': order_time,
             'expiry_time': order_expiry_time,
+            'notes': notes
         }
 
         order_serializer = OrderSerializer(data=order_data)
@@ -156,14 +157,22 @@ class PlaceReservation(PlaceOrder):
     def check_day_difference(self, bookings, duration, now):
 
         days_not_allowed = []
+
         for book in bookings:
             start_date = datetime.fromisoformat(
                 book["start_date"].replace('Z', '+00:00'))
-            if duration == "daily":
-                if start_date.date() - (now+timedelta(days=1)).date() < timedelta(days=1):
+            end_date = datetime.fromisoformat(
+                book["end_date"].replace('Z', '+00:00'))
+            if duration == "hourly":
+                if start_date < pytz.utc.localize(now):
                     days_not_allowed.append(book)
-            elif duration == "hourly":
-                if start_date - pytz.utc.localize((now+timedelta(hours=24))) < timedelta(hours=24):
+            elif duration == "daily":
+                if start_date.date() < pytz.utc.localize(now).date():
+                    days_not_allowed.append(book)
+            elif duration == "monthly":
+                # if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
+                #     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
+                if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
 
         return days_not_allowed
@@ -234,7 +243,7 @@ class PlaceReservation(PlaceOrder):
         agent = self.get_agent(space.agent)
         agent_name = agent.user.name
         agent_mail = agent.user.email
-
+        notes = data.get("note", "")
         duration = space.duration
         order_cde = order_code()
         existing_bookings = []
@@ -251,7 +260,7 @@ class PlaceReservation(PlaceOrder):
                 hours_booked, Availability, space, duration)
 
             if check:
-                return Response({"message": f"You can only place reservations 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": f"You are booking a pass time. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not check_available_array:
                 for hours in hours_booked:
@@ -279,7 +288,7 @@ class PlaceReservation(PlaceOrder):
             check = self.check_day_difference(days_booked, duration, now)
 
             if check:
-                return Response({"message": f"You can only place reservations 24 hours ahead and not on the same day"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": f"You are booking a pass time. kindly book a new date"}, status=status.HTTP_400_BAD_REQUEST)
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
@@ -322,7 +331,7 @@ class PlaceReservation(PlaceOrder):
                             days['end_date'].replace('Z', '+00:00'))
 
                         self.reserve_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                           user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, order_expiry_time)
+                                           user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, order_expiry_time, notes)
                     # notifications
                     sender = config(
                         "EMAIL_SENDER", default="space.ng@gmail.com")
