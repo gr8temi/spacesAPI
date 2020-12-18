@@ -319,6 +319,7 @@ class PlaceReservation(PlaceOrder):
                     order_cde = order_code()
                     order_time = datetime.now()
                     order_expiry_time = order_time + timedelta(hours=24)
+                    booked = {}
                     if duration == "daily":
                         booked = days_booked
                     elif duration == "hourly":
