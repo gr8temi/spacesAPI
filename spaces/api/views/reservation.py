@@ -72,7 +72,7 @@ class PlaceReservation(PlaceOrder):
             return False
 
     def reserve_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, order_expiry_time, notes):
-
+    
         order_data = {
             'amount': amount,
             'usage_start_date': start_date,
@@ -185,7 +185,7 @@ class PlaceReservation(PlaceOrder):
         if duration == "hourly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date) >= start_date]
-        elif duration == "daily":
+        elif duration == "daily" or duration == "monthly":
             active_orders = [
                 order for order in orders if pytz.utc.localize(order.usage_end_date).date() >= start_date.date()]
         return active_orders
@@ -280,7 +280,7 @@ class PlaceReservation(PlaceOrder):
                                      hours["start_date"], hours["end_date"], duration)
                 exists.extend(ordered)
 
-        elif duration == "daily":
+        elif duration == "daily" or duration == "monthly":
             days_booked = json.loads(json.dumps(data.get("daily_bookings"))) or json.loads(
                 json.dumps(data.get("monthly_bookings")))
             invalid_time_array = self.invalid_time(days_booked)
