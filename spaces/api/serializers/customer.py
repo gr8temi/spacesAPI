@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..models.customer import Customer
-
+from api.serializers.user import UserSerializer
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,7 +10,8 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializerDetail(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = Customer
-        fields = "__all__"
+        fields = ['customer_id', 'user']
         depth = 1
