@@ -138,10 +138,13 @@ class FetchByPhoneNumber(APIView):
         try:
             return Customer.objects.get(user__phone_number=phone_number)
         except Customer.DoesNotExist:
-            return Response({"message": "Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return False
 
     def get(self, request, phone_number):
         customer = self.get_object(phone_number)
+        if not customer:
+            return Response({"message": "Customer with the given phone number does not exist"},
+                            status=status.HTTP_404_NOT_FOUND)
         serializer = CustomerSerializerDetail(customer)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
@@ -152,9 +155,12 @@ class FetchByEmail(APIView):
         try:
             return Customer.objects.get(user__email=email)
         except Customer.DoesNotExist:
-            return Response({"message": "Customer with the given phone number does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return False
 
     def get(self, request, email):
         customer = self.get_object(email)
+        if not customer:
+            return Response({"message": "Customer with the given email does not exist"},
+                     status=status.HTTP_404_NOT_FOUND)
         serializer = CustomerSerializerDetail(customer)
         return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
