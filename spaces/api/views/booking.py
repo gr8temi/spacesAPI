@@ -336,6 +336,7 @@ class BookingView(PlaceOrder):
                             break
                     if booking_error:
                         return Response({"message":booking_error},status=status.HTTP_400_BAD_REQUEST)
+                    
                     return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
 
             except IntegrityError as e:
@@ -538,7 +539,8 @@ class UpdateReferenceCode(APIView):
         agent_name = agent.user.name
         customer_name = order.name
         space = order.space
-
+        space.number_of_bookings +=1
+        space.save()
         # notifications
         sender = config(
             "EMAIL_SENDER", default="space.ng@gmail.com")

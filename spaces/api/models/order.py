@@ -32,7 +32,7 @@ class Order(models.Model):
     order_type = models.ForeignKey(OrderType, on_delete=models.CASCADE)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True)
-    space = models.ForeignKey(Space, on_delete=models.CASCADE)
+    space = models.ForeignKey(Space, on_delete=models.CASCADE, related_name="order")
     order_time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     expiry_time = models.DateTimeField(blank=True, null=True)
