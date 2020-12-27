@@ -15,6 +15,8 @@ from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
 from .views.subscription import Subscribe, SubscribeActions, UpdateRecurring
 from .views.rating import RateASpace
+from .views.analytics import Analytics
+
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
@@ -63,7 +65,7 @@ urlpatterns = [
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)
          (Spaces.as_view()), name="spaces"),
-     path('v1/cities/', SpaceLocation.as_view(), name="cities" ),
+    path('v1/cities/', SpaceLocation.as_view(), name="cities"),
 
     path('v1/categories/', cache_page(CACHE_TTL)
          (space_category.SpacesCategory.as_view()), name="categories"),
@@ -105,8 +107,11 @@ urlpatterns = [
          SubscribeActions.as_view(), name="complete_subscriptions"),
     path("v1/subscription/update-recurring/<slug:reference_code>/",
          UpdateRecurring.as_view(), name="update-subscription-recurring"),
-     
-     # ratings
-     path("v1/rating/", RateASpace.as_view(), name="create-a-rating" )
+
+    # ratings
+    path("v1/rating/", RateASpace.as_view(), name="create-a-rating"),
+
+    # Analytics
+    path("v1/analytics/<slug:agent_id>/", Analytics.as_view(), name="analytics")
 
 ]
