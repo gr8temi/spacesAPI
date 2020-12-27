@@ -1,3 +1,4 @@
+import uuid
 from rest_framework.views import APIView
 import bcrypt
 from decouple import config
@@ -10,7 +11,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
-from ..helper.helper import random_string_generator as token_generator,send_email
+from ..helper.helper import random_string_generator as token_generator, send_email
+from rest_framework.decorators import permission_classes
 
 
 class AgentList(APIView):
@@ -19,7 +21,7 @@ class AgentList(APIView):
     def get(self, request, format=None):
         queryset = Agent.objects.all()
         serializer = AgentSerializer(queryset, many=True)
-        return Response({"payload":serializer.data, "message":"fetch successful"}, status=status.HTTP_200_OK)
+        return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
 
 
 class AgentDetail(APIView):
@@ -34,29 +36,37 @@ class AgentDetail(APIView):
         agent = self.get_object(agent_id)
         if bool(agent):
             serializer = AgentSerializer(agent)
-            return Response({"payload":serializer.data, "message":"fetch successful"}, status=status.HTTP_200_OK)
+            return Response({"payload": serializer.data, "message": "fetch successful"}, status=status.HTTP_200_OK)
         else:
-             return Response({ "error":"User not found"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    @permission_classes([IsAuthenticated])
     def put(self, request, agent_id):
         agent = self.get_object(agent_id)
         if bool(agent):
 
-            serializer = AgentSerializer(agent, data=request.data,partial=True)
-            if serializer.is_valid():
+            serializer = AgentSerializer(
+                agent, data=request.data, partial=True)
+            user = User.objects.get(user_id=agent.user.user_id)
+            user_serializer = UserSerializer(
+                user, data=request.data, partial=True)
+
+            if serializer.is_valid() and user_serializer.is_valid():
                 serializer.save()
-                return Response({"payload":serializer.data, "message":"Agent successfully updated"}, status=status.HTTP_200_OK)
-            return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                user_serializer.save()
+                return Response({"payload": {**serializer.data, **user_serializer.data}, "message": "Agent successfully updated"}, status=status.HTTP_200_OK)
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({ "error":"User not found"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, agent_id, format=None):
         agent = self.get_object(agent_id)
         if bool(agent):
             agent.delete()
-            return Response({"message":"Agent successfully deleted"},status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Agent successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({ "error":"User not found"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 class AgentRegister(APIView):
     def get_object(self, email):
@@ -64,13 +74,14 @@ class AgentRegister(APIView):
             return User.objects.get(email=email)
         except User.DoesNotExist:
             return []
-    def serializeAgent(self,data,email,token,new_user):
+
+    def serializeAgent(self, data, email, token, new_user):
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
             agent_serializer.save()
             agent_name = agent_serializer.data["business_name"]
             if bool(new_user):
-        
+
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 message = "Registration was successful"
                 customer_message_details = {
@@ -85,7 +96,7 @@ class AgentRegister(APIView):
                 # send mail to the user
                 send = send_email(customer_message_details)
             if send:
-                return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data},status=status.HTTP_201_CREATED)
+                return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -113,15 +124,15 @@ class AgentRegister(APIView):
             'business_name': data["business_name"],
             'office_address': data["office_address"],
         }
-        
+
         # Check if agent already exist
         if bool(check) and bool(check.is_agent):
-            return Response({"message": f"Agent with {check.email} already Exist"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": f"Agent with {check.email} already Exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if User already exist but is a customer
         elif bool(check) and check.is_customer:
             new_agent_data = {**agent_data,
-                                  "user": check["user_id"]}
+                              "user": check["user_id"]}
             return self.serializeAgent(new_agent_data)
 
         # Create new Agent
@@ -131,9 +142,9 @@ class AgentRegister(APIView):
                 user_serializer.save()
                 new_agent_data = {**agent_data,
                                   "user": user_serializer.data["user_id"]}
-                
-                return self.serializeAgent(new_agent_data,user_serializer.data["email"],token=user_serializer.data["token"],new_user=True)
+
+                return self.serializeAgent(new_agent_data, user_serializer.data["email"], token=user_serializer.data["token"], new_user=True)
             else:
-                return Response({"errorr": user_serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                return Response({"errorr": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return
