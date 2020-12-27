@@ -21,7 +21,7 @@ class UserLogin(APIView):
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
-                
+
                 refresh = RefreshToken.for_user(user)
 
                 token = {
@@ -35,16 +35,23 @@ class UserLogin(APIView):
                         return Response(dict(error="User not an Agent",), status=status.HTTP_400_BAD_REQUEST)
                     no_of_spaces = Space.objects.filter(agent=agent).count()
                     document = bool(agent.document)
-                    return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document), status=status.HTTP_200_OK, )
+                    date_of_birth = user.date_of_birth
+                    profile_picture_url = user.profile_url
+                    social_links = user.social_links
+                    return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document, date_of_birth=date_of_birth,
+                                         profile_picture_url=profile_picture_url,
+                                         social_links=social_links), status=status.HTTP_200_OK, )
                 else:
                     try:
-                        customer_id = Customer.objects.get(user=user).customer_id
+                        customer_id = Customer.objects.get(
+                            user=user).customer_id
                     except Customer.DoesNotExist:
-                        customer_id=False
+                        customer_id = False
                     return Response(dict(message="Login was successful", token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
 
             else:
-                return Response(dict(error="Password is not valid"), status=status.HTTP_400_BAD_REQUEST)
+                return Response(dict(error="Invalid login details"), status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as err:
-            return Response(dict(error="Email is not Correct",), status=status.HTTP_400_BAD_REQUEST)
+            print(err)
+            return Response(dict(error="invalid login",), status=status.HTTP_400_BAD_REQUEST)
