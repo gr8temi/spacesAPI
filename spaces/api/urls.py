@@ -13,7 +13,7 @@ from .views.booking import BookingStatus, BookingView, BookingList, BookingCance
 from .views import agent, customer
 from .views import space_category, space_type, favourite
 from .views.auth import login, forgot_password, reset_password, verify_email
-from .views.subscription import Subscribe, SubscribeActions, UpdateRecurring
+from .views.subscription import Subscribe, SubscribeActions, UpdateRecurring, UpdateChargeType
 from .views.rating import RateASpace
 from .views.analytics import Analytics
 
@@ -103,6 +103,8 @@ urlpatterns = [
 
     # Subscription
     path("v1/subscribe/", Subscribe.as_view(), name='subscribe'),
+    path("v1/change-charge-type/<uuid:agent_id>/",
+         UpdateChargeType.as_view(), name='change_charge_type'),
     path("v1/subscription/complete/<slug:reference_code>/",
          SubscribeActions.as_view(), name="complete_subscriptions"),
     path("v1/subscription/update-recurring/<slug:reference_code>/",

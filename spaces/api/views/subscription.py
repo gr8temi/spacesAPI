@@ -1,16 +1,22 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from django.utils import timezone
+from django.db import transaction, IntegrityError
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import UpdateAPIView, DestroyAPIView
+
 from ..permissions.is_agent_permission import UserIsAnAgent
 from ..helper.helper import reference_code
 from ..models.subscription import Subscription, SubscriptionPerAgent, BillingHistory
+from ..models.agent import  Agent
 from ..serializers.subscription import SubscriptionSerializer, SubPerAgentSerializer, BillHistSerializer
-from rest_framework.generics import UpdateAPIView, DestroyAPIView
-
-
+from ..serializers.agent import AgentSerializer
 from spaces.paystack import paystack
+
 
 class Subscribe(APIView):
 
@@ -19,12 +25,13 @@ class Subscribe(APIView):
     def post(self, request):
         data = request.data
         subscription_type = data.get("subscription_type")
+        subscription_plan = data.get("subscription_plan")
         agent = data.get("agent")
-        recurring = data.get("recurring")
+        recurring = data.get("recurring", False)
         reference = reference_code()
         try:
             subscription = Subscription.objects.get(
-                subscription_type=subscription_type)
+                subscription_type=subscription_type, subscription_plan=subscription_plan)
         except Subscription.DoesNotExist:
             return Response({"message": "Subscription type selected does not exist"}, status=status.HTTP_404_NOT_FOUND)
         serializer = SubPerAgentSerializer(data={
@@ -53,62 +60,86 @@ class SubscribeActions(APIView):
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
     def put(self, request, reference_code):
-        verified_payment = paystack.transaction.verify(
-            reference=reference_code)
         try:
-            agent_subscription = SubscriptionPerAgent.objects.get(
-                reference_code=reference_code)
-        except SubscriptionPerAgent.DoesNotExist:
-            return Response({"message", "Subscription does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            with transaction.atomic():
+                verified_payment = paystack.transaction.verify(
+                    reference=reference_code)
+                try:
+                    agent_subscription = SubscriptionPerAgent.objects.get(
+                        reference_code=reference_code)
+                except SubscriptionPerAgent.DoesNotExist:
+                    return Response({"message", "Subscription does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-        previous_paid_at = agent_subscription.paid_at
-        if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
-                verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid==True:
-            return Response({"message": f"Payment made is already active and expires {agent_subscription.next_due_date}"})
+                previous_paid_at = agent_subscription.paid_at
+                if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
+                        verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid == True:
+                    return Response({"message": f"Payment made is already active and expires {agent_subscription.next_due_date}"})
 
-        if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
-            verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid == False:
-            return Response({"message": f"This payment has either expired at this date {agent_subscription.next_due_date}"})
-        
-        if verified_payment["status"]:
-            authorization_code = verified_payment["data"]["authorization"]["authorization_code"]
-            subscription_type = agent_subscription.subscription_type()
-            start_time = datetime.now()
+                if previous_paid_at is not None and previous_paid_at >= datetime.strptime(
+                        verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S") and agent_subscription.paid == False:
+                    return Response({"message": f"This payment has either expired at this date {agent_subscription.next_due_date}"})
 
-            if subscription_type == "monthly":
-                due_date = SubscriptionPerAgent.objects.monthly_subscription(
-                    start_time)
-            elif subscription_type == "quarterly":
-                due_date = SubscriptionPerAgent.objects.quarterly_subscription(
-                    start_time)
-            elif subscription_type == "bi-annually":
-                due_date = SubscriptionPerAgent.objects.bi_annual_subscription(
-                    start_time)
-            elif subscription_type == "yearly":
-                due_date = SubscriptionPerAgent.objects.annual_subscription(
-                    start_time)
-            elif subscription_type == "per minute":
-                due_date = SubscriptionPerAgent.objects.minute_subscription(
-                    start_time)
-            else:
-                return Response({"message", "Subscription type selected does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                if verified_payment["status"]:
+                    authorization_code = verified_payment["data"]["authorization"]["authorization_code"]
+                    subscription_type = agent_subscription.subscription_type()
+                    subscriptions_expiry_dates = list(SubscriptionPerAgent.objects.filter(
+                        agent=agent_subscription.agent).values_list("next_due_date"))
+                    if subscriptions_expiry_dates:
+                        last_expiry_date = max(subscriptions_expiry_dates)
+                    else:
+                        last_expiry_date = None
+                    if last_expiry_date is not None and last_expiry_date > timezone.now():
+                        start_time = last_expiry_date + timedelta(days=1)
+                    else:
+                        start_time = datetime.now()
 
-            agent_subscription.next_due_date = due_date
-            agent_subscription.paid = True
-            
-            agent_subscription.paid_at = datetime.strptime(
-                verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
-            agent_subscription.authorization_code = authorization_code
-            agent_subscription.amount = verified_payment["data"]["amount"]/100
-            agent_subscription.save()
+                    if subscription_type == "monthly":
+                        due_date = SubscriptionPerAgent.objects.monthly_subscription(
+                            start_time)
+                    elif subscription_type == "quarterly":
+                        due_date = SubscriptionPerAgent.objects.quarterly_subscription(
+                            start_time)
+                    elif subscription_type == "bi-annually":
+                        due_date = SubscriptionPerAgent.objects.bi_annual_subscription(
+                            start_time)
+                    elif subscription_type == "yearly":
+                        due_date = SubscriptionPerAgent.objects.annual_subscription(
+                            start_time)
+                    elif subscription_type == "per minute":
+                        due_date = SubscriptionPerAgent.objects.minute_subscription(
+                            start_time)
+                    else:
+                        return Response({"message", "Subscription type selected does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response({"message": f"Subscription successful. Next due date is {due_date}", "payload": verified_payment}, status=status.HTTP_200_OK)
-        else:
-            return Response({"message": f"Payment failed. kindly retry"}, status=status.HTTP_400_BAD_REQUEST)
+                    agent_subscription.next_due_date = due_date
+                    agent_subscription.paid = True
+                    agent = Agent.objects.get(
+                        agent_id=agent_subscription.agent.agent_id)
+                    agent.is_commission = False
+                    agent.is_subscription = True
+                    agent.save()
+                    agent_subscription.paid_at = datetime.strptime(
+                        verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
+                    agent_subscription.authorization_code = authorization_code
+                    agent_subscription.amount = verified_payment["data"]["amount"]/100
+                    agent_subscription.save()
+
+                    return Response({"message": f"Subscription successful. Next due date is {due_date}", "payload": verified_payment}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"message": f"Payment failed. kindly retry"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except IntegrityError as e:
+            return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateRecurring(UpdateAPIView):
     queryset = SubscriptionPerAgent.objects.all()
     serializer_class = SubPerAgentSerializer
     lookup_field = 'reference_code'
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+class  UpdateChargeType(UpdateAPIView):
+    queryset = Agent.objects.all()
+    serializer_class = AgentSerializer
+    lookup_field = 'agent_id'
     permission_classes = [IsAuthenticated & UserIsAnAgent]
