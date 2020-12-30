@@ -8,7 +8,11 @@ SUBSCRIPTION_CHOICES = [
     ("yearly", "Yearly"),
     ("per minute", "Per Minute")
 ]
-
+SUBSCRIPTION_PLANS = [
+    ("basic", "Basic"),
+    ("standard", "Standard"),
+    ("premium", "Premium")
+]
 
 class SubscriptionManager(models.Manager):
     def minute_subscription(self, start_time):
@@ -40,7 +44,9 @@ class Subscription(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False)
     subscription_title = models.CharField(max_length=50, default="Package")
     subscription_type = models.CharField(
-        max_length=12, choices=SUBSCRIPTION_CHOICES, default="monthly", unique=True)
+        max_length=12, choices=SUBSCRIPTION_CHOICES, default="monthly")
+    subscription_plan = models.CharField(
+        max_length=12, choices=SUBSCRIPTION_PLANS, default="basic")
     cost = models.IntegerField()
 
     def __str__(self):
@@ -66,6 +72,9 @@ class SubscriptionPerAgent(models.Model):
 
     def subscription_type(self):
         return self.subscription.subscription_type
+
+    def __str__(self):
+        return self.agent.user.name
 
 
 class BillingHistory(models.Model):

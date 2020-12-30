@@ -13,6 +13,8 @@ class Agent(models.Model):
     account_name = models.CharField(max_length=50, blank=True)
     bank = models.CharField(max_length=256, blank=True)
     document = models.CharField(max_length=256, blank=True)
+    is_commission = models.BooleanField(default=True)
+    is_subscription = models.BooleanField(default=False)
     validated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
