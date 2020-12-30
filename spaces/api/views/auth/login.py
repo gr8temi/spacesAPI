@@ -40,7 +40,7 @@ class UserLogin(APIView):
                     social_links = user.social_links
                     return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document, date_of_birth=date_of_birth,
                                          profile_picture_url=profile_picture_url,
-                                         social_links=social_links, is_commission=agent.is_commission, is_subscription=agent.is_subscription), status=status.HTTP_200_OK, )
+                                         social_links=social_links, plan=agent.plan), status=status.HTTP_200_OK, )
                 else:
                     try:
                         customer_id = Customer.objects.get(
