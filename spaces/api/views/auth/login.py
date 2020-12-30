@@ -3,6 +3,7 @@ from ...models.user import User
 from ...models.agent import Agent
 from ...models.customer import Customer
 from ...models.spaces import Space
+from ...models.subscription import SubscriptionPerAgent
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -38,9 +39,24 @@ class UserLogin(APIView):
                     date_of_birth = user.date_of_birth
                     profile_picture_url = user.profile_url
                     social_links = user.social_links
+                    plan = agent.plans
+                    if plan == "subscription":
+                        subscriptions = SubscriptionPerAgent.objects.filter(
+                            agent=agent)
+                        last_subscription = max(
+                            subscriptions, key=lambda subscription: subscription.next_due_date)
+                        space_host_plan = {
+                            "subscription_plan": last_subscription.subscription.subscription_plan,
+                            "subscription_type": last_subscription.subscription.subscription_type,
+                            "name": "subscription"
+                        }
+                    else:
+                        space_host_plan = {
+                            "name": "commission"
+                        }
                     return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document, date_of_birth=date_of_birth,
                                          profile_picture_url=profile_picture_url,
-                                         social_links=social_links, plans=agent.plans), status=status.HTTP_200_OK, )
+                                         social_links=social_links, plan=space_host_plan, business_name=agent.business_name), status=status.HTTP_200_OK, )
                 else:
                     try:
                         customer_id = Customer.objects.get(
