@@ -115,8 +115,7 @@ class SubscribeActions(APIView):
                     agent_subscription.paid = True
                     agent = Agent.objects.get(
                         agent_id=agent_subscription.agent.agent_id)
-                    agent.is_commission = False
-                    agent.is_subscription = True
+                    agent.plans= "subscription"
                     agent.save()
                     agent_subscription.paid_at = datetime.strptime(
                         verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")

@@ -2,6 +2,10 @@ import uuid
 from django.db import models
 from .user import User
 
+PLANS = [
+    ("subscription", "Subscription"),
+    ("commission", "Commission"),
+]
 
 class Agent(models.Model):
     agent_id = models.UUIDField(
@@ -13,8 +17,7 @@ class Agent(models.Model):
     account_name = models.CharField(max_length=50, blank=True)
     bank = models.CharField(max_length=256, blank=True)
     document = models.CharField(max_length=256, blank=True)
-    is_commission = models.BooleanField(default=True)
-    is_subscription = models.BooleanField(default=False)
+    plans = models.CharField(choices=PLANS, max_length=50, default="commission")
     validated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
