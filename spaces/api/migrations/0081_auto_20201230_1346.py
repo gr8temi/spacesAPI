@@ -24,3 +24,4 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('subscription', 'Subscription'), ('commission', 'Commission')], default='commission', max_length=50),
         ),
     ]
+
