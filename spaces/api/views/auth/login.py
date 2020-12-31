@@ -40,6 +40,7 @@ class UserLogin(APIView):
                     profile_picture_url = user.profile_url
                     social_links = user.social_links
                     plan = agent.plans
+                    print(plan)
                     if plan == "subscription":
                         subscriptions = SubscriptionPerAgent.objects.filter(
                             agent=agent)
@@ -48,6 +49,7 @@ class UserLogin(APIView):
                         space_host_plan = {
                             "subscription_plan": last_subscription.subscription.subscription_plan,
                             "subscription_type": last_subscription.subscription.subscription_type,
+                            "next_due_date": last_subscription.next_due_date,
                             "name": "subscription"
                         }
                     else:
