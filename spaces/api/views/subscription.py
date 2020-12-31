@@ -91,9 +91,9 @@ class SubscribeActions(APIView):
                     subscription_type = agent_subscription.subscription_type()
                     subscriptions_expiry_dates = list(SubscriptionPerAgent.objects.filter(
                         agent=agent_subscription.agent).values_list("next_due_date"))
-                    print(subscriptions_expiry_dates)
                     if subscriptions_expiry_dates:
-                        last_expiry_date = max(subscriptions_expiry_dates)[0]
+                        last_expiry_date = max(
+                            [subscription for subscription in subscriptions_expiry_dates if subscription[0] is not None])[0]
                     else:
                         last_expiry_date = None
                     if last_expiry_date is not None and last_expiry_date > timezone.now():
@@ -131,7 +131,7 @@ class SubscribeActions(APIView):
                     agent_subscription.amount = verified_payment["data"]["amount"]/100
                     agent_subscription.save()
 
-                    return Response({"message": f"Subscription successful. Next due date is {due_date}", "payload": verified_payment}, status=status.HTTP_200_OK)
+                    return Response({"message": f"Subscription successful. Next due date is {due_date}", "payload": {"due_date": agent_subscription.next_due_date, "subscription_type":agent_subscription.subscription.subscription_type, "subscription_plan":agent_subscription.subscription.subscription_plan}}, status=status.HTTP_200_OK)
                 else:
                     return Response({"message": f"Payment failed. kindly retry"}, status=status.HTTP_400_BAD_REQUEST)
 
