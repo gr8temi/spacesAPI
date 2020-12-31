@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.models import TokenUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Q
 
 
 class UserLogin(APIView):
@@ -43,16 +44,22 @@ class UserLogin(APIView):
                     print(plan)
                     if plan == "subscription":
                         subscriptions = SubscriptionPerAgent.objects.filter(
-                            agent=agent)
-                        last_subscription = max(
-                            subscriptions, key=lambda subscription: subscription.next_due_date)
-                            
-                        space_host_plan = {
-                            "subscription_plan": last_subscription.subscription.subscription_plan,
-                            "subscription_type": last_subscription.subscription.subscription_type,
-                            "next_due_date": last_subscription.next_due_date,
-                            "name": "subscription"
-                        }
+                            Q(agent=agent) & ~Q(next_due_date=None))
+                        if subscriptions:
+
+                            last_subscription = max(
+                                subscriptions, key=lambda subscription: subscription.next_due_date)
+
+                            space_host_plan = {
+                                "subscription_plan": last_subscription.subscription.subscription_plan,
+                                "subscription_type": last_subscription.subscription.subscription_type,
+                                "next_due_date": last_subscription.next_due_date,
+                                "name": "subscription"
+                            }
+                        else:
+                            space_host_plan ={
+                                "name": "subscription"
+                            }
                     else:
                         space_host_plan = {
                             "name": "commission"
