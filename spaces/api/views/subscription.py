@@ -12,7 +12,7 @@ from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from ..permissions.is_agent_permission import UserIsAnAgent
 from ..helper.helper import reference_code
 from ..models.subscription import Subscription, SubscriptionPerAgent, BillingHistory
-from ..models.agent import  Agent
+from ..models.agent import Agent
 from ..serializers.subscription import SubscriptionSerializer, SubPerAgentSerializer, BillHistSerializer
 from ..serializers.agent import AgentSerializer
 from spaces.paystack import paystack
@@ -51,8 +51,15 @@ class Subscribe(APIView):
     def get(self, request):
         queryset = Subscription.objects.all()
         serializer = SubscriptionSerializer(queryset, many=True)
+        new_obj = {}
+        for data in serializer.data:
+            if data["subscription_type"] in new_obj:
+                new_obj[data["subscription_type"]] = [
+                    *new_obj[data["subscription_type"]], data]
+            else:
+                new_obj[data["subscription_type"]] = [data]
 
-        return Response({"message": "Subscriptions Fetched", "payload": serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": "Subscriptions Fetched", "payload": new_obj}, status=status.HTTP_200_OK)
 
 
 class SubscribeActions(APIView):
@@ -115,7 +122,7 @@ class SubscribeActions(APIView):
                     agent_subscription.paid = True
                     agent = Agent.objects.get(
                         agent_id=agent_subscription.agent.agent_id)
-                    agent.plans= "subscription"
+                    agent.plans = "subscription"
                     agent.save()
                     agent_subscription.paid_at = datetime.strptime(
                         verified_payment["data"]["paid_at"].split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -137,7 +144,8 @@ class UpdateRecurring(UpdateAPIView):
     lookup_field = 'reference_code'
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
-class  UpdateChargeType(UpdateAPIView):
+
+class UpdateChargeType(UpdateAPIView):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
     lookup_field = 'agent_id'
