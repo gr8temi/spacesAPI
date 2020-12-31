@@ -46,6 +46,7 @@ class UserLogin(APIView):
                             agent=agent)
                         last_subscription = max(
                             subscriptions, key=lambda subscription: subscription.next_due_date)
+                            
                         space_host_plan = {
                             "subscription_plan": last_subscription.subscription.subscription_plan,
                             "subscription_type": last_subscription.subscription.subscription_type,
