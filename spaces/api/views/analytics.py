@@ -58,7 +58,7 @@ class Analytics(APIView):
 
         agent_ratings = Rating.objects.filter(space__agent=agent)
         ratings_data = RatingSerializer(agent_ratings, many=True).data
-        if agent_ratings > 0:
+        if agent_ratings.count() > 0:
             good_review_percentage = (agent_ratings.filter(ratings__gte=3).count() / agent_ratings.count()) * 100
             bad_review_percentage = (agent_ratings.filter(ratings__lt=3).count() / agent_ratings.count()) * 100
         else:
