@@ -53,11 +53,11 @@ class Subscribe(APIView):
         serializer = SubscriptionSerializer(queryset, many=True)
         new_obj = {}
         for data in serializer.data:
-            if data["subscription_type"] in new_obj:
-                new_obj[data["subscription_type"]] = [
-                    *new_obj[data["subscription_type"]], data]
+            if data["subscription_plan"] in new_obj:
+                new_obj[data["subscription_plan"]] = [
+                    *new_obj[data["subscription_plan"]], data]
             else:
-                new_obj[data["subscription_type"]] = [data]
+                new_obj[data["subscription_plan"]] = [data]
 
         return Response({"message": "Subscriptions Fetched", "payload": new_obj}, status=status.HTTP_200_OK)
 

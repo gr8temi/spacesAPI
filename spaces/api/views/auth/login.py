@@ -54,10 +54,11 @@ class UserLogin(APIView):
                                 "subscription_plan": last_subscription.subscription.subscription_plan,
                                 "subscription_type": last_subscription.subscription.subscription_type,
                                 "next_due_date": last_subscription.next_due_date,
+                                "recurring": last_subscription.recurring,
                                 "name": "subscription"
                             }
                         else:
-                            space_host_plan ={
+                            space_host_plan = {
                                 "name": "subscription"
                             }
                     else:
