@@ -91,8 +91,9 @@ class SubscribeActions(APIView):
                     subscription_type = agent_subscription.subscription_type()
                     subscriptions_expiry_dates = list(SubscriptionPerAgent.objects.filter(
                         agent=agent_subscription.agent).values_list("next_due_date"))
+                    print(subscriptions_expiry_dates)
                     if subscriptions_expiry_dates:
-                        last_expiry_date = max(subscriptions_expiry_dates)
+                        last_expiry_date = max(subscriptions_expiry_dates)[0]
                     else:
                         last_expiry_date = None
                     if last_expiry_date is not None and last_expiry_date > timezone.now():
