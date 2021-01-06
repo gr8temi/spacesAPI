@@ -63,8 +63,8 @@ class PlaceReservation(PlaceOrder):
         invalid_dates = []
         for dates in date_array:
             if datetime.fromisoformat(
-                dates["start_date"].replace('Z', '+00:00')) > datetime.fromisoformat(
-                    dates["end_date"].replace('Z', '+00:00')):
+                dates["start_date"].replace('Z', '+01:00')) > datetime.fromisoformat(
+                    dates["end_date"].replace('Z', '+01:00')):
                 invalid_dates.append(dates)
         if invalid_dates:
             return invalid_dates
@@ -120,7 +120,7 @@ class PlaceReservation(PlaceOrder):
             opened = []
             for dates in dates_array:
                 start_day = calendar.day_name[datetime.fromisoformat(
-                    dates["start_date"].replace('Z', '+00:00')).weekday()]
+                    dates["start_date"].replace('Z', '+01:00')).weekday()]
                 opening_period = self.check_all_day(availability, start_day)
                 if opening_period == True:
                     opened.append({"dates": dates, "opening": "all_day"})
@@ -139,13 +139,13 @@ class PlaceReservation(PlaceOrder):
                     close_time = datetime.strptime(
                         days["opening"][1], "%m-%d-%Y, %H:%M").hour
                     if open_time > datetime.fromisoformat(
-                            days["dates"]["start_date"].replace('Z', '+00:00')).hour or close_time < datetime.fromisoformat(
-                            days["dates"]["end_date"].replace('Z', '+00:00')).hour:
+                            days["dates"]["start_date"].replace('Z', '+01:00')).hour or close_time < datetime.fromisoformat(
+                            days["dates"]["end_date"].replace('Z', '+01:00')).hour:
                         not_available_dates.append(
                             {"dates": days["dates"], "open_time": open_time, "close_time": close_time})
                 elif days["opening"] == "not_opened":
                     start_day = datetime.fromisoformat(
-                        days["dates"]["start_date"].replace('Z', '+00:00'))
+                        days["dates"]["start_date"].replace('Z', '+01:00'))
                     day = calendar.day_name[start_day.weekday()]
                     not_available_dates.append(
                         {"dates": days["dates"], "close_day": day})
@@ -160,9 +160,9 @@ class PlaceReservation(PlaceOrder):
 
         for book in bookings:
             start_date = datetime.fromisoformat(
-                book["start_date"].replace('Z', '+00:00'))
+                book["start_date"].replace('Z', '+01:00'))
             end_date = datetime.fromisoformat(
-                book["end_date"].replace('Z', '+00:00'))
+                book["end_date"].replace('Z', '+01:00'))
             if duration == "hourly":
                 if start_date < pytz.utc.localize(now):
                     days_not_allowed.append(book)
@@ -192,9 +192,9 @@ class PlaceReservation(PlaceOrder):
 
     def order(self, active_order, start_date, end_date, duration):
         start_date = datetime.fromisoformat(
-            start_date.replace('Z', '+00:00'))
+            start_date.replace('Z', '+01:00'))
         end_date = datetime.fromisoformat(
-            end_date.replace('Z', '+00:00'))
+            end_date.replace('Z', '+01:00'))
 
         existing = []
         if len(active_order) > 0:
@@ -265,9 +265,9 @@ class PlaceReservation(PlaceOrder):
             if not check_available_array:
                 for hours in hours_booked:
                     start_date = datetime.fromisoformat(
-                        hours["start_date"].replace('Z', '+00:00'))
+                        hours["start_date"].replace('Z', '+01:00'))
                     existing_bookings.extend(self.booked_days(
-                        start_date, datetime.fromisoformat(hours["end_date"].replace('Z', '+00:00')), space_id, duration))
+                        start_date, datetime.fromisoformat(hours["end_date"].replace('Z', '+01:00')), space_id, duration))
             else:
                 available_slots = [{"open_time": avail["open_time"],
                                     "close_time":avail["close_time"], "invalid_date":avail["dates"]} for avail in check_available_array if not bool(avail.get("close_day"))]
@@ -293,9 +293,9 @@ class PlaceReservation(PlaceOrder):
 
             for days in days_booked:
                 start_date = datetime.fromisoformat(
-                    days["start_date"].replace('Z', '+00:00')).date()
+                    days["start_date"].replace('Z', '+01:00')).date()
                 existing_bookings.extend(self.booked_days(
-                    datetime.fromisoformat(days["start_date"].replace('Z', '+00:00')), datetime.fromisoformat(days["end_date"].replace('Z', '+00:00')), space_id, duration))
+                    datetime.fromisoformat(days["start_date"].replace('Z', '+01:00')), datetime.fromisoformat(days["end_date"].replace('Z', '+01:00')), space_id, duration))
 
             for days in days_booked:
 
@@ -327,9 +327,9 @@ class PlaceReservation(PlaceOrder):
                         booked = hours_booked
                     for days in booked:
                         start = datetime.fromisoformat(
-                            days['start_date'].replace('Z', '+00:00'))
+                            days['start_date'].replace('Z', '+01:00'))
                         end = datetime.fromisoformat(
-                            days['end_date'].replace('Z', '+00:00'))
+                            days['end_date'].replace('Z', '+01:00'))
 
                         self.reserve_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
                                            user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, order_expiry_time, notes)

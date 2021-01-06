@@ -8,7 +8,6 @@ class Extra(models.Model):
     space = models.ForeignKey("api.Space", on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     cost = models.IntegerField(default=0)
-    duration = models.CharField(max_length=50)
 
     def __str__(self):
         return f"{self.space}"
