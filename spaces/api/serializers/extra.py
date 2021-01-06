@@ -6,4 +6,4 @@ class ExtraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Extra
-        fields = ["space", "name", "cost", "duration"]
+        fields = ["space", "name", "cost"]
