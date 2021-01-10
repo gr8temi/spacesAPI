@@ -1,5 +1,7 @@
 import uuid
-from datetime import timedelta
+import calendar
+from datetime import datetime, timedelta
+import pytz
 
 from django.db.models import Sum, Count, FloatField
 from django.db.models.functions import Cast
@@ -30,7 +32,13 @@ class Analytics(APIView):
         except:
             return Response({"message": "Agent not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        a_month_ago = timezone.now() - timedelta(days=30)
+        today = datetime.today()
+        month_beginning = datetime(today.year, today.month, 1)
+        two_months_ago = pytz.utc.localize(
+            month_beginning) - timedelta(days=30)
+        three_months_ago = pytz.utc.localize(
+            month_beginning) - timedelta(days=60)
+        a_month_ago = pytz.utc.localize(month_beginning)
         a_week_ago = timezone.now() - timedelta(days=7)
 
         agent_spaces = Space.objects.filter(agent=agent)
@@ -47,7 +55,6 @@ class Analytics(APIView):
         no_of_spaces = agent_spaces.count()
         no_of_bookings = booking_orders.count()
         no_of_reservations = reservation_orders.count()
-        
 
         spaces_with_space_type = list(agent_spaces.values(
             "space_type__space_type").annotate(Count("space_type")))
@@ -85,12 +92,21 @@ class Analytics(APIView):
         for space in spaces_with_its_respective_booking:
 
             if space.agent == agent:
+
+                two_months_ago_booking = space.order.filter(
+                    order_time__gte=two_months_ago, order_time__lte=a_month_ago).count()
+                three_months_ago_booking = space.order.filter(
+                    order_time__gte=three_months_ago, order_time__lte=two_months_ago).count()
+
                 space_analysis = {
                     "space_name": space.name,
-                    "monthly_booking": space.order.filter(order_time__gte=a_month_ago).count(),
+                    "one_month": {"year":datetime.now().year,"month": calendar.month_abbr[datetime.now().month], "value": space.order.filter(order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()},
+                    "two_month": [{"year": two_months_ago.year, "month": calendar.month_abbr[two_months_ago.month], "value":two_months_ago_booking}, {"year": datetime.now().year, "month": calendar.month_abbr[datetime.now().month], "value":space.order.filter(
+                        order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()}],
+                    "three_month": [{"year": three_months_ago.year, "month": calendar.month_abbr[three_months_ago.month], "value":three_months_ago_booking}, {"year": two_months_ago.year, "month": calendar.month_abbr[two_months_ago.month], "value":two_months_ago_booking}, {"year": datetime.now().year, "month": calendar.month_abbr[datetime.now().month], "value":space.order.filter(
+                        order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()}],
                     "weekly_booking": space.order.filter(order_time__gte=a_week_ago).count(),
                     "bookings": OrdersFetchSerializer(space.order.all(), many=True).data,
-
                 }
             space_analysis_list.append(space_analysis)
         data = {
