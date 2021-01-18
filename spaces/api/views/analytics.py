@@ -100,7 +100,7 @@ class Analytics(APIView):
 
                 space_analysis = {
                     "space_name": space.name,
-                    "one_month": {"year":datetime.now().year,"month": calendar.month_abbr[datetime.now().month], "value": space.order.filter(order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()},
+                    "one_month": [{"year":datetime.now().year,"month": calendar.month_abbr[datetime.now().month], "value": space.order.filter(order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()}],
                     "two_month": [{"year": two_months_ago.year, "month": calendar.month_abbr[two_months_ago.month], "value":two_months_ago_booking}, {"year": datetime.now().year, "month": calendar.month_abbr[datetime.now().month], "value":space.order.filter(
                         order_time__gte=a_month_ago, order_time__lte=timezone.now()).count()}],
                     "three_month": [{"year": three_months_ago.year, "month": calendar.month_abbr[three_months_ago.month], "value":three_months_ago_booking}, {"year": two_months_ago.year, "month": calendar.month_abbr[two_months_ago.month], "value":two_months_ago_booking}, {"year": datetime.now().year, "month": calendar.month_abbr[datetime.now().month], "value":space.order.filter(

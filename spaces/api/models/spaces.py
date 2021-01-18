@@ -31,7 +31,6 @@ class Space(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
     duration = models.CharField(max_length=50)
     images = ArrayField(base_field=models.CharField(max_length=256))
-    # videos = ArrayField(base_field=models.CharField(max_length=256))
     amenities = ArrayField(base_field=models.CharField(max_length=50))
     carspace = models.IntegerField(default=0)
     rules = ArrayField(base_field=models.CharField(max_length=50))
@@ -42,6 +41,7 @@ class Space(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     ratings = models.FloatField(default=0)
+    image_details = JSONField(default=dict(image="image"),encoder=DjangoJSONEncoder)
 
     def space_type_name(self):
         return self.space_type

@@ -14,6 +14,7 @@ SUBSCRIPTION_PLANS = [
     ("premium", "Premium")
 ]
 
+
 class SubscriptionManager(models.Manager):
     def minute_subscription(self, start_time):
         return start_time + timedelta(minutes=1)
@@ -64,7 +65,7 @@ class SubscriptionPerAgent(models.Model):
     paid_at = models.DateTimeField(
         auto_now=False, auto_now_add=False, blank=True, null=True)
     is_cancelled = models.BooleanField(default=False)
-    reference_code = models.CharField(max_length=50, blank=True)
+    reference_code = models.CharField(max_length=50, blank=True, unique=True)
     agent = models.ForeignKey("api.Agent", on_delete=models.CASCADE, null=True)
     authorization_code = models.CharField(max_length=50, blank=True)
     amount = models.IntegerField(default=0)

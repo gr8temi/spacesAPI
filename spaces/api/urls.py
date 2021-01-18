@@ -107,6 +107,8 @@ urlpatterns = [
          UpdateChargeType.as_view(), name='change_charge_type'),
     path("v1/subscription/complete/<slug:reference_code>/",
          SubscribeActions.as_view(), name="complete_subscriptions"),
+    path("v1/subscription/<slug:agent_id>/",
+         SubscribeActions.as_view(), name="agent_subscription"),
     path("v1/subscription/update-recurring/<slug:reference_code>/",
          UpdateRecurring.as_view(), name="update-subscription-recurring"),
 

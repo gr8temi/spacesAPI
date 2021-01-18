@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from ..models.agent import Agent
 from ..models.user import User
 from ..serializers.agent import AgentSerializer
-from ..serializers.user import UserSerializer
+from ..serializers.user import UserSerializer,UserRegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
@@ -48,7 +48,7 @@ class AgentDetail(APIView):
             serializer = AgentSerializer(
                 agent, data=request.data, partial=True)
             user = User.objects.get(user_id=agent.user.user_id)
-            user_serializer = UserSerializer(
+            user_serializer = UserRegisterSerializer(
                 user, data=request.data, partial=True)
 
             if serializer.is_valid() and user_serializer.is_valid():
@@ -85,7 +85,7 @@ class AgentRegister(APIView):
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 message = "Registration was successful"
                 customer_message_details = {
-                    'subject': '234Spaces Agent email verification',
+                    'subject': '234Spaces Space host email verification',
                     'text_content': "You are welcome on board.",
                     'to': [email],
                     'from_email': config("EMAIL_SENDER"),
@@ -96,7 +96,7 @@ class AgentRegister(APIView):
                 # send mail to the user
                 send = send_email(customer_message_details)
             if send:
-                return Response({"message": f"Agent {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
+                return Response({"message": f"Space host {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -109,6 +109,7 @@ class AgentRegister(APIView):
 
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
+        print(hashed)
         token = token_generator()
         user_data = {
             'name': data['name'],
@@ -127,7 +128,7 @@ class AgentRegister(APIView):
 
         # Check if agent already exist
         if bool(check) and bool(check.is_agent):
-            return Response({"message": f"Agent with {check.email} already Exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": f"Space host with {check.email} already Exist"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if User already exist but is a customer
         elif bool(check) and check.is_customer:
@@ -137,7 +138,7 @@ class AgentRegister(APIView):
 
         # Create new Agent
         elif not bool(check):
-            user_serializer = UserSerializer(data=user_data)
+            user_serializer = UserRegisterSerializer(data=user_data)
             if user_serializer.is_valid():
                 user_serializer.save()
                 new_agent_data = {**agent_data,
