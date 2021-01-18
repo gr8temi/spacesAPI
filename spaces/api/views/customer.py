@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from ..models.customer import Customer
 from ..models.user import User
 from ..serializers.customer import CustomerSerializer, CustomerSerializerDetail
-from ..serializers.user import UserSerializer
+from ..serializers.user import UserSerializer, UserRegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
@@ -120,7 +120,7 @@ class CustomerRegister(APIView):
 
         # Create new Customer
         elif not bool(check):
-            user_serializer = UserSerializer(data=user_data)
+            user_serializer = UserRegisterSerializer(data=user_data)
             if user_serializer.is_valid():
                 user_serializer.save()
                 new_customer_data = {**customer_data,
