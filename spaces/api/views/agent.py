@@ -132,8 +132,8 @@ class AgentRegister(APIView):
         # Check if User already exist but is a customer
         elif bool(check) and check.is_customer:
             new_agent_data = {**agent_data,
-                              "user": check["user_id"]}
-            return self.serializeAgent(new_agent_data)
+                              "user": check.user_id}
+            return self.serializeAgent(new_agent_data, check.email,token_generator(),new_user=True)
 
         # Create new Agent
         elif not bool(check):
