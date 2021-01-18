@@ -234,8 +234,6 @@ class BookingView(PlaceOrder):
         space_id = data["space"]
         name = data["name"]
         email = data['company_email']
-        # space = self.get_space(space_id)
-        # agent = self.get_agent(space.agent.business_name)
         space = Space.objects.get(space_id=space_id)
         agent = Agent.objects.get(business_name=space.agent.business_name)
 

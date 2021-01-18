@@ -23,7 +23,8 @@ class UserLogin(APIView):
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
-
+                # if user.email_verified is False:
+                #     return Response({"message": "User is not verified. kindly verify yourself"}, status=status.HTTP_400_BAD_REQUEST) 
                 refresh = RefreshToken.for_user(user)
 
                 token = {
@@ -41,7 +42,6 @@ class UserLogin(APIView):
                     profile_picture_url = user.profile_url
                     social_links = user.social_links
                     plan = agent.plans
-                    print(plan)
                     if plan == "subscription":
                         subscriptions = SubscriptionPerAgent.objects.filter(
                             Q(agent=agent) & ~Q(next_due_date=None))
