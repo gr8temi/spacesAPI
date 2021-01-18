@@ -109,7 +109,6 @@ class AgentRegister(APIView):
 
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
-        print(hashed)
         token = token_generator()
         user_data = {
             'name': data['name'],

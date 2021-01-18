@@ -20,7 +20,6 @@ class UserLogin(APIView):
         try:
             user = User.objects.get(email=data['email'])
 
-            print(user.password)
             is_valid_password = bcrypt.checkpw(
                 data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
@@ -43,7 +42,6 @@ class UserLogin(APIView):
                     profile_picture_url = user.profile_url
                     social_links = user.social_links
                     plan = agent.plans
-                    print(plan)
                     if plan == "subscription":
                         subscriptions = SubscriptionPerAgent.objects.filter(
                             Q(agent=agent) & ~Q(next_due_date=None))

@@ -16,7 +16,6 @@ class RateASpace(APIView):
     # permission_classes = [IsAuthenticated]
 
     def post(self,request):
-        print(request.data)
         data = {}
         data["user"] =  request.data.get("name")
         data["ratings"] = float(request.data.get("rating"))
