@@ -58,6 +58,9 @@ class Order(models.Model):
 
     def user_id(self):
         return self.user.user_id
+        
+    def space_address(self):
+        return self.space.address
 
     def __str__(self):
         return self.order_code
