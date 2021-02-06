@@ -13,6 +13,7 @@ from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
 from rest_framework.decorators import permission_classes
+from django.db import transaction, IntegrityError
 
 
 class AgentList(APIView):
@@ -95,56 +96,60 @@ class AgentRegister(APIView):
                 }
                 # send mail to the user
                 send = send_email(customer_message_details)
-            if send:
-                return Response({"message": f"Space host {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
+                if send:
+                    return Response({"message": f"Space host {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": f"Your account has been updated successfully to a Space host", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
         else:
             return Response({"errors": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
-        data = request.data
-        email = data['email']
-        check = self.get_object(email)
+        with transaction.atomic():
+            try:
+                data = request.data
+                email = data['email']
+                check = self.get_object(email)
 
-        hashed = bcrypt.hashpw(
-            data['password'].encode('utf-8'), bcrypt.gensalt())
-        token = token_generator()
-        user_data = {
-            'name': data['name'],
-            'email': data['email'],
-            'phone_number': data['phone_number'],
-            'password': f'${hashed}',
-            'is_agent': True,
-            'is_customer': False,
-            "token": token
-        }
+                hashed = bcrypt.hashpw(
+                    data.get('password').encode('utf-8'), bcrypt.gensalt()) if data.get("password") else ""
+                token = token_generator()
+                user_data = {
+                    'name': data.get('name'),
+                    'email': data.get('email'),
+                    'phone_number': data.get('phone_number'),
+                    'password': f'${hashed}',
+                    'is_agent': True,
+                    'is_customer': False,
+                    "token": token
+                }
 
-        agent_data = {
-            'business_name': data["business_name"],
-            'office_address': data["office_address"],
-        }
+                agent_data = {
+                    'business_name': data.get("business_name"),
+                    'office_address': data.get("office_address"),
+                }
 
-        # Check if agent already exist
-        if bool(check) and bool(check.is_agent):
-            return Response({"message": f"Space host with {check.email} already Exist"}, status=status.HTTP_400_BAD_REQUEST)
+                # Check if agent already exist
+                if bool(check) and bool(check.is_agent):
+                    return Response({"message": f"Space host with {check.email} already Exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if User already exist but is a customer
-        elif bool(check) and check.is_customer:
-            new_agent_data = {**agent_data,
-                              "user": check.user_id}
-            return self.serializeAgent(new_agent_data, check.email,token_generator(),new_user=True)
+                # Check if User already exist but is a customer
+                elif bool(check) and check.is_customer:
+                    new_agent_data = {**agent_data,
+                                    "user": check.user_id}
+                    return self.serializeAgent(new_agent_data, check.email,token_generator(),new_user=False)
 
-        # Create new Agent
-        elif not bool(check):
-            user_serializer = UserRegisterSerializer(data=user_data)
-            if user_serializer.is_valid():
-                user_serializer.save()
-                new_agent_data = {**agent_data,
-                                  "user": user_serializer.data["user_id"]}
+                # Create new Agent
+                elif not bool(check):
+                    user_serializer = UserRegisterSerializer(data=user_data)
+                    if user_serializer.is_valid():
+                        user_serializer.save()
+                        new_agent_data = {**agent_data,
+                                        "user": user_serializer.data.get("user_id")}
 
-                return self.serializeAgent(new_agent_data, user_serializer.data["email"], token=user_serializer.data["token"], new_user=True)
-            else:
-                return Response({"errorr": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        return
+                        return self.serializeAgent(new_agent_data, user_serializer.data.get("email"), token=user_serializer.data.get("token"), new_user=True)
+                    else:
+                        return Response({"error": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as err:
+                return Response({"error":str(err)}, status=status.HTTP_400_BAD_REQUEST)
