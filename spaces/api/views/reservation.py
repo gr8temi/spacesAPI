@@ -13,7 +13,6 @@ from rest_framework import status
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db import transaction, IntegrityError
 from django.core.mail import send_mail
 
 
