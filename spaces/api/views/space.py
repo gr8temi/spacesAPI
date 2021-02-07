@@ -1,3 +1,4 @@
+from random import sample
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -87,3 +88,16 @@ class DeleteSpace(DestroyAPIView):
     lookup_field = 'space_id'
     permission_classes = [IsAuthenticated & UserIsAnAgent]
 
+class RandomSpaces(APIView):
+
+    def get(self,request):
+        all_spaces = Space.objects.all()
+        serializer = SpaceSerializer(all_spaces, many=True)
+        random_spaces = []
+        if len(serializer.data) >=6:
+            random_spaces = sample(serializer.data, 6)
+        elif len(serializer.data) <6 and len(serializer.data) >=1:
+            random_spaces = sample(serializer.data, len(serializer.data))
+        else:
+            return Response({"message": "No spaces created"})
+        return Response({"message":"Random spaces fetched successfully","payload":random_spaces}, status=status.HTTP_200_OK)
