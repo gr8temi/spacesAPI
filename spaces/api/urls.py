@@ -63,7 +63,7 @@ urlpatterns = [
     path('v1/space/delete/<slug:space_id>/',
          DeleteSpace.as_view(), name='delete_space'),
     path('v1/spaces/', CreateSpace.as_view(), name="space"),
-    path('v1/random-spaces/', RandomSpaces.as_view(), name="space"),
+    path('v1/random-spaces/', RandomSpaces.as_view(), name="random_space"),
     path('v1/all-spaces/', cache_page(CACHE_TTL)
          (Spaces.as_view()), name="spaces"),
     path('v1/cities/', SpaceLocation.as_view(), name="cities"),
