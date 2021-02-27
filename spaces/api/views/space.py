@@ -64,12 +64,13 @@ class SingleSpace(APIView):
             booked = self.get_booked(space_id)
             agent_name = space.agent.user.name
             agent_picture = space.agent.user.profile_url
+            ratings_count = Rating.objects.filter(space=space).count()
             space_serializer = SpaceSerializer(space)
             extra_serializer = ExtraSerializer(extras, many=True)
             availability_serializer = AvailabilitySerializer(
                 availability, many=True)
             bookedSerializer = OrderSerializer(booked, many=True)
-            return Response({"message": "Space fetched successfully", "payload": {**space_serializer.data, "availability": availability_serializer.data, "agent_image": agent_picture, "extras": extra_serializer.data, "booked_date": bookedSerializer.data, "agent_name":agent_name}}, status=status.HTTP_200_OK)
+            return Response({"message": "Space fetched successfully", "payload": {**space_serializer.data, "availability": availability_serializer.data, "agent_image": agent_picture, "extras": extra_serializer.data, "booked_date": bookedSerializer.data, "agent_name":agent_name, "ratings_count":ratings_count}}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Error fetching space, Space does not Exist"}, status=status.HTTP_400_BAD_REQUEST)
 
