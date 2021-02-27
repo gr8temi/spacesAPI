@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/decagonhq/bouncer-restapi/tree/master.svg?style=svg&circle-token=f84852fd9b9ee23b40fdfcf2d2e38dc5f65cb1e2)](https://circleci.com/gh/decagonhq/bouncer-restapi/tree/master)
 
-Squad 3 - REST API backend for [234Spaces Application](https://bouncer-restapi.herokuapp.com/)
+Squad 3 - REST API backend for [234Spaces Application](https://234spaces.com/)
 
 ## Technologies
 
