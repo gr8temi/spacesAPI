@@ -74,7 +74,12 @@ class Analytics(APIView):
 
         agent_total_amount_made = Order.objects.filter(space__agent=agent).aggregate(
             amount_sum=Sum(Cast("amount", FloatField())))["amount_sum"]
-        amount_made_after_deduction = agent_total_amount_made * 0.92
+        if agent_total_amount_made:
+            amount_made_after_deduction = agent_total_amount_made * 0.92
+        else:
+            amount_made_after_deduction = 0.0
+
+        
 
         agent_ratings = Rating.objects.filter(space__agent=agent)
         ratings_data = RatingSerializer(agent_ratings, many=True).data
