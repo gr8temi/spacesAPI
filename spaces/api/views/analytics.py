@@ -113,7 +113,7 @@ class Analytics(APIView):
                     "weekly_booking": space.order.filter(order_time__gte=a_week_ago).count(),
                     "bookings": OrdersFetchSerializer(space.order.all(), many=True).data,
                 }
-            space_analysis_list.append(space_analysis)
+                space_analysis_list.append(space_analysis)
         data = {
             "weekly_bookings": weekly_bookings,
             "monthly_bookings": monthly_bookings,
