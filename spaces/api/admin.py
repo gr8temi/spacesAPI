@@ -11,15 +11,6 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from import_export.formats import base_formats
 from import_export.admin import  ExportMixin
 from .resources.order_resource import OrderResource
-# from api.models.availabilities import Availability
-# models = apps.get_models()
-
-# for model in models:
-#     try:
-#         admin.site.register(model)
-#     except admin.sites.AlreadyRegistered:
-#         pass
-# admin.site.register(Availability)
 
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
@@ -63,27 +54,3 @@ class OrderAdmin(ExportMixinAdmin):
         ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter),
     )
 
-
-@admin.register(Space)
-class SpaceAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-
-@admin.register(SpaceType)
-class SpaceTypeAdmin(admin.ModelAdmin):
-    list_display = ("space_type",)
-
-@admin.register(SpaceCategory)
-class SpaceCategoryAdmin(admin.ModelAdmin):
-    list_display = ("space_category","images")
-
-@admin.register(Agent)
-class AgentAdmin(admin.ModelAdmin):
-    list_display = ("user", "business_name")
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ("name", "email")
-
-@admin.register(OrderType)
-class OrderTypedmin(admin.ModelAdmin):
-    list_display = ("order_type",)
