@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'algoliasearch_django',
     'channels',
+    'import_export',
 
 ]
 SITE_ID = 1
@@ -242,6 +243,9 @@ TEMPLATES = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
 
 if not DEBUG:
 
