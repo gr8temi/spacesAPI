@@ -52,8 +52,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'algoliasearch_django',
     'channels',
-
+    'import_export'
 ]
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
 SITE_ID = 1
 # Middlewares
 MIDDLEWARE = [
