@@ -2,9 +2,12 @@ from django.apps import apps
 from django.contrib import admin
 from .models.spaces import Space
 from django.utils.html import format_html
+from django.urls import path, reverse
+from django.shortcuts import redirect
 from import_export.formats import base_formats
 from import_export.admin import ExportMixin
 from .resources.spaces_resource import SpaceResource
+import uuid
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -45,27 +48,47 @@ class SpaceAdmin(ExportMixinAdmin):
 
     image_tag.short_description = 'Image'
 
-    def change_active(self, id):
-        space_obj = Space.objects.get(space_id=id)
-        space_obj.active = not space_obj.active
-        space_obj.save()
-
-        # if space_obj.active:
-        #     space_obj.active = False
-        #     space_obj.save()
-        # else:
-        #     space_obj.active = True
-        #     space_obj.save()
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'freeze/<slug:space_id>',
+                self.admin_site.admin_view(self.process_freeze),
+                name='spaces-freeze',
+            ),
+            path(
+                'unfreeze/<slug:space_id>',
+                self.admin_site.admin_view(self.process_unfreeze),
+                name='spaces-unfreeze',
+            ),
+        ]
+        return custom_urls + urls
 
     def freeze_btn(self, obj):
         if obj.active:
-            return format_html('<button type="submit" style="background:#66c2ff; width:70px; height:25px; '
-                               'border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" '
-                               'href="#" onclick="{}">Freeze</button>'.format(SpaceAdmin.change_active(self, obj.space_id)))
+            return format_html('<a class="button" href="{}" style="background:#66c2ff; width:75px; '
+                               'height:25px; border-radius:25px; outline:none; border:none; cursor:pointer;'
+                               'color:white;">Freeze</a>&nbsp;', reverse('admin:spaces-freeze',
+                                                                                       args=[str(obj.space_id)]))
+        else:
+            return format_html('<a class="button" href="{}" style="background:#66c2ff; width:75px; '
+                               'height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; '
+                               'color:white;">Unfreeze</a>&nbsp;', reverse('admin:spaces-unfreeze',
+                                                                                         args=[str(obj.space_id)]))
 
-        return format_html('<button type="submit" style="background:#66c2ff; width:70px; height:25px; '
-                           'border-radius:25px; outline:none; border:none; cursor:pointer; color:white;"'
-                           'href="#" onclick="{}" >Unfreeze</button>'.format(SpaceAdmin.change_active(self, obj.space_id)))
+    def process_freeze(self, request, space_id):
+        space_id = uuid.UUID(space_id)
+        single_space = Space.objects.get(space_id=space_id)
+        single_space.active = False
+        single_space.save()
+        return redirect('admin:api_space_changelist')
+
+    def process_unfreeze(self, request, space_id):
+        space_id = uuid.UUID(space_id)
+        single_space = Space.objects.get(space_id=space_id)
+        single_space.active = True
+        single_space.save()
+        return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
 
