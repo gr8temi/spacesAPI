@@ -52,8 +52,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'algoliasearch_django',
     'channels',
-
+    'rangefilter',
+    'import_export',
 ]
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
 SITE_ID = 1
 # Middlewares
 MIDDLEWARE = [
@@ -243,6 +247,9 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+
 if not DEBUG:
 
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
@@ -252,3 +259,5 @@ if not DEBUG:
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
     GS_BUCKET_NAME = config("GS_BUCKET_NAME")
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
