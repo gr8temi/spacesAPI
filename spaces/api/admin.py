@@ -124,5 +124,11 @@ class OrderAdmin(ExportMixinAdmin):
     )
 
     list_filter = (
-        ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter),
+        ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter), ('order_type')
     )
+
+for model in models:
+    try:
+        admin.site.register(model)
+    except admin.sites.AlreadyRegistered:
+        pass
