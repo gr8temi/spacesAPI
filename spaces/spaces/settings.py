@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'algoliasearch_django',
     'channels',
-
+    'rangefilter',
+    'import_export',
 ]
 SITE_ID = 1
 # Middlewares
@@ -252,3 +253,5 @@ if not DEBUG:
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_PROJECT_ID = config("GS_PROJECT_ID")
     GS_BUCKET_NAME = config("GS_BUCKET_NAME")
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
