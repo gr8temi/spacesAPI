@@ -4,3 +4,4 @@ spaces/dump/
 .env
 .vscode
 .DS_Store
+.idea
