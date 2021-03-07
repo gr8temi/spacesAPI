@@ -73,8 +73,23 @@ class BookingView(PlaceOrder):
             return False
 
     def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type):
+        space_cost = Space.objects.get(space_id=space_id).amount
+        booking_amount = 0
+        if duration == "hourly":
+            hour_difference = int((end_date - start_date).total_seconds()/(3600*60))
+            if hour_difference == 0:
+                hour_difference =1
+            booking_amount = (hour_difference*space_cost)
+        elif duration == "daily":
+            day_difference = (end_date - start_date).days
+            booking_amount = (day_difference*space_cost)
+        elif duration == "monthly":
+            month_difference = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+            booking_amount = (month_difference*space_cost)
+
+        print(booking_amount, space_cost)
         order_data = {
-            'amount': amount,
+            'amount': booking_amount,
             'usage_start_date': start_date,
             'usage_end_date': end_date,
             'status': 'booked',
