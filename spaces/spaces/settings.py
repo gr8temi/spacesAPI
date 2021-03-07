@@ -244,6 +244,9 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+
 if not DEBUG:
 
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
