@@ -236,7 +236,6 @@ class AgentAdmin(ExportMixinAdmin):
                     'account_number', 'bank', 'document', 'plans', 'validated')
     list_filter = ('plans', 'validated', 'bank')
 
-
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
