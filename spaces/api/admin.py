@@ -15,7 +15,6 @@ from api.helper.send_cancellation_email import CancellationActions
 from django.urls import path, reverse
 from django.shortcuts import redirect
 from .resources.spaces_resource import SpaceResource
-import uuid
 from .models.order import Order
 from .models.spaces import Space
 from .models.space_type import SpaceType
@@ -23,8 +22,10 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -139,6 +140,12 @@ class OrderAdmin(ExportMixinAdmin):
     list_filter = (
         ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter), ('order_type')
     )
+
+@admin.register(SubscriptionPerAgent)
+class SubscriptionPerAgentAdmin(ExportMixinAdmin):
+    resource_class = SubscritptionPerAgentResource
+    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
+    list_filter = ('subscription', 'agent')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
