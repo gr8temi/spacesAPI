@@ -56,6 +56,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
             base_formats.HTML,
         )
         return [f for f in formats if f().can_export()]
+
     class Meta:
         abstract = True
 
@@ -97,14 +98,11 @@ class SpaceAdmin(ExportMixinAdmin):
     def freeze_btn(self, obj):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
-                                                                                       args=[str(obj.space_id)]))
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
+
         else:
             return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
-                                                                                         args=[str(obj.space_id)]))
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
 
     def process_freeze(self, request, space_id):
         space_id = uuid.UUID(space_id)
@@ -121,6 +119,7 @@ class SpaceAdmin(ExportMixinAdmin):
         return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
+
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
@@ -229,10 +228,13 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
+
 @admin.register(Extra)
 class ExtraAdmin(ExportMixinAdmin):
     resource_class = ExtraResource
-    list_display = ('space_name', 'space_address', 'space_capacity', 'space_amount', 'agent', 'extra', 'extra_cost')
+    list_display = ('space_name', 'space_address', 'space_capacity',
+                    'space_amount', 'agent', 'extra', 'extra_cost')
+    list_filter = ('space', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
@@ -288,7 +290,7 @@ class CancellationAdmin(ExportMixinAdmin):
 
         cancellation.status = "accepted"
         cancellation.save()
-        
+
         bookings_with_same_order_id = Order.objects.filter(
             orders_id=order_id).all()
 
@@ -309,6 +311,7 @@ class CancellationAdmin(ExportMixinAdmin):
         cancellation.save()
 
         return redirect("admin:api_cancellation_changelist")
+
 
 for model in models:
     try:
