@@ -22,4 +22,3 @@ class Refund(models.Model):
 
     def order_code(self):
         return self.order
-    
