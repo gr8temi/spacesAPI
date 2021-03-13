@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from .user import User
 
 
 class Notification(models.Model):
@@ -12,4 +13,4 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, null=True)
 
     def __str__(self):
-        return self.notification_id
+        return str(self.notification_id)
