@@ -15,7 +15,6 @@ from api.helper.send_cancellation_email import CancellationActions
 from django.urls import path, reverse
 from django.shortcuts import redirect
 from .resources.spaces_resource import SpaceResource
-import uuid
 from .models.order import Order
 from .models.spaces import Space
 from .models.space_type import SpaceType
@@ -23,8 +22,10 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.ratings import Rating
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.rating_resource import RatingResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -139,6 +140,12 @@ class OrderAdmin(ExportMixinAdmin):
     list_filter = (
         ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter), ('order_type')
     )
+
+@admin.register(Rating)
+class RatingAdmin(ExportMixinAdmin):
+    resource_class = RatingResource
+    list_display = ('space_name', 'space_type', 'rating', 'comment', 'user')
+    list_filter = ('space', 'user')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
