@@ -10,5 +10,15 @@ class SpaceCategory(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField( auto_now=True)
 
+    class Meta:
+        verbose_name_plural = 'Space categories'
+
     def __str__(self):
         return self.space_category
+
+    def category(self):
+        return self.space_category
+
+    def image(self):
+        return self.images[0]  #if no image is uploaded, it would cause an error
+ 
