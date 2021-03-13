@@ -27,6 +27,7 @@ from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+<<<<<<< HEAD
 from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
 from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
@@ -35,10 +36,23 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
+=======
+from .resources.user_resource import UserResource
+
+>>>>>>> 4b48eab (feat user admin view implemented)
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
 # created this to handle formats types
+<<<<<<< HEAD
+=======
+
+
+# created this to handle formats types
+
+
+# created this to handle formats types
+>>>>>>> 4b48eab (feat user admin view implemented)
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         formats = (
@@ -51,6 +65,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
             base_formats.HTML,
         )
         return [f for f in formats if f().can_export()]
+
     class Meta:
         abstract = True
 
@@ -116,6 +131,7 @@ class SpaceAdmin(ExportMixinAdmin):
         return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
+
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
@@ -224,6 +240,15 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
+
+@admin.register(User)
+class UserAdmin(ExportMixinAdmin):
+    resource_class = UserResource
+    list_display = ('name', 'email', 'phone_number', 'date_of_birth', 'social_links', 'profile_url',
+                    'email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active', 'token')
+    list_filter = ('email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active')
+
+
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
@@ -278,7 +303,7 @@ class CancellationAdmin(ExportMixinAdmin):
 
         cancellation.status = "accepted"
         cancellation.save()
-        
+
         bookings_with_same_order_id = Order.objects.filter(
             orders_id=order_id).all()
 
@@ -299,6 +324,7 @@ class CancellationAdmin(ExportMixinAdmin):
         cancellation.save()
 
         return redirect("admin:api_cancellation_changelist")
+
 
 for model in models:
     try:
