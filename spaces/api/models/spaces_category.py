@@ -21,4 +21,3 @@ class SpaceCategory(models.Model):
 
     def image(self):
         return self.images[0]  #if no image is uploaded, it would cause an error
- 
