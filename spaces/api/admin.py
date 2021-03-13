@@ -145,6 +145,7 @@ class OrderAdmin(ExportMixinAdmin):
 class SpaceCategoryAdmin(ExportMixinAdmin):
     resource_class = SpaceCategoryResource
     list_display = ('category', 'image')
+    list_filter = ('category', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
