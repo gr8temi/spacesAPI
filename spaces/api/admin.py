@@ -25,6 +25,7 @@ from .models.order_type import OrderType
 from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.space_type_resource import SpaceTypeResource
 from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
 from .models.subscription import Subscription
 from .models.refund import Refund
@@ -196,6 +197,12 @@ class SubscriptionPerAgentAdmin(ExportMixinAdmin):
     resource_class = SubscritptionPerAgentResource
     list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
     list_filter = ('subscription', 'agent')
+
+@admin.register(SpaceType)
+class SpaceTypeAdmin(ExportMixinAdmin):
+    resource_class = SpaceTypeResource
+    list_display = ('space_type', 'space_category')
+    list_filter = ('space_category', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
