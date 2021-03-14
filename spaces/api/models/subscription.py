@@ -53,6 +53,9 @@ class Subscription(models.Model):
     def __str__(self):
         return self.subscription_title
 
+    def subscription(self):
+        return self.subscription_title
+
 
 class SubscriptionPerAgent(models.Model):
     sub_per_agent_id = models.UUIDField(
