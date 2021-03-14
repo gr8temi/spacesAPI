@@ -23,19 +23,19 @@ from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
 from .models.ratings import Rating
+from .resources.rating_resource import RatingResource
+from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
-from .resources.rating_resource import RatingResource
-
+from .resources.space_type_resource import SpaceTypeResource
+from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
+from .models.subscription import Subscription
+from .models.refund import Refund
+from .resources.refund_resource import RefundResource
+from .resources.subscription_resource import SubscriptionResource
+from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
-
-# created this to handle formats types
-
-
-
-# created this to handle formats types
-
 
 # created this to handle formats types
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
@@ -60,7 +60,7 @@ class SpaceAdmin(ExportMixinAdmin):
     resource_class = SpaceResource
 
     list_display = ('space_id', 'name', 'space_type', 'address', 'city', 'state', 'image_tag', 'number_of_bookings',
-                    'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rules', 'ratings',
+                    'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
                     'active', 'freeze_btn')
     list_filter = ['agent']
     search_fields = ['agent']
@@ -90,12 +90,12 @@ class SpaceAdmin(ExportMixinAdmin):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px; text-align: center;">Freeze</a>&nbsp;', reverse('admin:spaces-freeze',
+                               'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
                                                                                        args=[str(obj.space_id)]))
         else:
-            return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
+            return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px; text-align: center;">Unfreeze</a>&nbsp;', reverse('admin:spaces-unfreeze',
+                               'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
                                                                                          args=[str(obj.space_id)]))
 
     def process_freeze(self, request, space_id):
@@ -116,30 +116,95 @@ class SpaceAdmin(ExportMixinAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
+    def booking_code(self, obj):
+        return obj.order_code
+    booking_code.short_description = "Booking Code"
+
+    def customer_name(self, obj):
+        return obj.name
+    customer_name.short_description = "Customer Name"
+
+    def customer_email(self, obj):
+        return obj.company_email
+    customer_email.short_description = "Customer Email"
+
+    def create_date(self, obj):
+        return obj.created_at
+    create_date.short_description = "Create Date"
+
+    def start_date(self, obj):
+        return obj.usage_start_date
+    start_date.short_description = "Start Date"
+
+    def end_date(self, obj):
+        return obj.usage_end_date
+    end_date.short_description = "End Date"
+
+    def business_name(self, obj):
+        return obj.space
+    business_name.short_description = "Business Name"
+
+    def space_host(self, obj):
+        return obj.agent_name()
+    space_host.short_description = "Space Host"
+
+    def bank_name(self, instance):
+        return instance.space.agent.bank
+    bank_name.short_description = "Bank Name"
+
+    def account_number(self, instance):
+        return instance.space.agent.account_number
+    account_number.short_description = "Account Number"
+
+    def billing_preference(self, instance):
+        return instance.space.agent.plans
+    billing_preference.short_description = "Billing Preference"
+
     resource_class = OrderResource
     list_display = ("orders_id",
-        "order_code",
-        "name",
-        "company_email",
-        "order_time",
-        "usage_start_date",
-        "usage_end_date",
-        "space",
-        "amount", 
-        "no_of_guest",
-        "extras", 
-        "hours_booked",
-        "days_booked",
-        "status",
-        "transaction_code",
-        "order_type",
-        "created_at",
-        "expiry_time"
+        "booking_code",
+        "customer_name",
+        "customer_email",
+        "create_date",
+        "start_date",
+        "end_date",
+        "business_name",
+        "space_host",
+        "bank_name",
+        "account_number",
+        "billing_preference",
+        "amount"
     )
 
     list_filter = (
-        ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter), ('order_type')
+        ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
     )
+    def get_rangefilter_created_at_title(self, request, field_path):
+        return 'Create Date'
+
+@admin.register(Refund)
+class RefundAdmin(ExportMixinAdmin):
+    resource_class = RefundResource
+    list_display = ('order_code', 'order_name', 'space', 'agent')
+    list_filter = ('space', 'user')
+
+@admin.register(Subscription)
+class SubscriptionAdmin(ExportMixinAdmin):
+    resource_class = SubscriptionResource
+    list_display = ('subscription', 'subscription_type', 'subscription_plan', 'cost')
+    list_filter = ('subscription_title', 'subscription_type', 'subscription_plan')
+
+@admin.register(SubscriptionPerAgent)
+class SubscriptionPerAgentAdmin(ExportMixinAdmin):
+    resource_class = SubscritptionPerAgentResource
+    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
+    list_filter = ('subscription', 'agent')
+
+@admin.register(SpaceType)
+class SpaceTypeAdmin(ExportMixinAdmin):
+    resource_class = SpaceTypeResource
+    list_display = ('space_type', 'space_category')
+    list_filter = ('space_category', )
 
 @admin.register(Rating)
 class RatingAdmin(ExportMixinAdmin):
@@ -150,21 +215,27 @@ class RatingAdmin(ExportMixinAdmin):
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
-    list_display = ('agent', 'customer', 'booking',
+    list_display = ('agent', 'customer', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent__user', )
-
+    def cancellation_rule(self, obj):
+        print(obj.cancellation_policy)
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy.cancellation_rule_id,)),
+            obj.booking.cancellation_policy
+        ))
+    cancellation_rule.short_description = 'Cancellation Policy'
     def accept(self, obj):
         if obj.status == 'pending':
-            return format_html('<a class="button" style="background:#22bb33; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">Accept</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
+            return format_html('<a class="button" style="text-decoration:none; display:block; background:#22bb33; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">ACCEPT</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
         else:
-            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" "  disabled>Accept</button></a>', obj.agent)
+            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:27px; font-size: 12px; padding-top:2px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white; pointer-events:none;" disabled>ACCEPT</button></a>', obj.agent)
 
     def reject(self, obj):
         if obj.status == 'pending':
-            return format_html('<a class="button" style="background:#bb2124; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">Reject</a>', reverse('admin:cancellation-decline', args=[str(obj.cancellation_id)]))
+            return format_html('<a class="button" style="text-decoration:none; display:block; background:#bb2124; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">REJECT</a>', reverse('admin:cancellation-decline', args=[str(obj.cancellation_id)]))
         else:
-            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" disabled>Reject</button></a>', obj.agent)
+            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:27px; font-size: 12px; padding-top:2px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white; pointer-events:none;" disabled>REJECT</button></a>', obj.agent)
 
     def get_urls(self):
         urls = super().get_urls()
