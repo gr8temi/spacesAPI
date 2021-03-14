@@ -21,3 +21,6 @@ class Cancellation(models.Model):
 
     def __str__(self):
         return f"{self.cancellation_id}"
+
+    def cancellation_policy(self):
+        return self.booking.cancellation_policy
