@@ -73,7 +73,9 @@ class BookingView(PlaceOrder):
             return False
 
     def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type):
-        space_cost = Space.objects.get(space_id=space_id).amount
+        space = Space.objects.get(space_id=space_id)
+        space_cost = space.amount
+        space_cancellation_policy = space.cancellation_rule
         booking_amount = 0
         if duration == "hourly":
             hour_difference = int((end_date - start_date).total_seconds()/(3600*60))
@@ -87,7 +89,6 @@ class BookingView(PlaceOrder):
             month_difference = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
             booking_amount = (month_difference*space_cost)
 
-        print(booking_amount, space_cost)
         order_data = {
             'amount': booking_amount,
             'usage_start_date': start_date,
@@ -105,6 +106,7 @@ class BookingView(PlaceOrder):
             'duration': duration,
             'hours_booked': hours_booked,
             'order_time': order_time,
+            'cancellation_rule': space_cancellation_policy
         }
         print(order_data)
 

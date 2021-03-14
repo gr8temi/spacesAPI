@@ -23,4 +23,4 @@ class Cancellation(models.Model):
         return f"{self.cancellation_id}"
 
     def cancellation_policy(self):
-        return self.booking.space.cancellation_rules
+        return self.booking.cancellation_policy
