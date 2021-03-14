@@ -27,6 +27,7 @@ from .models.refund import Refund
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
 from .resources.refund_resource import RefundResource
+from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
