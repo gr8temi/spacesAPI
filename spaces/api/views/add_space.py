@@ -54,7 +54,6 @@ class CreateSpace(APIView):
             # 'videos': data.get('videos'),
             'amenities': data.get('amenities'),
             'rules': data.get('rules'),
-            'cancellation_rules': data.get('cancellation_rules')
         }
         user_id = Agent.objects.get(agent_id=uuid.UUID(
             data.get("agent"))).user.user_id  # TODO: Catch error if it fails
