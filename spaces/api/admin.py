@@ -82,12 +82,12 @@ class SpaceAdmin(ExportMixinAdmin):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px; text-align: center;">Freeze</a>&nbsp;', reverse('admin:spaces-freeze',
+                               'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
                                                                                        args=[str(obj.space_id)]))
         else:
-            return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
+            return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px; text-align: center;">Unfreeze</a>&nbsp;', reverse('admin:spaces-unfreeze',
+                               'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
                                                                                          args=[str(obj.space_id)]))
 
     def process_freeze(self, request, space_id):
