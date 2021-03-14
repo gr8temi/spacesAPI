@@ -22,10 +22,12 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.subscription import Subscription
 from .models.refund import Refund
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
 from .resources.refund_resource import RefundResource
+from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -180,6 +182,12 @@ class RefundAdmin(ExportMixinAdmin):
     resource_class = RefundResource
     list_display = ('order_code', 'order_name', 'space', 'agent')
     list_filter = ('space', 'user')
+
+@admin.register(Subscription)
+class SubscriptionAdmin(ExportMixinAdmin):
+    resource_class = SubscriptionResource
+    list_display = ('subscription', 'subscription_type', 'subscription_plan', 'cost')
+    list_filter = ('subscription_title', 'subscription_type', 'subscription_plan')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
