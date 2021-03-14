@@ -15,7 +15,6 @@ from api.helper.send_cancellation_email import CancellationActions
 from django.urls import path, reverse
 from django.shortcuts import redirect
 from .resources.spaces_resource import SpaceResource
-import uuid
 from .models.order import Order
 from .models.spaces import Space
 from .models.space_type import SpaceType
@@ -23,8 +22,10 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.refund import Refund
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.refund_resource import RefundResource
 from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -171,10 +172,14 @@ class OrderAdmin(ExportMixinAdmin):
     list_filter = (
         ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
     )
-
     def get_rangefilter_created_at_title(self, request, field_path):
         return 'Create Date'
-   
+
+@admin.register(Refund)
+class RefundAdmin(ExportMixinAdmin):
+    resource_class = RefundResource
+    list_display = ('order_code', 'order_name', 'space', 'agent')
+    list_filter = ('space', 'user')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
