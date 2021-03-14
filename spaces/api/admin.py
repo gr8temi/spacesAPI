@@ -30,13 +30,6 @@ from django.utils.safestring import mark_safe
 models = apps.get_models()
 
 # created this to handle formats types
-
-
-
-# created this to handle formats types
-
-
-# created this to handle formats types
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         formats = (
@@ -115,30 +108,73 @@ class SpaceAdmin(ExportMixinAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
+    def booking_code(self, obj):
+        return obj.order_code
+    booking_code.short_description = "Booking Code"
+
+    def customer_name(self, obj):
+        return obj.name
+    customer_name.short_description = "Customer Name"
+
+    def customer_email(self, obj):
+        return obj.company_email
+    customer_email.short_description = "Customer Email"
+
+    def create_date(self, obj):
+        return obj.created_at
+    create_date.short_description = "Create Date"
+
+    def start_date(self, obj):
+        return obj.usage_start_date
+    start_date.short_description = "Start Date"
+
+    def end_date(self, obj):
+        return obj.usage_end_date
+    end_date.short_description = "End Date"
+
+    def business_name(self, obj):
+        return obj.space
+    business_name.short_description = "Business Name"
+
+    def space_host(self, obj):
+        return obj.agent_name()
+    space_host.short_description = "Space Host"
+
+    def bank_name(self, instance):
+        return instance.space.agent.bank
+    bank_name.short_description = "Bank Name"
+
+    def account_number(self, instance):
+        return instance.space.agent.account_number
+    account_number.short_description = "Account Number"
+
+    def billing_preference(self, instance):
+        return instance.space.agent.plans
+    billing_preference.short_description = "Billing Preference"
+
     resource_class = OrderResource
     list_display = ("orders_id",
-        "order_code",
-        "name",
-        "company_email",
-        "order_time",
-        "usage_start_date",
-        "usage_end_date",
-        "space",
-        "amount", 
-        "no_of_guest",
-        "extras", 
-        "hours_booked",
-        "days_booked",
-        "status",
-        "transaction_code",
-        "order_type",
-        "created_at",
-        "expiry_time"
+        "booking_code",
+        "customer_name",
+        "customer_email",
+        "create_date",
+        "start_date",
+        "end_date",
+        "business_name",
+        "space_host",
+        "bank_name",
+        "account_number",
+        "billing_preference",
+        "amount"
     )
 
     list_filter = (
-        ("order_time", DateRangeFilter), ('order_time', DateTimeRangeFilter), ('order_type')
+        ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
     )
+
+    def get_rangefilter_created_at_title(self, request, field_path):
+        return 'Create Date'
+   
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
