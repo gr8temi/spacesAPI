@@ -22,10 +22,12 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
-from .models.subscription import Subscription
-from .models.refund import Refund
+from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
+from .models.subscription import Subscription
+from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
@@ -188,6 +190,12 @@ class SubscriptionAdmin(ExportMixinAdmin):
     resource_class = SubscriptionResource
     list_display = ('subscription', 'subscription_type', 'subscription_plan', 'cost')
     list_filter = ('subscription_title', 'subscription_type', 'subscription_plan')
+
+@admin.register(SubscriptionPerAgent)
+class SubscriptionPerAgentAdmin(ExportMixinAdmin):
+    resource_class = SubscritptionPerAgentResource
+    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
+    list_filter = ('subscription', 'agent')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):

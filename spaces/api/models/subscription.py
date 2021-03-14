@@ -74,6 +74,12 @@ class SubscriptionPerAgent(models.Model):
     amount = models.IntegerField(default=0)
     objects = SubscriptionManager()
 
+    class Meta:
+        verbose_name_plural = 'Subscriptions per agent'
+
+    def subscription_name(self):
+        return self.subscription.subscription_title
+
     def subscription_type(self):
         return self.subscription.subscription_type
 
