@@ -18,7 +18,6 @@ def space_creation_data():
         "amenities": ["facilities"],
         "carspace": 50,
         "rules": ["rules"],
-        "cancellation_rules": ["no-refund"]
     }
 
 
@@ -36,7 +35,6 @@ def hourly_space_data():
         "amenities": ["facilities"],
         "carspace": 50,
         "rules": ["rules"],
-        "cancellation_rules": ["no-refund"]
     }
 
 
@@ -54,7 +52,6 @@ def monthly_space_data():
         "amenities": ["facilities"],
         "carspace": 50,
         "rules": ["rules"],
-        "cancellation_rules": ["no-refund"]
     }
 
 
@@ -72,7 +69,6 @@ def yearly_space_data():
         "amenities": ["facilities"],
         "carspace": 50,
         "rules": ["rules"],
-        "cancellation_rules": ["no-refund"]
     }
 
 
