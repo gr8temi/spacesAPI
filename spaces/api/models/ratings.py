@@ -9,6 +9,15 @@ class Rating(models.Model):
     comment = models.TextField()
     user = models.CharField(max_length=250, default=" ")
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
+
     def __str__(self):
-        return self.space
-    
+        return self.space.name
+
+    def space_name(self):
+        return self.space.name
+
+    def space_type(self):
+        return self.space.space_type.space_type
+
+    def rating(self):
+        return self.ratings
