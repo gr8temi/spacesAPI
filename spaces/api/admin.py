@@ -27,6 +27,7 @@ from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
+from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
 from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
 from .models.subscription import Subscription
@@ -211,6 +212,11 @@ class RatingAdmin(ExportMixinAdmin):
     resource_class = RatingResource
     list_display = ('space_name', 'space_type', 'rating', 'comment', 'user')
     list_filter = ('space', 'user')
+
+@admin.register(OrderType)
+class OrderTypeAdmin(ExportMixinAdmin):
+    resource_class = OrderTypeResource
+    list_display = ('order_type_id', 'order_type')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
