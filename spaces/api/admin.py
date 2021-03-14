@@ -27,6 +27,7 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
 from .resources.refund_resource import RefundResource
 
+from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -60,7 +61,7 @@ class SpaceAdmin(ExportMixinAdmin):
     resource_class = SpaceResource
 
     list_display = ('space_id', 'name', 'space_type', 'address', 'city', 'state', 'image_tag', 'number_of_bookings',
-                    'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rules', 'ratings',
+                    'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
                     'active', 'freeze_btn')
     list_filter = ['agent']
     search_fields = ['agent']
@@ -150,21 +151,27 @@ class RefundAdmin(ExportMixinAdmin):
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
-    list_display = ('agent', 'customer', 'booking',
+    list_display = ('agent', 'customer', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent__user', )
-
+    def cancellation_rule(self, obj):
+        print(obj.cancellation_policy)
+        return mark_safe('<a href="{}">{}</a>'.format(
+            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy.cancellation_rule_id,)),
+            obj.booking.cancellation_policy
+        ))
+    cancellation_rule.short_description = 'Cancellation Policy'
     def accept(self, obj):
         if obj.status == 'pending':
-            return format_html('<a class="button" style="background:#22bb33; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">Accept</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
+            return format_html('<a class="button" style="text-decoration:none; display:block; background:#22bb33; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">ACCEPT</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
         else:
-            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" "  disabled>Accept</button></a>', obj.agent)
+            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:27px; font-size: 12px; padding-top:2px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white; pointer-events:none;" disabled>ACCEPT</button></a>', obj.agent)
 
     def reject(self, obj):
         if obj.status == 'pending':
-            return format_html('<a class="button" style="background:#bb2124; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">Reject</a>', reverse('admin:cancellation-decline', args=[str(obj.cancellation_id)]))
+            return format_html('<a class="button" style="text-decoration:none; display:block; background:#bb2124; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">REJECT</a>', reverse('admin:cancellation-decline', args=[str(obj.cancellation_id)]))
         else:
-            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:25px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" disabled>Reject</button></a>', obj.agent)
+            return format_html('<a style="text-decoration:none"><button class="btn" style="background:gray; width:70px; height:27px; font-size: 12px; padding-top:2px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white; pointer-events:none;" disabled>REJECT</button></a>', obj.agent)
 
     def get_urls(self):
         urls = super().get_urls()
