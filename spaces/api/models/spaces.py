@@ -36,7 +36,7 @@ class Space(models.Model):
     cancellation_rule = models.ForeignKey(
         CancellationRules,
         on_delete=models.CASCADE,
-        default=CancellationRules.objects.all().first().cancellation_rule_id,
+        null=True,
     )
     objects = SpaceManager()
     created_at = models.DateTimeField(auto_now_add=True)
