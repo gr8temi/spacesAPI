@@ -64,7 +64,7 @@ class SpaceAdmin(ExportMixinAdmin):
                     'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
                     'active', 'freeze_btn')
     list_filter = ['agent']
-    search_fields = ['agent']
+    search_fields = ['name']
 
     def image_tag(self, obj):
         return format_html('<img src="{}" style="width: 100px; height: 100px;"/>'.format(obj.images[0]))
