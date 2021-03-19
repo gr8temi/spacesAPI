@@ -224,13 +224,15 @@ class CancellationAdmin(ExportMixinAdmin):
     list_display = ('agent', 'customer', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent__user', )
+
     def cancellation_rule(self, obj):
         print(obj.cancellation_policy)
         return mark_safe('<a href="{}">{}</a>'.format(
-            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy.cancellation_rule_id,)),
+            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy,)),
             obj.booking.cancellation_policy
         ))
     cancellation_rule.short_description = 'Cancellation Policy'
+    
     def accept(self, obj):
         if obj.status == 'pending':
             return format_html('<a class="button" style="text-decoration:none; display:block; background:#22bb33; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">ACCEPT</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
