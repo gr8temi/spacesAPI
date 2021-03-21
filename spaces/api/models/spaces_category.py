@@ -19,5 +19,5 @@ class SpaceCategory(models.Model):
     def category(self):
         return self.space_category
 
-    def image(self):
-        return self.images[0]  #if no image is uploaded, it would cause an error
+    # def image(self):
+    #     return self.images[0]  #if no image is uploaded, it would cause an error
