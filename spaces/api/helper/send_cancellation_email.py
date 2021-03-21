@@ -1,9 +1,5 @@
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from decouple import config
-from django.core.mail import EmailMessage,EmailMultiAlternatives
-from django.template import Context
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 class CancellationActions:
