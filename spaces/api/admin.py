@@ -120,7 +120,6 @@ class SpaceAdmin(ExportMixinAdmin):
 
     freeze_btn.short_description = 'action'
 
-
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
     def booking_code(self, obj):
