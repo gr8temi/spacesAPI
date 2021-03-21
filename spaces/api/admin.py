@@ -64,12 +64,14 @@ class SpaceAdmin(ExportMixinAdmin):
                     'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
                     'active', 'freeze_btn')
     list_filter = ['agent']
-    search_fields = ['agent']
+    search_fields = ['name']
 
     def image_tag(self, obj):
         return format_html('<img src="{}" style="width: 100px; height: 100px;"/>'.format(obj.images[0]))
-
     image_tag.short_description = 'Image'
+    def agent(self, obj):
+        return obj.get_full_name()
+    agent.short_description = "Space host"
 
     def get_urls(self):
         urls = super().get_urls()
@@ -189,6 +191,10 @@ class RefundAdmin(ExportMixinAdmin):
     list_display = ('order_code', 'order_name', 'space', 'agent')
     list_filter = ('space', 'user')
 
+    def agent(self, obj):
+        return obj.get_full_name()
+    agent.short_description = "Space host"
+
 @admin.register(Subscription)
 class SubscriptionAdmin(ExportMixinAdmin):
     resource_class = SubscriptionResource
@@ -224,10 +230,13 @@ class CancellationAdmin(ExportMixinAdmin):
     list_display = ('agent', 'customer', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent__user', )
+    def agent(self, obj):
+        return obj.get_full_name()
+    agent.short_description = "Space host"
     def cancellation_rule(self, obj):
         print(obj.cancellation_policy)
         return mark_safe('<a href="{}">{}</a>'.format(
-            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy.cancellation_rule_id,)),
+            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy,)),
             obj.booking.cancellation_policy
         ))
     cancellation_rule.short_description = 'Cancellation Policy'

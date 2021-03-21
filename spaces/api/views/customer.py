@@ -10,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 from ..helper.helper import random_string_generator as token_generator, send_email
 
 
@@ -75,18 +77,12 @@ class CustomerRegister(APIView):
                 user_id=customer_serializer.data["user"]).name
             if bool(new_user):
                 email_verification_url = config("VERIFY_EMAIL_URL")
-                message = "Registration was successful"
-                customer_message_details = {
-                    'subject': '234Spaces Customer email verification',
-                    'text_content': "You are welcome on board.",
-                    'to': [email],
-                    'from_email': config("EMAIL_SENDER"),
-                    'html_content': 'Welcome on board, complete your registration by clicking the link below',
-                    'link_message': f'Welcome on board </br> Click on this <a href="{email_verification_url}/?token={token}">Link</a> to verify'
-
-                }
+                customer_template = get_template('api/signup_templates/customer_signup.html')
+                customer_content = customer_template.render({'guest_name': customer_name, "email_link":f"{email_verification_url}/?token={token}"})
+                msg = EmailMultiAlternatives("Verify Email", customer_content, config('EMAIL_SENDER'), to=[email])
+                msg.attach_alternative(customer_content, "text/html")
                 # send mail to the user
-                send = send_email(customer_message_details)
+                send = msg.send()
             if send:
                 return Response({"message": f"Customer {customer_name} successfully created", "payload": customer_serializer.data}, status=status.HTTP_201_CREATED)
             else:

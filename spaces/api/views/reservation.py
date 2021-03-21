@@ -14,7 +14,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.core.mail import send_mail
-
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 
 from ..models.user import User
 from ..models.agent import Agent
@@ -312,6 +313,7 @@ class PlaceReservation(PlaceOrder):
                 user_obj = User.objects.get(user_id=data["user"])
                 user = user_obj.user_id
                 customer_email = user_obj.email
+                customer_name = user_obj.name
             else:
                 user = ''
             try:
@@ -346,10 +348,17 @@ class PlaceReservation(PlaceOrder):
                     to_agent = [agent_mail]
                     agent_content = f"Dear {agent_name}, you have a reservation placed for your space {space.name} listed on our platform. accept the reservation now. Or it would expire by {next_day.time()} {next_day.date()}. "
 
-                    send_mail(subject_agent, agent_content,
-                              sender, to_agent)
-                    send_mail(subject_customer, customer_content,
-                              sender, to_customer)
+                    guest_template = get_template('api/order/customer_reservation_notification.html')
+                    guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                    msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                    msg.attach_alternative(guest_content, "text/html")
+                    msg.send()
+                    
+                    host_template = get_template('api/order/space_host_reservation_notification.html')
+                    host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                    msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+                    msg.attach_alternative(host_content, "text/html")
+                    msg.send()
 
                     customer_details = {
                         "id": user, "name": name, "email": email}
@@ -389,10 +398,17 @@ class PlaceReservation(PlaceOrder):
                 to_agent = [agent_mail]
                 agent_content = f"Dear {agent_name}, You have approved a reservation for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}. This expiry is subject to request for extension by the customer "
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                guest_template = get_template('api/order/customer_reservation_approved.html')
+                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+                
+                # host_template = get_template('api/order/space_host_reservation_approved.html')
+                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                # msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+                # msg.attach_alternative(host_content, "text/html")
+                # msg.send()
                 return Response({"message": "Reservation Accepted", "status": f"{order.status}"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -421,10 +437,17 @@ class PlaceReservation(PlaceOrder):
                 to_agent = [agent_mail]
                 agent_content = f"Dear {agent_name}, You have declined a reservation for {space.name} listed on our platform."
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                guest_template = get_template('api/order/customer_reservation_denied.html')
+                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+                
+                # host_template = get_template('api/order/space_host_reservation_notification.html')
+                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                # msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+                # msg.attach_alternative(host_content, "text/html")
+                # msg.send()
                 return Response({"message": "Reservation Declined", "status": f"{order.status}"}, status=status.HTTP_200_OK)
 
         except IntegrityError as e:
@@ -434,9 +457,11 @@ class PlaceReservation(PlaceOrder):
         try:
             with transaction.atomic():
                 start_now = datetime.now()
+                booking = OrderType.objects.get(order_type="booking")
                 for order in orders:
                     if order.status == "pending":
                         order.status = "booked"
+                        order.order_type = booking
                         order.order_time = start_now
                         order.transaction_code = transaction_code
                         order.save()
