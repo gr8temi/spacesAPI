@@ -4,6 +4,8 @@ from ...models.agent import Agent
 from ...models.customer import Customer
 from ...models.spaces import Space
 from ...models.subscription import SubscriptionPerAgent
+from ...models.favourite import Favourite
+from  ...serializers.favourite import FavouriteSpaceSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -69,12 +71,18 @@ class UserLogin(APIView):
                                          profile_picture_url=profile_picture_url,
                                          social_links=social_links, plan=space_host_plan, business_name=agent.business_name), status=status.HTTP_200_OK, )
                 else:
+                    customerFavourites = []
                     try:
-                        customer_id = Customer.objects.get(
-                            user=user).customer_id
+                        customer = Customer.objects.get(
+                            user=user)
+                        customer_id = customer.customer_id
+                        
+                        favourites = Favourite.objects.filter(user=customer.user)
+                        customerFavourites = FavouriteSpaceSerializer(favourites, many=True).data
+
                     except Customer.DoesNotExist:
                         customer_id = False
-                    return Response(dict(message="Login was successful", token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
+                    return Response(dict(message="Login was successful", favourites=customerFavourites, token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
 
             else:
                 return Response(dict(error="Invalid login details"), status=status.HTTP_400_BAD_REQUEST)

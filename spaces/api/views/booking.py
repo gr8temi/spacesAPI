@@ -8,7 +8,8 @@ from decouple import config
 
 from django.shortcuts import get_object_or_404
 from django.db import transaction, IntegrityError
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -73,7 +74,9 @@ class BookingView(PlaceOrder):
             return False
 
     def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type):
-        space_cost = Space.objects.get(space_id=space_id).amount
+        space = Space.objects.get(space_id=space_id)
+        space_cost = space.amount
+        space_cancellation_policy = space.cancellation_rule
         booking_amount = 0
         if duration == "hourly":
             hour_difference = int((end_date - start_date).total_seconds()/(3600*60))
@@ -87,7 +90,6 @@ class BookingView(PlaceOrder):
             month_difference = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
             booking_amount = (month_difference*space_cost)
 
-        print(booking_amount, space_cost)
         order_data = {
             'amount': booking_amount,
             'usage_start_date': start_date,
@@ -105,6 +107,7 @@ class BookingView(PlaceOrder):
             'duration': duration,
             'hours_booked': hours_booked,
             'order_time': order_time,
+            'cancellation_rule': space_cancellation_policy
         }
         print(order_data)
 
@@ -433,16 +436,18 @@ class BookingCancellation(APIView):
             customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
 
             # notification for agent that registered space
-            subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
-            to_agent = [agent_mail]
-            agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
-            {reason}.
-            kindly visit dashboard to accept or decline request """
+            # subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
+            # to_agent = agent_mail
+            # agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
+            # {reason}.
+            # kindly visit dashboard to accept or decline request """
 
-            send_mail(subject_agent, agent_content,
-                      sender, to_agent)
-            send_mail(subject_customer, customer_content,
-                      sender, to_customer)
+            guest_template = get_template('api/order/customer_booking_cancellation_request.html')
+            guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login" })
+            msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+            msg.attach_alternative(guest_content, "text/html")
+            msg.send()
+
             subscriber.connect(notification_creator)
             subscriber.send(sender=self.__class__,
                             data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking cancellation request for booking {booking.order_code} "})
@@ -458,6 +463,8 @@ class BookingCancellationActions(APIView):
         try:
             with transaction.atomic():
                 booking.status = "cancelled"
+                space_name= booking.space.name
+                space_location = booking.space.address
                 booking.save()
                 cancel.status = "accept"
                 cancel.save()
@@ -466,18 +473,25 @@ class BookingCancellationActions(APIView):
                     "EMAIL_SENDER", default="space.ng@gmail.com")
                 # notification for customer booking space
                 subject_customer = "REQUEST FOR CANCELLATION APPROVED"
-                to_customer = [customer_email]
-                customer_content = f"Dear {customer_name}, your request for booking cancellation as been approved by the Space Host. Refund would be processed shortly"
+                to_customer = customer_email
+                # customer_content = f"Dear {customer_name}, your request for booking cancellation as been approved by the Space Host. Refund would be processed shortly"
 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST APPROVED A REQUEST FOR BOOKING CANCELLATION"
                 to_agent = [agent_email]
-                agent_content = f"Dear {agent_name}, You have approved a request for Booking cancellation."
+                # agent_content = f"Dear {agent_name}, You have approved a request for Booking cancellation."
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                guest_template = get_template('api/order/customer_booking_cancellation_approved.html')
+                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+                
+                host_template = get_template('api/order/space_host_booking_cancellation_approved.html')
+                host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+                msg.attach_alternative(host_content, "text/html")
+                msg.send()
                 return Response({"message": "Booking cancellation request success"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -488,11 +502,13 @@ class BookingCancellationActions(APIView):
             with transaction.atomic():
                 cancel.status = "declined"
                 cancel.save()
+                space_name= cancel.booking.space.name
+                space_location = cancel.booking.space.address
                 sender = config(
                     "EMAIL_SENDER", default="space.ng@gmail.com")
                 # notification for customer booking space
                 subject_customer = "REQUEST FOR CANCELLATION DECLINED"
-                to_customer = [customer_email]
+                to_customer = customer_email
                 customer_content = f"Dear {customer_name}, your request for booking cancellation as been DECLINED by the Space Host. for the following reason \n {reason}"
 
                 # notification for agent that registered space
@@ -500,10 +516,12 @@ class BookingCancellationActions(APIView):
                 to_agent = [agent_email]
                 agent_content = f"Dear {agent_name}, You have Declined a request for Booking cancellation."
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                guest_template = get_template('api/order/customer_booking_cancellation_denied.html')
+                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+
                 return Response({"message": "Booking cancellation request declined"}, status=status.HTTP_200_OK)
         except IntegrityError as e:
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -569,18 +587,25 @@ class UpdateReferenceCode(APIView):
 
         # notification for customer booking space
         subject_customer = "BOOKING COMPLETE"
-        to_customer = [customer_email]
-        customer_content = f"Dear {to_customer}, your Booking has been completed"
+        to_customer = customer_email
+        # customer_content = f"Dear {to_customer}, your Booking has been completed"
 
         # notification for agent that registered space
         subject_agent = "YOU HAVE A BOOKING"
-        to_agent = [agent_mail]
-        agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform."
-
-        send_mail(subject_agent, agent_content,
-                  sender, to_agent)
-        send_mail(subject_customer, customer_content,
-                  sender, to_customer)
+        to_agent = agent_mail
+        # agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform."
+        
+        guest_template = get_template('api/order/customer_booking_notification.html')
+        guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+        msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+        msg.attach_alternative(guest_content, "text/html")
+        msg.send()
+        
+        host_template = get_template('api/order/space_host_booking_notification.html')
+        host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+        msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+        msg.attach_alternative(host_content, "text/html")
+        msg.send()
 
         subscriber.connect(notification_creator)
         subscriber.send(sender=self.__class__,
