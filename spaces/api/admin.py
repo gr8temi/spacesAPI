@@ -22,6 +22,10 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.extras import Extra
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .resources.order_resource import OrderResource
+from .resources.extra_resource import ExtraResource
 from .models.ratings import Rating
 from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
@@ -99,7 +103,6 @@ class SpaceAdmin(ExportMixinAdmin):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
-
         else:
             return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
@@ -184,7 +187,7 @@ class OrderAdmin(ExportMixinAdmin):
 
     list_filter = (
         ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
-    )
+    )                 
     def get_rangefilter_created_at_title(self, request, field_path):
         return 'Create Date'
 
