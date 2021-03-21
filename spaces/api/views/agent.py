@@ -14,7 +14,8 @@ from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
 from rest_framework.decorators import permission_classes
 from django.db import transaction, IntegrityError
-
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 
 class AgentList(APIView):
     # permission_classes=[IsAuthenticated,]
@@ -82,20 +83,13 @@ class AgentRegister(APIView):
             agent_serializer.save()
             agent_name = agent_serializer.data["business_name"]
             if bool(new_user):
-
                 email_verification_url = config("VERIFY_EMAIL_URL")
-                message = "Registration was successful"
-                customer_message_details = {
-                    'subject': '234Spaces Space host email verification',
-                    'text_content': "You are welcome on board.",
-                    'to': [email],
-                    'from_email': config("EMAIL_SENDER"),
-                    'html_content': 'Welcome on board, complete your registration by clicking the link below',
-                    'link_message': f'Welcome on board </br> Click on this <a href="{email_verification_url}/?token={token}">Link</a> to verify'
-
-                }
+                host_template = get_template('api/signup_templates/space_host_signup.html')
+                host_content = host_template.render({'host_name': agent_name, "email_link":f"{email_verification_url}/?token={token}"})
+                msg = EmailMultiAlternatives("Verify Email", host_content, config('EMAIL_SENDER'), to=[email])
+                msg.attach_alternative(host_content, "text/html")
                 # send mail to the user
-                send = send_email(customer_message_details)
+                send = msg.send()
                 if send:
                     return Response({"message": f"Space host {agent_name} successfully created", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
                 else:
