@@ -12,5 +12,13 @@ class Refund(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
 
     def __str__(self):
+        return str(self.order)
+
+    def agent(self):
+        return self.order.agent_name()
+
+    def order_name(self):
+        return self.order.name
+
+    def order_code(self):
         return self.order
-    

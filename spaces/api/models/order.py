@@ -3,6 +3,7 @@ from django.db import models
 from .user import User
 from .order_type import OrderType
 from .spaces import Space
+from .cancellation_rules import CancellationRules
 from django.contrib.postgres.fields.jsonb import JSONField as JSONBField
 from django.contrib.postgres.fields import ArrayField, JSONField
 # from jsonfield import JSONField
@@ -37,6 +38,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expiry_time = models.DateTimeField(blank=True, null=True)
     notes = models.TextField(blank=True)
+    cancellation_policy = models.ForeignKey(CancellationRules, null=True, on_delete=models.CASCADE)
 
     def space_name(self):
         return self.space.name
