@@ -35,6 +35,9 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
+from .models.subscription import BillingHistory
+from .resources.billing_history_resource import BillingHistoryResource
+
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -51,6 +54,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
             base_formats.HTML,
         )
         return [f for f in formats if f().can_export()]
+
     class Meta:
         abstract = True
 
@@ -116,6 +120,7 @@ class SpaceAdmin(ExportMixinAdmin):
         return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
+
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
@@ -224,6 +229,16 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
+
+@admin.register(BillingHistory)
+class BillingHistoryAdmin(ExportMixinAdmin):
+    resource_class = BillingHistoryResource
+    list_display = ('agent_name', 'agent_email', 'payment_cost',
+                    'payment_date', 'next_due_date')
+    list_filter = (('payment_date', DateTimeRangeFilter),
+                   ('next_due_date', DateTimeRangeFilter))
+
+
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
@@ -278,7 +293,7 @@ class CancellationAdmin(ExportMixinAdmin):
 
         cancellation.status = "accepted"
         cancellation.save()
-        
+
         bookings_with_same_order_id = Order.objects.filter(
             orders_id=order_id).all()
 
@@ -299,6 +314,7 @@ class CancellationAdmin(ExportMixinAdmin):
         cancellation.save()
 
         return redirect("admin:api_cancellation_changelist")
+
 
 for model in models:
     try:

@@ -96,3 +96,6 @@ class BillingHistory(models.Model):
     payment_cost = models.IntegerField()
     payment_date = models.DateTimeField(auto_now=False, auto_now_add=False)
     next_due_date = models.DateTimeField(auto_now=False, auto_now_add=False)
+
+    class Meta:
+        verbose_name_plural = 'Billing histories'
