@@ -36,7 +36,6 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
-from .resources.agent_resource import AgentResource
 from .resources.availability_resource import AvailabilityResource
 
 # from api.models.availabilities import Availability
