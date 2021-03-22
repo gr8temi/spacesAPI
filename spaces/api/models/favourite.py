@@ -13,3 +13,18 @@ class Favourite(models.Model):
     def __str__(self):
         return f"{self.space} {self.user}"
     
+    def space_name(self):
+        return self.space.name
+
+    def user_name(self):
+        return self.user.name
+    
+    def space_type(self):
+        return self.space.space_type.space_type
+    
+    def agent(self):
+        return self.space.agent.user.name
+
+    def agent_business_name(self):
+        return self.space.agent.business_name
+

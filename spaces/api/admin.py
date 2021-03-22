@@ -35,6 +35,11 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
+from .models.favourite import Favourite
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .resources.order_resource import OrderResource
+from .resources.favourite_resource import FavouriteResource
+
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -223,6 +228,12 @@ class RatingAdmin(ExportMixinAdmin):
 class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
+
+@admin.register(Favourite)
+class FavouriteAdmin(ExportMixinAdmin):
+    resource_class = FavouriteResource
+    list_display = ('user_name', 'space_name', 'space_type', 'agent', 'agent_business_name')
+    list_filter = ('space', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
