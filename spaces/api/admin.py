@@ -55,7 +55,6 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     class Meta:
         abstract = True
 
-
 # Spaces display
 @admin.register(Space)
 class SpaceAdmin(ExportMixinAdmin):
