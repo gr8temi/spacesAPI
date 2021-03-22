@@ -27,7 +27,6 @@ from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
-<<<<<<< HEAD
 from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
 from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
@@ -36,23 +35,10 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
-=======
-from .resources.user_resource import UserResource
-
->>>>>>> 4b48eab (feat user admin view implemented)
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
 # created this to handle formats types
-<<<<<<< HEAD
-=======
-
-
-# created this to handle formats types
-
-
-# created this to handle formats types
->>>>>>> 4b48eab (feat user admin view implemented)
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         formats = (
