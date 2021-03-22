@@ -21,6 +21,7 @@ from .models.space_type import SpaceType
 from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
+from .models.cancellation_rules import CancellationRules
 from .models.order_type import OrderType
 from .models.ratings import Rating
 from .resources.rating_resource import RatingResource
@@ -35,6 +36,8 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
+from .resources.cancellation_rules_resource import CancellationRulesResource
+
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -223,6 +226,11 @@ class RatingAdmin(ExportMixinAdmin):
 class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
+
+@admin.register(CancellationRules)
+class CancellationRulesAdmin(ExportMixinAdmin):
+    resource_class = CancellationRulesResource
+    list_display = ('policy', 'short_description')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
