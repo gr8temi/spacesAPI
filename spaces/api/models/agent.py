@@ -22,5 +22,11 @@ class Agent(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name_plural = 'Space Hosts'
+        
     def __str__(self):
         return self.business_name
+
+    def space_host(self):
+        return self.user

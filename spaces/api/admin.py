@@ -34,11 +34,14 @@ from .models.subscription import Subscription
 from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
+from .resources.agent_resource import AgentResource
 from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
 # created this to handle formats types
+
+
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         formats = (
@@ -51,6 +54,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
             base_formats.HTML,
         )
         return [f for f in formats if f().can_export()]
+
     class Meta:
         abstract = True
 
@@ -69,6 +73,7 @@ class SpaceAdmin(ExportMixinAdmin):
     def image_tag(self, obj):
         return format_html('<img src="{}" style="width: 100px; height: 100px;"/>'.format(obj.images[0]))
     image_tag.short_description = 'Image'
+
     def agent(self, obj):
         return obj.get_full_name()
     agent.short_description = "Space host"
@@ -94,12 +99,12 @@ class SpaceAdmin(ExportMixinAdmin):
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
                                'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
-                                                                                       args=[str(obj.space_id)]))
+                                                                                                                     args=[str(obj.space_id)]))
         else:
             return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
                                'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
                                'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
-                                                                                         args=[str(obj.space_id)]))
+                                                                                                                       args=[str(obj.space_id)]))
 
     def process_freeze(self, request, space_id):
         space_id = uuid.UUID(space_id)
@@ -116,6 +121,7 @@ class SpaceAdmin(ExportMixinAdmin):
         return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
+
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
@@ -165,25 +171,27 @@ class OrderAdmin(ExportMixinAdmin):
 
     resource_class = OrderResource
     list_display = ("orders_id",
-        "booking_code",
-        "customer_name",
-        "customer_email",
-        "create_date",
-        "start_date",
-        "end_date",
-        "business_name",
-        "space_host",
-        "bank_name",
-        "account_number",
-        "billing_preference",
-        "amount"
-    )
+                    "booking_code",
+                    "customer_name",
+                    "customer_email",
+                    "create_date",
+                    "start_date",
+                    "end_date",
+                    "business_name",
+                    "space_host",
+                    "bank_name",
+                    "account_number",
+                    "billing_preference",
+                    "amount"
+                    )
 
     list_filter = (
         ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
     )
+
     def get_rangefilter_created_at_title(self, request, field_path):
         return 'Create Date'
+
 
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
@@ -195,17 +203,23 @@ class RefundAdmin(ExportMixinAdmin):
         return obj.get_full_name()
     agent.short_description = "Space host"
 
+
 @admin.register(Subscription)
 class SubscriptionAdmin(ExportMixinAdmin):
     resource_class = SubscriptionResource
-    list_display = ('subscription', 'subscription_type', 'subscription_plan', 'cost')
-    list_filter = ('subscription_title', 'subscription_type', 'subscription_plan')
+    list_display = ('subscription', 'subscription_type',
+                    'subscription_plan', 'cost')
+    list_filter = ('subscription_title',
+                   'subscription_type', 'subscription_plan')
+
 
 @admin.register(SubscriptionPerAgent)
 class SubscriptionPerAgentAdmin(ExportMixinAdmin):
     resource_class = SubscritptionPerAgentResource
-    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
+    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid',
+                    'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
     list_filter = ('subscription', 'agent')
+
 
 @admin.register(SpaceType)
 class SpaceTypeAdmin(ExportMixinAdmin):
@@ -213,33 +227,50 @@ class SpaceTypeAdmin(ExportMixinAdmin):
     list_display = ('space_type', 'space_category')
     list_filter = ('space_category', )
 
+
 @admin.register(Rating)
 class RatingAdmin(ExportMixinAdmin):
     resource_class = RatingResource
     list_display = ('space_name', 'space_type', 'rating', 'comment', 'user')
     list_filter = ('space', 'user')
 
+
 @admin.register(OrderType)
 class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
+
+@admin.register(Agent)
+class SpaceHostAdmin(ExportMixinAdmin):
+    resource_class = AgentResource
+    list_display = ('space_host', 'business_name', 'office_address',
+                    'account_name', 'account_number', 'bank', 'document', 'plans')
+    # def agent(self, obj):
+    #     return obj.get_full_name()
+
+    # agent.short_description = "space_host"
+
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
-    list_display = ('agent', 'customer', 'booking','cancellation_rule',
+    list_display = ('agent', 'customer', 'booking', 'cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent__user', )
+
     def agent(self, obj):
         return obj.get_full_name()
     agent.short_description = "Space host"
+
     def cancellation_rule(self, obj):
         print(obj.cancellation_policy)
         return mark_safe('<a href="{}">{}</a>'.format(
-            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy,)),
+            reverse("admin:api_cancellationrules_change",
+                    args=(obj.booking.cancellation_policy,)),
             obj.booking.cancellation_policy
         ))
     cancellation_rule.short_description = 'Cancellation Policy'
+
     def accept(self, obj):
         if obj.status == 'pending':
             return format_html('<a class="button" style="text-decoration:none; display:block; background:#22bb33; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">ACCEPT</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))
@@ -278,7 +309,7 @@ class CancellationAdmin(ExportMixinAdmin):
 
         cancellation.status = "accepted"
         cancellation.save()
-        
+
         bookings_with_same_order_id = Order.objects.filter(
             orders_id=order_id).all()
 
@@ -299,6 +330,7 @@ class CancellationAdmin(ExportMixinAdmin):
         cancellation.save()
 
         return redirect("admin:api_cancellation_changelist")
+
 
 for model in models:
     try:
