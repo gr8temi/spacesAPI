@@ -35,6 +35,8 @@ from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
+from .resources.agent_resource import AgentResource
+
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -51,6 +53,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
             base_formats.HTML,
         )
         return [f for f in formats if f().can_export()]
+
     class Meta:
         abstract = True
 
@@ -116,6 +119,7 @@ class SpaceAdmin(ExportMixinAdmin):
         return redirect('admin:api_space_changelist')
 
     freeze_btn.short_description = 'action'
+
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
@@ -224,6 +228,15 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
+
+@admin.register(Agent)
+class AgentAdmin(ExportMixinAdmin):
+    resource_class = AgentResource
+    list_display = ('user', 'business_name', 'office_address', 'account_name',
+                    'account_number', 'bank', 'document', 'plans', 'validated')
+    list_filter = ('plans', 'validated', 'bank')
+
+
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
@@ -278,7 +291,7 @@ class CancellationAdmin(ExportMixinAdmin):
 
         cancellation.status = "accepted"
         cancellation.save()
-        
+
         bookings_with_same_order_id = Order.objects.filter(
             orders_id=order_id).all()
 
@@ -299,6 +312,7 @@ class CancellationAdmin(ExportMixinAdmin):
         cancellation.save()
 
         return redirect("admin:api_cancellation_changelist")
+
 
 for model in models:
     try:
