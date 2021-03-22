@@ -34,6 +34,7 @@ from .models.subscription import Subscription
 from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
+from .resources.user_resource import UserResource
 from django.utils.safestring import mark_safe
 # from api.models.availabilities import Availability
 models = apps.get_models()
