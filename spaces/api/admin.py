@@ -21,6 +21,7 @@ from .models.space_type import SpaceType
 from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
+from .models.availabilities import Availability
 from .models.order_type import OrderType
 from .models.ratings import Rating
 from .resources.rating_resource import RatingResource
@@ -36,6 +37,7 @@ from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from django.utils.safestring import mark_safe
 from .resources.agent_resource import AgentResource
+from .resources.availability_resource import AvailabilityResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -228,13 +230,11 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
 
-
-@admin.register(Agent)
-class AgentAdmin(ExportMixinAdmin):
-    resource_class = AgentResource
-    list_display = ('user', 'business_name', 'office_address', 'account_name',
-                    'account_number', 'bank', 'document', 'plans', 'validated')
-    list_filter = ('plans', 'validated', 'bank')
+@admin.register(Availability)
+class AvailabilityAdmin(ExportMixinAdmin):
+    resource_class = AvailabilityResource
+    list_display = ('space', 'day', 'all_day', 'open_time', 'close_time')
+    list_filter = ('space', 'day', 'open_time', 'close_time')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
