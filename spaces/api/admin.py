@@ -61,7 +61,7 @@ class SpaceAdmin(ExportMixinAdmin):
     resource_class = SpaceResource
 
     list_display = ('space_id', 'name', 'space_type', 'address', 'city', 'state', 'image_tag', 'number_of_bookings',
-                    'capacity', 'amount', 'agent', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
+                    'capacity', 'amount', 'space_host', 'space_host_business_name', 'duration', 'carspace', 'rules', 'cancellation_rule', 'ratings',
                     'active', 'freeze_btn')
     list_filter = ['agent']
     search_fields = ['name']
@@ -69,9 +69,6 @@ class SpaceAdmin(ExportMixinAdmin):
     def image_tag(self, obj):
         return format_html('<img src="{}" style="width: 100px; height: 100px;"/>'.format(obj.images[0]))
     image_tag.short_description = 'Image'
-    def agent(self, obj):
-        return obj.get_full_name()
-    agent.short_description = "Space host"
 
     def get_urls(self):
         urls = super().get_urls()
@@ -143,9 +140,9 @@ class OrderAdmin(ExportMixinAdmin):
         return obj.usage_end_date
     end_date.short_description = "End Date"
 
-    def business_name(self, obj):
+    def space_host_business_name(self, obj):
         return obj.space
-    business_name.short_description = "Business Name"
+    space_host_business_name.short_description = "Space Host Business Name"
 
     def space_host(self, obj):
         return obj.agent_name()
@@ -171,8 +168,8 @@ class OrderAdmin(ExportMixinAdmin):
         "create_date",
         "start_date",
         "end_date",
-        "business_name",
         "space_host",
+        "space_host_business_name",
         "bank_name",
         "account_number",
         "billing_preference",
@@ -188,23 +185,19 @@ class OrderAdmin(ExportMixinAdmin):
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
     resource_class = RefundResource
-    list_display = ('order_code', 'order_name', 'space', 'agent')
+    list_display = ('customer', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name')
     list_filter = ('space', 'user')
-
-    def agent(self, obj):
-        return obj.get_full_name()
-    agent.short_description = "Space host"
 
 @admin.register(Subscription)
 class SubscriptionAdmin(ExportMixinAdmin):
     resource_class = SubscriptionResource
-    list_display = ('subscription', 'subscription_type', 'subscription_plan', 'cost')
+    list_display = ('subscription_name', 'subscription_type', 'subscription_plan', 'cost')
     list_filter = ('subscription_title', 'subscription_type', 'subscription_plan')
 
 @admin.register(SubscriptionPerAgent)
-class SubscriptionPerAgentAdmin(ExportMixinAdmin):
+class SubscriptionPerSpaceHostAdmin(ExportMixinAdmin):
     resource_class = SubscritptionPerAgentResource
-    list_display = ('subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code', 'agent')
+    list_display = ('space_host', 'agent', 'subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code',)
     list_filter = ('subscription', 'agent')
 
 @admin.register(SpaceType)
@@ -216,7 +209,7 @@ class SpaceTypeAdmin(ExportMixinAdmin):
 @admin.register(Rating)
 class RatingAdmin(ExportMixinAdmin):
     resource_class = RatingResource
-    list_display = ('space_name', 'space_type', 'rating', 'comment', 'user')
+    list_display = ('space_name', 'space_type', 'space_host', 'space_host_business_name', 'rating', 'comment',)
     list_filter = ('space', 'user')
 
 @admin.register(OrderType)
@@ -227,19 +220,17 @@ class OrderTypeAdmin(ExportMixinAdmin):
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
-    list_display = ('agent', 'customer', 'booking','cancellation_rule',
+    list_display = ('customer', 'space_host', 'agent', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
-    list_filter = ('status', 'agent__user', )
-    def agent(self, obj):
-        return obj.get_full_name()
-    agent.short_description = "Space host"
+    list_filter = ('status', 'agent', 'customer',  )
+    
     def cancellation_rule(self, obj):
-        print(obj.cancellation_policy)
         return mark_safe('<a href="{}">{}</a>'.format(
             reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy,)),
             obj.booking.cancellation_policy
         ))
     cancellation_rule.short_description = 'Cancellation Policy'
+
     def accept(self, obj):
         if obj.status == 'pending':
             return format_html('<a class="button" style="text-decoration:none; display:block; background:#22bb33; width:60px; padding-top:6px; text-align:center; height:17px; border-radius:25px; outline:none; border:none; cursor:pointer; color:white;" href="{}">ACCEPT</a>', reverse('admin:cancellation-approve', args=[str(obj.cancellation_id)]))

@@ -16,6 +16,12 @@ class Rating(models.Model):
     def space_name(self):
         return self.space.name
 
+    def space_host(self):
+        return self.space.space_host()
+
+    def space_host_business_name(self):
+        return self.space.space_host_business_name()
+
     def space_type(self):
         return self.space.space_type.space_type
 
