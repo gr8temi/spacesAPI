@@ -13,7 +13,7 @@ STATUS_CHOICES = [
 
 class Cancellation(models.Model):
     cancellation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
+    agent = models.ForeignKey(Agent, verbose_name='Space Host Business Name',on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     reason = models.TextField()
     booking = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
@@ -24,3 +24,6 @@ class Cancellation(models.Model):
 
     def cancellation_policy(self):
         return self.booking.cancellation_policy
+
+    def space_host(self):
+        return self.agent.user

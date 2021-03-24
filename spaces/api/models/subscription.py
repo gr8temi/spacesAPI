@@ -53,7 +53,7 @@ class Subscription(models.Model):
     def __str__(self):
         return self.subscription_title
 
-    def subscription(self):
+    def subscription_name(self):
         return self.subscription_title
 
 
@@ -69,19 +69,22 @@ class SubscriptionPerAgent(models.Model):
         auto_now=False, auto_now_add=False, blank=True, null=True)
     is_cancelled = models.BooleanField(default=False)
     reference_code = models.CharField(max_length=50, blank=True, unique=True)
-    agent = models.ForeignKey("api.Agent", on_delete=models.CASCADE, null=True)
+    agent = models.ForeignKey("api.Agent", verbose_name='Space Host Business Name', on_delete=models.CASCADE, null=True)
     authorization_code = models.CharField(max_length=50, blank=True)
     amount = models.IntegerField(default=0)
     objects = SubscriptionManager()
 
     class Meta:
-        verbose_name_plural = 'Subscriptions per agent'
+        verbose_name_plural = 'Subscriptions per space host'
 
     def subscription_name(self):
         return self.subscription.subscription_title
 
     def subscription_type(self):
         return self.subscription.subscription_type
+
+    def space_host(self):
+        return self.agent.user.name
 
     def __str__(self):
         return self.agent.user.name
