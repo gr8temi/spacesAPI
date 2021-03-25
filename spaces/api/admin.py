@@ -21,6 +21,7 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.comment import Comment
+from .models.cancellation_rules import CancellationRules
 from .models.order_type import OrderType
 from .models.spaces_category import SpaceCategory
 from .models.subscription import Subscription
@@ -49,6 +50,7 @@ from .resources.favourite_resource import FavouriteResource
 from .resources.customer_resource import CustomerResource
 from .resources.comment_resource import CommentResource
 from .resources.billing_history_resource import BillingHistoryResource
+from .resources.cancellation_rules_resource import CancellationRulesResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -304,6 +306,11 @@ class BillingHistoryAdmin(ExportMixinAdmin):
     list_filter = ('agent_name', ('payment_date', DateTimeRangeFilter),
                    ('next_due_date', DateTimeRangeFilter))
     search_fields = ['agent_name']
+    
+@admin.register(CancellationRules)
+class CancellationRulesAdmin(ExportMixinAdmin):
+    resource_class = CancellationRulesResource
+    list_display = ('policy', 'short_description')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
