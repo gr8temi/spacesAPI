@@ -29,6 +29,7 @@ from .models.question import Question
 from .models.ratings import Rating
 from .models.notification import Notification
 from .models.favourite import Favourite
+from .models.customer import Customer
 from .resources.spaces_resource import SpaceResource
 from .resources.order_resource import OrderResource
 from .resources.cancellation_resource import CancellationResource
@@ -43,6 +44,7 @@ from .resources.subscription_resource import SubscriptionResource
 from .resources.user_resource import UserResource
 from .resources.notification_resource import NotificationResource
 from .resources.favourite_resource import FavouriteResource
+from .resources.customer_resource import CustomerResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -219,14 +221,14 @@ class SpaceTypeAdmin(ExportMixinAdmin):
 @admin.register(Rating)
 class RatingAdmin(ExportMixinAdmin):
     resource_class = RatingResource
-    list_display = ('space_name', 'space_type', 'space_host', 'space_host_business_name', 'rating', 'comment',)
+    list_display = ('space_name', 'space_type', 'space_host', 'space_host_business_name', 'user', 'rating', 'comment',)
     list_filter = ('space', 'user')
+
 
 @admin.register(OrderType)
 class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ('order_type_id', 'order_type')
-
 
 @admin.register(User)
 class UserAdmin(ExportMixinAdmin):
@@ -234,6 +236,7 @@ class UserAdmin(ExportMixinAdmin):
     list_display = ('name', 'email', 'phone_number', 'date_of_birth', 'social_links', 'profile_url',
                     'email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active', 'token')
     list_filter = ('email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active')
+    search_fields = ['name']
 
 @admin.register(SpaceCategory)
 class SpaceCategoryAdmin(ExportMixinAdmin):
@@ -269,7 +272,14 @@ class NotificationAdmin(ExportMixinAdmin):
 class FavouriteAdmin(ExportMixinAdmin):
     resource_class = FavouriteResource
     list_display = ('user', 'space_name', 'space_type', 'space_host', 'space_host_business_name')
-    list_filter = ('space', 'user', 'space__agent')
+    list_filter = ('space', 'space__agent')
+    search_fields = ['user__name']
+
+@admin.register(Customer)
+class CustomerResource(ExportMixinAdmin):
+    resource_class = CustomerResource
+    list_display = ('name', 'email_address', 'phone_number', 'date_of_birth', 'social_links', 'profile_url')
+    search_fields = ['user__name']
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
@@ -277,6 +287,7 @@ class CancellationAdmin(ExportMixinAdmin):
     list_display = ('customer', 'space_host', 'agent', 'booking','cancellation_rule',
                     'reason', 'status', 'accept', 'reject')
     list_filter = ('status', 'agent', 'customer',  )
+    search_fields = ['customer__user__name']
     
     def cancellation_rule(self, obj):
         return mark_safe('<a href="{}">{}</a>'.format(
