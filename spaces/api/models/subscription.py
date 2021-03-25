@@ -94,8 +94,11 @@ class BillingHistory(models.Model):
 
     billing_history_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
-    agent_name = models.CharField(max_length=50)
-    agent_email = models.EmailField(max_length=254)
+    agent_name = models.CharField(verbose_name='Space Host', max_length=50)
+    agent_email = models.EmailField(verbose_name='Space Host Email Address' , max_length=254)
     payment_cost = models.IntegerField()
     payment_date = models.DateTimeField(auto_now=False, auto_now_add=False)
     next_due_date = models.DateTimeField(auto_now=False, auto_now_add=False)
+
+    class Meta:
+        verbose_name_plural = 'Billing histories'
