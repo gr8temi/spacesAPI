@@ -212,7 +212,7 @@ class OrderAdmin(ExportMixinAdmin):
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
     resource_class = RefundResource
-    list_display = ('user', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name')
+    list_display = ('user', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name', 'amount')
     list_filter = ('space', 'user')
     search_fields = ['user__name']
 
@@ -310,12 +310,16 @@ class CommentAdmin(ExportMixinAdmin):
 @admin.register(BillingHistory)
 class BillingHistoryAdmin(ExportMixinAdmin):
     resource_class = BillingHistoryResource
-    list_display = ('agent_name', 'agent_email', 'payment_cost',
+    list_display = ('agent_name', 'agent_email', 'space_host_business_name', 'payment_cost',
                     'payment_date', 'next_due_date')
     list_filter = ('agent_name', ('payment_date', DateTimeRangeFilter),
                    ('next_due_date', DateTimeRangeFilter))
     search_fields = ['agent_name']
-    
+
+    def space_host_business_name(self, obj):
+        space_host_business_name = Agent.objects.get(user__name=obj.agent_name)
+        return space_host_business_name
+
 @admin.register(CancellationRules)
 class CancellationRulesAdmin(ExportMixinAdmin):
     resource_class = CancellationRulesResource
@@ -326,6 +330,7 @@ class AvailabilityAdmin(ExportMixinAdmin):
     resource_class = AvailabilityResource
     list_display = ('space', 'space_host', 'space_host_business_name', 'day', 'all_day', 'open_time', 'close_time')
     list_filter = ('space', 'day', 'open_time', 'close_time')
+    search_fields = ['space__name']
 
 @admin.register(Extra)
 class ExtraAdmin(ExportMixinAdmin):

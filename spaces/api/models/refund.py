@@ -25,3 +25,6 @@ class Refund(models.Model):
 
     def order_code(self):
         return self.order
+
+    def amount(self):
+        return self.order.amount
