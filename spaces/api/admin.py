@@ -24,7 +24,6 @@ from .models.comment import Comment
 from .models.cancellation_rules import CancellationRules
 from .models.availabilities import Availability
 from .models.order_type import OrderType
-from .models.spaces_category import SpaceCategory
 from .models.subscription import Subscription
 from .models.subscription import SubscriptionPerAgent
 from .models.refund import Refund
@@ -34,6 +33,7 @@ from .models.notification import Notification
 from .models.favourite import Favourite
 from .models.customer import Customer
 from .models.subscription import BillingHistory
+from .models.extras import Extra
 from .resources.spaces_resource import SpaceResource
 from .resources.order_resource import OrderResource
 from .resources.cancellation_resource import CancellationResource
@@ -53,8 +53,10 @@ from .resources.comment_resource import CommentResource
 from .resources.billing_history_resource import BillingHistoryResource
 from .resources.cancellation_rules_resource import CancellationRulesResource
 from .resources.availability_resource import AvailabilityResource
+from .resources.extra_resource import ExtraResource
+from .resources.rating_resource import RatingResource
 
-# from api.models.availabilities import Availability
+
 models = apps.get_models()
 
 # created this to handle formats types
@@ -108,14 +110,10 @@ class SpaceAdmin(ExportMixinAdmin):
     def freeze_btn(self, obj):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
-                                                                                       args=[str(obj.space_id)]))
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
         else:
             return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
-                               'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
-                                                                                         args=[str(obj.space_id)]))
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
 
     def process_freeze(self, request, space_id):
         space_id = uuid.UUID(space_id)
@@ -319,6 +317,17 @@ class AvailabilityAdmin(ExportMixinAdmin):
     resource_class = AvailabilityResource
     list_display = ('space', 'space_host', 'space_host_business_name', 'day', 'all_day', 'open_time', 'close_time')
     list_filter = ('space', 'day', 'open_time', 'close_time')
+
+@admin.register(Extra)
+class ExtraAdmin(ExportMixinAdmin):
+    resource_class = ExtraResource
+    list_display = ('extra', 'space', 'space_address', 'space_host', 'space_host_business_name', 'space_capacity',
+                    'space_amount', 'extra_cost')
+    list_filter = ('space', 'space__agent')
+    search_fields = ['space__name', 'name']
+
+    def space(self, obj):
+        return obj.space.name
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
