@@ -22,6 +22,10 @@ from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
+from .models.spaces_category import SpaceCategory
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .resources.order_resource import OrderResource
+from .resources.space_category_resource import SpaceCategoryResource
 from .models.ratings import Rating
 from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
@@ -36,6 +40,7 @@ from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from .resources.user_resource import UserResource
 from django.utils.safestring import mark_safe
+
 # from api.models.availabilities import Availability
 models = apps.get_models()
 
@@ -227,6 +232,11 @@ class UserAdmin(ExportMixinAdmin):
                     'email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active', 'token')
     list_filter = ('email_verified', 'is_super', 'is_customer', 'is_agent', 'is_active')
 
+@admin.register(SpaceCategory)
+class SpaceCategoryAdmin(ExportMixinAdmin):
+    resource_class = SpaceCategoryResource
+    list_display = ('category',)
+    list_filter = ('space_category', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
