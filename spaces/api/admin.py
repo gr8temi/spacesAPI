@@ -20,6 +20,7 @@ from .models.space_type import SpaceType
 from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
+from .models.comment import Comment
 from .models.order_type import OrderType
 from .models.spaces_category import SpaceCategory
 from .models.subscription import Subscription
@@ -45,6 +46,7 @@ from .resources.user_resource import UserResource
 from .resources.notification_resource import NotificationResource
 from .resources.favourite_resource import FavouriteResource
 from .resources.customer_resource import CustomerResource
+from .resources.comment_resource import CommentResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -191,14 +193,16 @@ class OrderAdmin(ExportMixinAdmin):
     list_filter = (
         ("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter)
     )
+    
     def get_rangefilter_created_at_title(self, request, field_path):
         return 'Create Date'
 
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
     resource_class = RefundResource
-    list_display = ('customer', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name')
+    list_display = ('user', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name')
     list_filter = ('space', 'user')
+    search_fields = ['user__name']
 
 @admin.register(Subscription)
 class SubscriptionAdmin(ExportMixinAdmin):
@@ -211,6 +215,7 @@ class SubscriptionPerSpaceHostAdmin(ExportMixinAdmin):
     resource_class = SubscriptionPerAgentResource
     list_display = ('space_host', 'agent', 'subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code',)
     list_filter = ('subscription', 'agent')
+    search_fields = ['agent__user__name']
 
 @admin.register(SpaceType)
 class SpaceTypeAdmin(ExportMixinAdmin):
@@ -249,6 +254,7 @@ class QuestionAdmin(ExportMixinAdmin):
     resource_class = QuestionResource
     list_display = ('question', 'user', 'user_is_customer', 'user_is_space_host')
     list_filter = ('user', )
+    search_fields = ['user__name']
 
     def user_is_customer(self, obj):
         user_is_customer = User.objects.get(user_id=obj.user.user_id).is_customer
@@ -279,6 +285,13 @@ class FavouriteAdmin(ExportMixinAdmin):
 class CustomerResource(ExportMixinAdmin):
     resource_class = CustomerResource
     list_display = ('name', 'email_address', 'phone_number', 'date_of_birth', 'social_links', 'profile_url')
+    search_fields = ['user__name']
+
+@admin.register(Comment)
+class CommentAdmin(ExportMixinAdmin):
+    resource_class = CommentResource
+    list_display = ('content', 'user', 'question')
+    list_filter = ('user',)
     search_fields = ['user__name']
 
 @admin.register(Cancellation)
