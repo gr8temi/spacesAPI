@@ -11,4 +11,9 @@ class Question(models.Model):
 
     def __str__(self):
         return self.content
-    
+
+    def user_name(self):
+        return self.user.name
+
+    def question(self):
+        return self.content

@@ -26,6 +26,10 @@ from .models.spaces_category import SpaceCategory
 from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
 from .resources.space_category_resource import SpaceCategoryResource
+from .models.question import Question
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .resources.order_resource import OrderResource
+from .resources.question_resource import QuestionResource
 from .models.ratings import Rating
 from .resources.rating_resource import RatingResource
 from .models.subscription import SubscriptionPerAgent
@@ -237,6 +241,12 @@ class SpaceCategoryAdmin(ExportMixinAdmin):
     resource_class = SpaceCategoryResource
     list_display = ('category',)
     list_filter = ('space_category', )
+
+@admin.register(Question)
+class QuestionAdmin(ExportMixinAdmin):
+    resource_class = QuestionResource
+    list_display = ('question', 'user')
+    list_filter = ('user', )
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
