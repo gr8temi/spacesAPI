@@ -29,7 +29,7 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from .resources.order_resource import OrderResource
 from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
-from .resources.subscription_per_agent_resource import SubscritptionPerAgentResource
+from .resources.subscription_per_agent_resource import SubscriptionPerAgentResource
 from .models.subscription import Subscription
 from .models.refund import Refund
 from .resources.refund_resource import RefundResource
@@ -196,7 +196,7 @@ class SubscriptionAdmin(ExportMixinAdmin):
 
 @admin.register(SubscriptionPerAgent)
 class SubscriptionPerSpaceHostAdmin(ExportMixinAdmin):
-    resource_class = SubscritptionPerAgentResource
+    resource_class = SubscriptionPerAgentResource
     list_display = ('space_host', 'agent', 'subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code',)
     list_filter = ('subscription', 'agent')
 
