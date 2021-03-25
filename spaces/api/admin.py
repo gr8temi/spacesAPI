@@ -42,7 +42,7 @@ from .resources.question_resource import QuestionResource
 from .resources.rating_resource import RatingResource
 from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
-from .resources.subscription_per_agent_resource import SubscriptionPerAgentResource
+from .resources.subscription_per_agent_resource import SubscriptionPerSpaceHostResource
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from .resources.user_resource import UserResource
@@ -55,11 +55,14 @@ from .resources.cancellation_rules_resource import CancellationRulesResource
 from .resources.availability_resource import AvailabilityResource
 from .resources.extra_resource import ExtraResource
 from .resources.rating_resource import RatingResource
+from .resources.agent_resource import AgentResource
 
 
 models = apps.get_models()
 
 # created this to handle formats types
+
+
 class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         formats = (
@@ -110,10 +113,14 @@ class SpaceAdmin(ExportMixinAdmin):
     def freeze_btn(self, obj):
         if obj.active:
             return format_html('<a class="button" href="{}" style="background:#66c2ff; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
+                               'color:white; padding: 10px 10px 5px; text-align: center;">FREEZE</a>&nbsp;', reverse('admin:spaces-freeze',
+                                                                                                                     args=[str(obj.space_id)]))
         else:
             return format_html('<a class="button" href="{}" style="background: #ff6666; display:block; width:75px; '
-                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;')
+                               'height:20px; border-radius:5px; outline:none; border:none; cursor:pointer;'
+                               'color:white; padding: 10px 10px 5px; text-align: center;">UNFREEZE</a>&nbsp;', reverse('admin:spaces-unfreeze',
+                                                                                                                       args=[str(obj.space_id)]))
 
     def process_freeze(self, request, space_id):
         space_id = uuid.UUID(space_id)
@@ -201,12 +208,14 @@ class OrderAdmin(ExportMixinAdmin):
     def get_rangefilter_created_at_title(self, request, field_path):
         return 'Create Date'
 
+
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
     resource_class = RefundResource
     list_display = ('user', 'order_code', 'order_name', 'space', 'space_host', 'space_host_business_name')
     list_filter = ('space', 'user')
     search_fields = ['user__name']
+
 
 @admin.register(Subscription)
 class SubscriptionAdmin(ExportMixinAdmin):
@@ -216,16 +225,16 @@ class SubscriptionAdmin(ExportMixinAdmin):
 
 @admin.register(SubscriptionPerAgent)
 class SubscriptionPerSpaceHostAdmin(ExportMixinAdmin):
-    resource_class = SubscriptionPerAgentResource
+    resource_class = SubscriptionPerSpaceHostResource
     list_display = ('space_host', 'agent', 'subscription_name', 'amount', 'recurring', 'next_due_date', 'paid', 'paid_at', 'is_cancelled', 'reference_code', 'authorization_code',)
-    list_filter = ('subscription', 'agent')
-    search_fields = ['agent__user__name']
+    list_filter = ('agent', 'paid', 'recurring', 'subscription__subscription_title')
 
 @admin.register(SpaceType)
 class SpaceTypeAdmin(ExportMixinAdmin):
     resource_class = SpaceTypeResource
     list_display = ('space_type', 'space_category')
     list_filter = ('space_category', )
+
 
 @admin.register(Rating)
 class RatingAdmin(ExportMixinAdmin):
@@ -329,6 +338,14 @@ class ExtraAdmin(ExportMixinAdmin):
     def space(self, obj):
         return obj.space.name
 
+@admin.register(Agent)
+class SpaceHostAdmin(ExportMixinAdmin):
+    resource_class = AgentResource
+    list_display = ('user', 'business_name', 'office_address',
+                    'account_name', 'account_number', 'bank', 'document', 'plans')
+    list_filter = ('bank',)
+    search_fields = ['user__name', 'business_name']
+    
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
     resource_class = CancellationResource
@@ -339,7 +356,8 @@ class CancellationAdmin(ExportMixinAdmin):
     
     def cancellation_rule(self, obj):
         return mark_safe('<a href="{}">{}</a>'.format(
-            reverse("admin:api_cancellationrules_change", args=(obj.booking.cancellation_policy,)),
+            reverse("admin:api_cancellationrules_change",
+                    args=(obj.booking.cancellation_policy,)),
             obj.booking.cancellation_policy
         ))
     cancellation_rule.short_description = 'Cancellation Policy'
