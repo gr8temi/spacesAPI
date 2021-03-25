@@ -44,6 +44,10 @@ from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from .resources.user_resource import UserResource
 from django.utils.safestring import mark_safe
+from .models.notification import Notification
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .resources.order_resource import OrderResource
+from .resources.notification_resource import NotificationResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -247,6 +251,16 @@ class QuestionAdmin(ExportMixinAdmin):
     resource_class = QuestionResource
     list_display = ('question', 'user')
     list_filter = ('user', )
+
+@admin.register(Notification)
+class NotificationAdmin(ExportMixinAdmin):
+    resource_class = NotificationResource
+    list_display = ('notification_id', 'notification','space_host', 'read')
+    list_filter = ('read', )
+
+    def space_host(self, obj):
+        user = User.objects.get(user_id=obj.user_id)
+        return user
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
