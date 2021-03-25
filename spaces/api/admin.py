@@ -6,48 +6,43 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.conf.urls import url
-from api.models.cancelation import Cancellation
-from api.models.order import Order
-from api.resources.cancellation_resource import CancellationResource
-from import_export.admin import ExportMixin
-from import_export.formats import base_formats
-from api.helper.send_cancellation_email import CancellationActions
+from django.utils.safestring import mark_safe
 from django.urls import path, reverse
 from django.shortcuts import redirect
-from .resources.spaces_resource import SpaceResource
+from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from import_export.admin import ExportMixin
+from import_export.formats import base_formats
+from .helper.send_cancellation_email import CancellationActions
 from .models.order import Order
 from .models.spaces import Space
+from .models.cancelation import Cancellation
 from .models.space_type import SpaceType
 from .models.spaces_category import SpaceCategory
 from .models.agent import Agent
 from .models.user import User
 from .models.order_type import OrderType
 from .models.spaces_category import SpaceCategory
-from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
-from .resources.order_resource import OrderResource
-from .resources.space_category_resource import SpaceCategoryResource
-from .models.question import Question
-from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
-from .resources.order_resource import OrderResource
-from .resources.question_resource import QuestionResource
-from .models.ratings import Rating
-from .resources.rating_resource import RatingResource
+from .models.subscription import Subscription
 from .models.subscription import SubscriptionPerAgent
-from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
+from .models.refund import Refund
+from .models.question import Question
+from .models.ratings import Rating
+from .models.notification import Notification
+from .models.favourite import Favourite
+from .resources.spaces_resource import SpaceResource
 from .resources.order_resource import OrderResource
+from .resources.cancellation_resource import CancellationResource
+from .resources.space_category_resource import SpaceCategoryResource
+from .resources.question_resource import QuestionResource
+from .resources.rating_resource import RatingResource
 from .resources.order_type_resource import OrderTypeResource
 from .resources.space_type_resource import SpaceTypeResource
 from .resources.subscription_per_agent_resource import SubscriptionPerAgentResource
-from .models.subscription import Subscription
-from .models.refund import Refund
 from .resources.refund_resource import RefundResource
 from .resources.subscription_resource import SubscriptionResource
 from .resources.user_resource import UserResource
-from django.utils.safestring import mark_safe
-from .models.notification import Notification
-from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
-from .resources.order_resource import OrderResource
 from .resources.notification_resource import NotificationResource
+from .resources.favourite_resource import FavouriteResource
 
 # from api.models.availabilities import Availability
 models = apps.get_models()
@@ -249,8 +244,16 @@ class SpaceCategoryAdmin(ExportMixinAdmin):
 @admin.register(Question)
 class QuestionAdmin(ExportMixinAdmin):
     resource_class = QuestionResource
-    list_display = ('question', 'user')
+    list_display = ('question', 'user', 'user_is_customer', 'user_is_space_host')
     list_filter = ('user', )
+
+    def user_is_customer(self, obj):
+        user_is_customer = User.objects.get(user_id=obj.user.user_id).is_customer
+        return user_is_customer
+    
+    def user_is_space_host(self, obj):
+        user_is_space_host = User.objects.get(user_id=obj.user.user_id).is_agent
+        return user_is_space_host
 
 @admin.register(Notification)
 class NotificationAdmin(ExportMixinAdmin):
@@ -261,6 +264,12 @@ class NotificationAdmin(ExportMixinAdmin):
     def space_host(self, obj):
         user = User.objects.get(user_id=obj.user_id)
         return user
+
+@admin.register(Favourite)
+class FavouriteAdmin(ExportMixinAdmin):
+    resource_class = FavouriteResource
+    list_display = ('user', 'space_name', 'space_type', 'space_host', 'space_host_business_name')
+    list_filter = ('space', 'user', 'space__agent')
 
 @admin.register(Cancellation)
 class CancellationAdmin(ExportMixinAdmin):
