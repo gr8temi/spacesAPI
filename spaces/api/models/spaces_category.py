@@ -10,11 +10,5 @@ class SpaceCategory(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField( auto_now=True)
 
-    class Meta:
-        verbose_name_plural = 'Space categories'
-
     def __str__(self):
-        return self.space_category
-
-    def category(self):
         return self.space_category

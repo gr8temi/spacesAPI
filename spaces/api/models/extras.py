@@ -11,24 +11,4 @@ class Extra(models.Model):
 
     def __str__(self):
         return f"{self.space}"
-
-    def extra(self):
-        return self.name
-
-    def space_address(self):
-        return self.space.address
-
-    def space_capacity(self):
-        return self.space.capacity
-
-    def space_amount(self):
-        return self.space.amount
-
-    def space_host(self):
-        return self.space.agent.user.name
-
-    def space_host_business_name(self):
-        return self.space.agent
-
-    def extra_cost(self):
-        return self.cost
+    
