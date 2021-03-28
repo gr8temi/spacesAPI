@@ -81,7 +81,7 @@ class AgentRegister(APIView):
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
             agent_serializer.save()
-            agent_name = agent_serializer.data["business_name"]
+            agent_name = agent_serializer.data.get("business_name")
             if bool(new_user):
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 host_template = get_template('api/signup_templates/space_host_signup.html')
@@ -97,13 +97,13 @@ class AgentRegister(APIView):
             else:
                 return Response({"message": f"Your account has been updated successfully to a Space host", "payload": agent_serializer.data}, status=status.HTTP_201_CREATED)
         else:
-            return Response({"errors": agent_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"errors": agent_serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         with transaction.atomic():
             try:
                 data = request.data
-                email = data['email']
+                email = data.get('email')
                 check = self.get_object(email)
 
                 hashed = bcrypt.hashpw(
@@ -144,6 +144,6 @@ class AgentRegister(APIView):
 
                         return self.serializeAgent(new_agent_data, user_serializer.data.get("email"), token=user_serializer.data.get("token"), new_user=True)
                     else:
-                        return Response({"error": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"error": user_serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as err:
                 return Response({"error":str(err)}, status=status.HTTP_400_BAD_REQUEST)
