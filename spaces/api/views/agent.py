@@ -57,7 +57,7 @@ class AgentDetail(APIView):
                 serializer.save()
                 user_serializer.save()
                 return Response({"payload": {**serializer.data, **user_serializer.data}, "message": "Agent successfully updated"}, status=status.HTTP_200_OK)
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
