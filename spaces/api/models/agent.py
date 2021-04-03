@@ -23,6 +23,7 @@ class Agent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = 'space host'
         verbose_name_plural = 'Space hosts'
         
     def __str__(self):

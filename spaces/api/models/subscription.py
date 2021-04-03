@@ -75,6 +75,7 @@ class SubscriptionPerAgent(models.Model):
     objects = SubscriptionManager()
 
     class Meta:
+        verbose_name = 'subscription per space host'
         verbose_name_plural = 'Subscriptions per space host'
 
     def subscription_name(self):

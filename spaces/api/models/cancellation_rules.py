@@ -9,6 +9,7 @@ class CancellationRules(models.Model):
     short_description = models.TextField()
 
     class Meta:
+        verbose_name = 'cancellation rule'
         verbose_name_plural = 'Cancellation Rules'
 
     def __str__(self):

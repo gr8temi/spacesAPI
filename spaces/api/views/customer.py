@@ -49,7 +49,7 @@ class CustomerDetail(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({"payload": serializer.data, "message": "Customer successfully updated"}, status=status.HTTP_200_OK)
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -74,7 +74,7 @@ class CustomerRegister(APIView):
         if customer_serializer.is_valid():
             customer_serializer.save()
             customer_name = User.objects.get(
-                user_id=customer_serializer.data["user"]).name
+                user_id=customer_serializer.data.get("user")).name
             if bool(new_user):
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 customer_template = get_template('api/signup_templates/customer_signup.html')
@@ -88,19 +88,19 @@ class CustomerRegister(APIView):
             else:
                 return Response({"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"error": customer_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": customer_serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         data = request.data
-        email = data['email']
+        email = data.get('email')
         check = self.get_object(email)
         hashed = bcrypt.hashpw(
             data['password'].encode('utf-8'), bcrypt.gensalt())
         token = token_generator()
         user_data = {
-            'name': data['name'],
-            'email': data['email'],
-            'phone_number': data['phone_number'],
+            'name': data.get('name'),
+            'email': data.get('email'),
+            'phone_number': data.get('phone_number'),
             'password': f'${hashed}',
             "token": token,
             "is_customer": True
@@ -122,9 +122,9 @@ class CustomerRegister(APIView):
                 new_customer_data = {**customer_data,
                                      "user": user_serializer.data["user_id"]}
 
-                return self.serializeCustomer(new_customer_data, user_serializer.data["email"], token=user_serializer.data["token"], new_user=True)
+                return self.serializeCustomer(new_customer_data, user_serializer.data.get("email"), token=user_serializer.data["token"], new_user=True)
             else:
-                return Response({"error": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": user_serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": f"Customer {check.name} Exist"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 

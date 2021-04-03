@@ -32,14 +32,14 @@ class SpaceTypeView(APIView):
     def post(self, request, format="json"):
 
         data = request.data
-        name = data["space_type"]
-        category = data["space_category"]
+        name = data.get("space_type")
+        category = data.get("space_category")
         if SpaceType.objects.filter(space_type=name, space_category__category_id=uuid.UUID(category)):
             return Response({"message": "Space type already exists"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = SpaceTypeSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            type_of_space = serializer.data["space_type"]
+            type_of_space = serializer.data.get("space_type")
             return Response({"payload": serializer.data, "message": f"Space Type {type_of_space.upper()} created"}, status=status.HTTP_201_CREATED)
 
 class SpaceTypeDetail(APIView):

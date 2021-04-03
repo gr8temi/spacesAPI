@@ -10,8 +10,8 @@ class ResetPassword(APIView):
     def post(self, request):
         data = request.data
 
-        password = data['password']
-        token = data['token']
+        password = data.get('password')
+        token = data.get('token')
         try:
             result = User.objects.get(token=token)
         except:

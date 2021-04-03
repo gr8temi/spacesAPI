@@ -34,7 +34,7 @@ class RateASpace(APIView):
             space.save()
             return Response({"message": "rating successfully done", "payload":serializer.data}, status=status.HTTP_201_CREATED)
         else:
-            return Response({"message": "Error creating a rating", "payload":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Error creating a rating", "payload":serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
             
