@@ -121,7 +121,7 @@ class BookingView(PlaceOrder):
             return {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start_date, "Booking end date": end_date},
                     "message": f"Order completed", status: True}
         else:
-            return {"error": order_serializer.errors, status: False}
+            return {"error": order_serializer.custom_full_errors, status: False}
 
     def get_active_orders(self, start, space_id):
         orders = Order.objects.filter(space=space_id)
@@ -252,9 +252,9 @@ class BookingView(PlaceOrder):
 
     def post(self, request):
         data = request.data
-        space_id = data["space"]
-        name = data["name"]
-        email = data['company_email']
+        space_id = data.get("space")
+        name = data.get("name")
+        email = data.get('company_email')
         try:
             space = Space.objects.get(space_id=space_id)
 
@@ -394,10 +394,10 @@ class BookingCancellation(APIView):
             return False
 
     def post(self, request):
-        reason = request.data["reason"]
-        order_id = request.data["order_id"]
-        agent_id = request.data["agent_id"]
-        customer_id = request.data["customer_id"]
+        reason = request.data.get("reason")
+        order_id = request.data.get("order_id")
+        agent_id = request.data.get("agent_id")
+        customer_id = request.data.get("customer_id")
         agent = self.get_agent(agent_id)
 
         customer = self.get_customer(customer_id)
@@ -452,7 +452,7 @@ class BookingCancellation(APIView):
             subscriber.send(sender=self.__class__,
                             data={"user_id": f"{agent.user.user_id}", "notification": f"You have a new booking cancellation request for booking {booking.order_code} "})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookingCancellationActions(APIView):
@@ -527,7 +527,7 @@ class BookingCancellationActions(APIView):
             return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, cancellation_id):
-        update_type = request.data["update_type"]
+        update_type = request.data.get("update_type")
 
         try:
             cancel = Cancellation.objects.get(cancellation_id=cancellation_id)
@@ -546,7 +546,7 @@ class BookingCancellationActions(APIView):
         if update_type == "accept":
             return self.approve_cancellation(booking, cancel, agent_email, agent_name, customer_email, customer_name)
         elif update_type == "decline":
-            reason = request.data["reason"]
+            reason = request.data.get("reason")
             return self.decline_cancellation_request(cancel,
                                                      reason, agent_email, agent_name, customer_email, customer_name)
 
@@ -562,7 +562,7 @@ class UpdateReferenceCode(APIView):
         orders = self.get_orders(order_code)
         if not orders:
             return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
-        transaction_code = request.data["reference"]
+        transaction_code = request.data.get("reference")
         if not transaction_code:
             return Response({"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
         booked = []

@@ -33,12 +33,12 @@ class SpacesCategory(APIView):
     def post(self, request, format="json"):
 
         data = request.data
-        name = data["space_category"]
+        name = data.get("space_category")
 
         if SpaceCategory.objects.filter(space_category=name):
             return Response({"message": "Category already exists"}, status=status.HTTP_400_BAD_REQUEST)
         serializer = SpaceSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            type_of_space = serializer.data["space_category"]
+            type_of_space = serializer.data.get("space_category")
             return Response({"payload": serializer.data, "message": f"category {type_of_space.upper()} created"}, status=status.HTTP_201_CREATED)

@@ -104,7 +104,7 @@ class PlaceReservation(PlaceOrder):
             return {"payload": {**customer_details, "order_code": order_cde, "Booking start date": start_date, "Booking end date": end_date},
                     "message": f"Order completed", status: True}
         else:
-            return {"error": order_serializer.errors, status: False}
+            return {"error": order_serializer.custom_full_errors, status: False}
 
     def get_active_orders(self, start, space_id):
         orders = Order.objects.filter(space=space_id)
@@ -236,9 +236,9 @@ class PlaceReservation(PlaceOrder):
 
     def post(self, request):
         data = request.data
-        space_id = data["space"]
-        name = data["name"]
-        email = data['company_email']
+        space_id = data.get("space")
+        name = data.get("name")
+        email = data.get('company_email')
         space = self.get_space(space_id)
         agent = self.get_agent(space.agent)
         agent_name = agent.user.name
@@ -486,11 +486,11 @@ class PlaceReservation(PlaceOrder):
 
     def put(self, request):
         data = request.data
-        user_id = data["user"]
-        update_type = data["update_type"]
+        user_id = data.get("user")
+        update_type = data.get("update_type")
         customer = get_object_or_404(User, user_id=user_id)
-        order_code = data['order_code']
-        transaction_code = data['transaction_code']
+        order_code = data.get('order_code')
+        transaction_code = data.get('transaction_code')
         try:
             orders = Order.objects.filter(order_code=order_code)
         except:
@@ -539,8 +539,8 @@ class RequestReservationExtension(PlaceOrder):
 
     def post(self, request):
         data = request.data
-        reason = data["reason"]
-        order_code = data['order_code']
+        reason = data.get("reason")
+        order_code = data.get('order_code')
         orders = Order.objects.filter(order_code=order_code)
         if not orders:
             return Response({"message": "orders with order id {order_id} not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -650,10 +650,10 @@ class RequestReservationExtension(PlaceOrder):
     @permission_classes([IsAuthenticated, UserIsAnAgent])
     def put(self, request):
         data = request.data
-        user_id = data["user"]
-        update_type = data["update_type"]
+        user_id = data.get("user")
+        update_type = data.get("update_type")
         customer = get_object_or_404(User, user_id=user_id)
-        order_code = data['order_code']
+        order_code = data.get('order_code')
         try:
             orders = Order.objects.filter(order_code=order_code)
         except:

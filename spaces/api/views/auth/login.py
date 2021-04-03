@@ -5,7 +5,7 @@ from ...models.customer import Customer
 from ...models.spaces import Space
 from ...models.subscription import SubscriptionPerAgent
 from ...models.favourite import Favourite
-from  ...serializers.favourite import FavouriteSpaceSerializer
+from ...serializers.favourite import FavouriteSpaceSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,13 +20,13 @@ class UserLogin(APIView):
     def post(self, request):
         data = request.data
         try:
-            user = User.objects.get(email=data['email'])
+            user = User.objects.get(email=data.get('email'))
 
             is_valid_password = bcrypt.checkpw(
-                data['password'].encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
+                data.get('password').encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
             if is_valid_password:
                 # if user.email_verified is False:
-                #     return Response({"message": "User is not verified. kindly verify yourself"}, status=status.HTTP_400_BAD_REQUEST) 
+                #     return Response({"message": "User is not verified. kindly verify yourself"}, status=status.HTTP_400_BAD_REQUEST)
                 refresh = RefreshToken.for_user(user)
 
                 token = {
@@ -76,9 +76,11 @@ class UserLogin(APIView):
                         customer = Customer.objects.get(
                             user=user)
                         customer_id = customer.customer_id
-                        
-                        favourites = Favourite.objects.filter(user=customer.user)
-                        customerFavourites = FavouriteSpaceSerializer(favourites, many=True).data
+
+                        favourites = Favourite.objects.filter(
+                            user=customer.user)
+                        customerFavourites = FavouriteSpaceSerializer(
+                            favourites, many=True).data
 
                     except Customer.DoesNotExist:
                         customer_id = False

@@ -20,7 +20,7 @@ class VerifyEmail(APIView):
 
 
     def post(self, request):
-        token = request.data["token"]
+        token = request.data.get("token")
         
         user = self.check_user(token)
         if user and user.email_verified==False:
@@ -52,5 +52,3 @@ class VerifyEmail(APIView):
         elif user and user.email_verified == True:
             return Response({"message": "User has already been verified"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "You are not a registered user."}, status=status.HTTP_404_NOT_FOUND)
-
-

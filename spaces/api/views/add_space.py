@@ -58,7 +58,7 @@ class CreateSpace(APIView):
         user_id = Agent.objects.get(agent_id=uuid.UUID(
             data.get("agent"))).user.user_id  # TODO: Catch error if it fails
         spaceDataSerializer = SpaceSerializer(data=space_data)
-        availability = data['availability']
+        availability = data.get('availability')
         extras = data.get('extras')
 
         if bool(existing):
@@ -81,4 +81,4 @@ class CreateSpace(APIView):
 
             return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
 
-        return Response({"message": "Check your input, some fields might be missing", "error": spaceDataSerializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Check your input, some fields might be missing", "error": spaceDataSerializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)

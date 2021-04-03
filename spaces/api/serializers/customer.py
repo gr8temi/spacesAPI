@@ -3,15 +3,45 @@ from ..models.customer import Customer
 from api.serializers.user import UserSerializer
 
 class CustomerSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Customer
         fields = "__all__"
         # depth = 1
+    
+    @property
+    def custom_full_errors(self):
+        """
+        Returns full errors formatted as per requirements
+        """
+        default_errors = self.errors # default errors dict
+        error_messages = []
+        for field_name, field_errors in default_errors.items():
+            for field_error in field_errors:
+                error_message = '%s: %s'%(field_name, field_error)
+                error_messages.append(error_message) 
+        error_messages_string = ' '.join(error_messages)
+        return error_messages_string
 
 
 class CustomerSerializerDetail(serializers.ModelSerializer):
     user = UserSerializer()
+
     class Meta:
         model = Customer
         fields = ['customer_id', 'user']
         depth = 1
+
+    @property
+    def custom_full_errors(self):
+        """
+        Returns full errors formatted as per requirements
+        """
+        default_errors = self.errors # default errors dict
+        error_messages = []
+        for field_name, field_errors in default_errors.items():
+            for field_error in field_errors:
+                error_message = '%s: %s'%(field_name, field_error)
+                error_messages.append(error_message) 
+        error_messages_string = ' '.join(error_messages)
+        return error_messages_string

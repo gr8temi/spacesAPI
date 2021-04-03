@@ -66,7 +66,7 @@ class Subscribe(APIView):
             return Response(
                 {
                     "message": "Error processing subscription",
-                    "payload": serializer.errors,
+                    "payload": serializer.custom_full_errors,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -102,7 +102,8 @@ class SubscribeActions(APIView):
             subscriptions,
             key=lambda subscription: subscription.next_due_date,
         )
-        all_subscriptions = SubPerAgentSerializer(subscriptions, many=True).data
+        all_subscriptions = SubPerAgentSerializer(
+            subscriptions, many=True).data
         current_subscription = SubPerAgentSerializer(current_subscription).data
         if all_subscriptions:
             return Response(
@@ -124,7 +125,8 @@ class SubscribeActions(APIView):
     def put(self, request, reference_code):
         try:
             with transaction.atomic():
-                verified_payment = paystack.transaction.verify(reference=reference_code)
+                verified_payment = paystack.transaction.verify(
+                    reference=reference_code)
                 try:
                     agent_subscription = SubscriptionPerAgent.objects.get(
                         reference_code=reference_code
