@@ -15,8 +15,8 @@ class PlaceOrder(APIView):
 
         return space
 
-    def get_agent(self, biz):
-        agt = get_object_or_404(agent.Agent, business_name=biz)
+    def get_agent(self, agent_id):
+        agt = get_object_or_404(agent.Agent, agent_id=agent_id)
         return agt
 
     def date_object(self, date):

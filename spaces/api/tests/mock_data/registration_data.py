@@ -9,7 +9,8 @@ def customer_registration_data():
     return {
         'email': "customer@gmail.com",
         'password': cus_hashed,
-        'name': "First Customer"
+        'name': "First Customer",
+        "email_verified":True
     }
 
 

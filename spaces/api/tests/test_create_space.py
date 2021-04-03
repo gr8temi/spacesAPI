@@ -20,6 +20,8 @@ class CreateSpaceTest(APITestCase):
         self.space_category = SpaceCategory.objects.create(**space_category_data())
         self.space_type = SpaceType.objects.create(**space_type_data(self.space_category))
         self.user = User.objects.create(**user_registration_data())
+        self.user.email_verified = True
+        self.user.save()
         self.agent = Agent.objects.create(user=self.user, **agent_registration_data())
         self.old_space_count = Space.objects.count()
 

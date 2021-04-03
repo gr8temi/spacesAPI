@@ -20,6 +20,7 @@ class TestLogin(APITestCase):
             password=hashed,
             
         )
+        user.email_verified=True
         user.save()
 
     def test_login(self):

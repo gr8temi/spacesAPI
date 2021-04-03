@@ -240,7 +240,7 @@ class PlaceReservation(PlaceOrder):
         name = data.get("name")
         email = data.get('company_email')
         space = self.get_space(space_id)
-        agent = self.get_agent(space.agent)
+        agent = self.get_agent(space.agent.agent_id)
         agent_name = agent.user.name
         agent_mail = agent.user.email
         notes = data.get("note", "")
@@ -498,7 +498,7 @@ class PlaceReservation(PlaceOrder):
         space = self.get_space(list(orders)[0].space.space_id)
 
         # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!!
-        agent = self.get_agent(space.agent)
+        agent = self.get_agent(space.agent.agent_id)
         agent_mail = agent.user.email
         agent_name = agent.user.name
 
@@ -552,7 +552,7 @@ class RequestReservationExtension(PlaceOrder):
         user_id = list(orders)[0].user.user_id
         customer = get_object_or_404(User, user_id=user_id)
         space = self.get_space(list(orders)[0].space.space_id)
-        agent = self.get_agent(space.agent)
+        agent = self.get_agent(space.agent.agent_id)
         agent_mail = agent.user.email
         agent_name = agent.user.name
 
@@ -661,7 +661,7 @@ class RequestReservationExtension(PlaceOrder):
         space = self.get_space(list(orders)[0].space.space_id)
 
         # NOTE: create_space endpoint allows the same space to be created more than once, this should be checked!!!
-        agent = self.get_agent(space.agent)
+        agent = self.get_agent(space.agent.agent_id)
         agent_mail = agent.user.email
         agent_name = agent.user.name
         if order_code:
