@@ -432,7 +432,7 @@ class BookingCancellation(APIView):
 
             # notification for customer booking space
             subject_customer = "BOOKING CANCELLATION REQUEST SENT"
-            to_customer = [customer_mail]
+            to_customer = customer_mail
             customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
 
             # notification for agent that registered space
@@ -478,7 +478,7 @@ class BookingCancellationActions(APIView):
 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST APPROVED A REQUEST FOR BOOKING CANCELLATION"
-                to_agent = [agent_email]
+                to_agent = agent_email
                 # agent_content = f"Dear {agent_name}, You have approved a request for Booking cancellation."
 
                 guest_template = get_template('api/order/customer_booking_cancellation_approved.html')
@@ -513,7 +513,7 @@ class BookingCancellationActions(APIView):
 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST DECLINED A REQUEST FOR BOOKING CANCELLATION"
-                to_agent = [agent_email]
+                to_agent = agent_email
                 agent_content = f"Dear {agent_name}, You have Declined a request for Booking cancellation."
 
                 guest_template = get_template('api/order/customer_booking_cancellation_denied.html')

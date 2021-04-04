@@ -340,7 +340,7 @@ class PlaceReservation(PlaceOrder):
                     next_day = order_time + timedelta(days=1)
                     # notification for customer booking space
                     subject_customer = "RESERVATION COMPLETE"
-                    to_customer = [customer_email]
+                    to_customer = customer_email
                     customer_content = f"Dear {data['name']}, your Reservation has been completed. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage."
 
                     # notification for agent that registered space
@@ -390,7 +390,7 @@ class PlaceReservation(PlaceOrder):
                 next_day = start_now + timedelta(days=1)
                 # notification for customer booking space
                 subject_customer = "RESERVATION APPROVED"
-                to_customer = [customer.email]
+                to_customer = customer.email
                 customer_content = f"Dear {customer.name}, your Reservation has been Accepted by the space host. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()} Remember you can request for extension before it expires. Thanks for your patronage"
 
                 # notification for agent that registered space
@@ -429,7 +429,7 @@ class PlaceReservation(PlaceOrder):
                     "EMAIL_SENDER", default="space.ng@gmail.com")
                 # notification for customer booking space
                 subject_customer = "RESERVATION CANCELLED"
-                to_customer = [customer.email]
+                to_customer = customer.email
                 customer_content = f"Dear {customer.name}, your Reservation has been Declined by the space host. Kindly book for the space or choose another space for reservation. Thanks for your patronage"
 
                 # notification for agent that registered space
@@ -543,7 +543,7 @@ class RequestReservationExtension(PlaceOrder):
         order_code = data.get('order_code')
         orders = Order.objects.filter(order_code=order_code)
         if not orders:
-            return Response({"message": "orders with order id {order_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": f"orders with order id {order_code} not found"}, status=status.HTTP_404_NOT_FOUND)
 
         for order in orders:
             order.status = "extension"
