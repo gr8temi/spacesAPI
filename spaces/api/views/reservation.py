@@ -345,7 +345,7 @@ class PlaceReservation(PlaceOrder):
 
                     # notification for agent that registered space
                     subject_agent = "YOU HAVE A RESERVATION"
-                    to_agent = [agent_mail]
+                    to_agent = agent_mail
                     agent_content = f"Dear {agent_name}, you have a reservation placed for your space {space.name} listed on our platform. accept the reservation now. Or it would expire by {next_day.time()} {next_day.date()}. "
 
                     guest_template = get_template('api/order/customer_reservation_notification.html')
@@ -395,7 +395,7 @@ class PlaceReservation(PlaceOrder):
 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST APPROVED A RESERVATION"
-                to_agent = [agent_mail]
+                to_agent = agent_mail
                 agent_content = f"Dear {agent_name}, You have approved a reservation for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}. This expiry is subject to request for extension by the customer "
 
                 guest_template = get_template('api/order/customer_reservation_approved.html')
@@ -434,7 +434,7 @@ class PlaceReservation(PlaceOrder):
 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST DECLINED A RESERVATION"
-                to_agent = [agent_mail]
+                to_agent = agent_mail
                 agent_content = f"Dear {agent_name}, You have declined a reservation for {space.name} listed on our platform."
 
                 guest_template = get_template('api/order/customer_reservation_denied.html')
