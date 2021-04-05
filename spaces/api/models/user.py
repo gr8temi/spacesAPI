@@ -26,7 +26,7 @@ class User(models.Model):
     email_verified = models.BooleanField(default=False)
     is_super = models.BooleanField(default=False)
     is_customer = models.BooleanField(default=True)
-    is_agent = models.BooleanField(default=False)
+    is_agent = models.BooleanField(verbose_name='is space host' ,default=False)
     is_active = models.BooleanField(default=False)
     token = models.CharField(max_length=20)
     objects = UserManager()
