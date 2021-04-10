@@ -9,7 +9,7 @@ release:
     
 run:
   web: python manage.py runserver 0.0.0.0:$PORT
-  worker:
+  worker: 
     command: 
       - celery -A spaces worker -l info --beat -l info
-    image: worker
+    image: web
