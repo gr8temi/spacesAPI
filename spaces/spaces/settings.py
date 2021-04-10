@@ -217,6 +217,10 @@ CELERY_BEAT_SCHEDULE = {
     'charge_all_expired_subscriptions':{
         'task': 'api.tasks.charge_all_expired_subscriptions',
         'schedule': crontab()
+    },
+    'Send mail to for review':{
+        'task': 'api.tasks.send_review_message',
+        'schedule': crontab()
     }
 }
 
