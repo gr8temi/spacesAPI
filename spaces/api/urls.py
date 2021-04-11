@@ -36,7 +36,7 @@ from .views.subscription import (
     UpdateRecurring,
     UpdateChargeType,
 )
-from .views.rating import RateASpace
+from .views.rating import RateASpace, SpaceRating, AgentRating
 from .views.analytics import Analytics
 from .views.cancellation_rules import CancellationRulesView, SingleCancelationRuleView
 
@@ -213,6 +213,8 @@ urlpatterns = [
     ),
     # ratings
     path("v1/rating/", RateASpace.as_view(), name="create-a-rating"),
+    path("v1/rating/<slug:space_id>/", SpaceRating.as_view(), name="fetch-space-ratings"),
+    path("v1/rating/agent/<slug:agent_id>/", AgentRating.as_view(), name="fetch-agent-ratings"),
     # Analytics
     path("v1/analytics/<slug:agent_id>/", Analytics.as_view(), name="analytics"),
     # Cancellation Rules
