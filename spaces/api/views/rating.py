@@ -37,7 +37,26 @@ class RateASpace(APIView):
             return Response({"message": "Error creating a rating", "payload":serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-            
+class SpaceRating(APIView):
+    
+    def get(self,request,space_id):
+
+        ratings = Rating.objects.filter(space__space_id=uuid.UUID(space_id))
+
+        space_ratings = RatingSerializer(ratings, many=True).data
+
+        return Response({"message": "Ratings fetched", "payload": space_ratings}, status=status.HTTP_200_OK)
+class AgentRating(APIView):
+
+    def get(self,request,agent_id):
+
+        ratings = Rating.objects.filter(space__agent__agent_id=uuid.UUID(agent_id))
+
+        space_ratings = RatingSerializer(ratings, many=True).data
+
+        return Response({"message": "Ratings fetched", "payload": space_ratings}, status=status.HTTP_200_OK)
+
+
             
 
         
