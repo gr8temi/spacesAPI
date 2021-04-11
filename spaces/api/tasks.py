@@ -186,7 +186,7 @@ def charge_all_expired_subscriptions():
         send_subscription_mail(subject=subject, to=email, name=name, content=content)
 
 @periodic_task(
-    run_every=(crontab(minute="*/3")),
+    run_every=(crontab(minute="*/15")),
     name="Send mail to for review",
     ignore_result=False,
 )
