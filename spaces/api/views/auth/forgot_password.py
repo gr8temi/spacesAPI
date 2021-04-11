@@ -6,6 +6,8 @@ from ...models.user import User
 from ...models.customer import Customer
 from ...models.agent import Agent
 from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 from decouple import config
 from ...helpers import random_string_generator
 from django.shortcuts import get_object_or_404
@@ -29,12 +31,17 @@ class ForgotPassword(APIView):
         subject = 'Reset your password'
         to = [user_email]
         SENDER = config("EMAIL_SENDER", default="space.ng@gmail.com")
-        from_email = SENDER
+        sender = SENDER
         html_content = 'Click on the link below to reset your password'
         link_message = f'<a href="{reset_password_url}/?token={token}">Reset password</a>'
         message = "A password reset link has been sent to your Email account"
 
-        reset_message = send_mail(subject, html_content, from_email, to, fail_silently=False, html_message=link_message)
+        user_template = get_template('api/forgot_password/forgot_password_users.html')
+        user_content = user_template.render({'username': user.name, 'reset_password_url': config('RESET_PASSWORD_URL')})
+        msg = EmailMultiAlternatives(subject, user_content, sender, to=[to])
+        msg.attach_alternative(user_content, 'text/html')
+
+        reset_message = msg.send()
         if reset_message:
             user.save()
             return Response({"message":message}, status=status.HTTP_200_OK)

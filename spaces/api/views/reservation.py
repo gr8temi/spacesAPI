@@ -392,7 +392,7 @@ class PlaceReservation(PlaceOrder):
                 subject_customer = "RESERVATION APPROVED"
                 to_customer = customer.email
                 customer_content = f"Dear {customer.name}, your Reservation has been Accepted by the space host. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()} Remember you can request for extension before it expires. Thanks for your patronage"
-
+                 
                 # notification for agent that registered space
                 subject_agent = "YOU JUST APPROVED A RESERVATION"
                 to_agent = agent_mail
@@ -570,10 +570,18 @@ class RequestReservationExtension(PlaceOrder):
             to_agent = [agent_mail]
             agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
 
-            send_mail(subject_agent, agent_content,
-                      sender, to_agent)
-            send_mail(subject_customer, customer_content,
-                      sender, to_customer)
+            guest_template = get_template('api/reservation/reservation_extension_guest.html')
+            guest_content = guest_template.render({'guest_name': customer.name})
+            msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+            msg.attach_alternative(guest_content, 'text/html')
+            msg.send()
+
+            host_template = get_template('api/reservation/reservation_extension_host.html')
+            host_content = host_template.render({'host_name': agent_name, 'space_name': space.name})
+            msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+            msg.attach_alternative(host_content, 'text/html')
+            msg.send()
+
             return Response({"message": "Request for extension sent to agent"}, status=status.HTTP_200_OK)
         except:
             return Response({"error": "invalid"}, status=status.HTTP_400_BAD_REQUEST)
@@ -604,10 +612,12 @@ class RequestReservationExtension(PlaceOrder):
                 to_agent = [agent_mail]
                 agent_content = f"Dear {agent_name}, You have approved a request for reservation extension for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}."
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                guest_template = get_template('api/reservation/extension_approval_guest.html')
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name})
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, 'text/html')
+                msg.send()
+
                 return Response({"message": "Request for Extension Approved"}, status=status.HTTP_200_OK)
 
         except IntegrityError as e:
@@ -638,10 +648,15 @@ class RequestReservationExtension(PlaceOrder):
                 to_agent = [agent_mail]
                 agent_content = f"Dear {agent_name}, You have declined a request for extension of reservation for {space.name}listed on our platform."
 
-                send_mail(subject_agent, agent_content,
-                          sender, to_agent)
-                send_mail(subject_customer, customer_content,
-                          sender, to_customer)
+                # send_mail(subject_agent, agent_content,
+                #           sender, to_agent)
+                # send_mail(subject_customer, customer_content,
+                #           sender, to_customer)
+                guest_template = get_template('api/reservation/extension_denial_guest.html')
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name})
+                msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+                msg.attach_alternative(guest_content, 'text/html')
+                msg.send()
                 return Response({"message": "Request for Extension Declined"}, status=status.HTTP_200_OK)
 
         except IntegrityError as e:
