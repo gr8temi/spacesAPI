@@ -7,6 +7,7 @@ class SpaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Space
         fields = '__all__'
+        depth = 1
     
     @property
     def custom_full_errors(self):
