@@ -19,7 +19,7 @@ class Space(models.Model):
     space_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     description = models.TextField()
-    space_type = models.ForeignKey(SpaceType, on_delete=models.DO_NOTHING, null=True)
+    space_type = models.ForeignKey(SpaceType, on_delete=models.CASCADE, null=True)
     address = JSONField(encoder=DjangoJSONEncoder)
     city = models.CharField(max_length=50, null=True)
     state = models.CharField(max_length=50, null=True)
