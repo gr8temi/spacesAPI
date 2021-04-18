@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from api.models.ratings import Rating
 from api.models.spaces import Space
-from api.serializers.rating import RatingSerializer
+from api.serializers.rating import RatingSerializer, RatingDetailSerializer
 
 
 class RateASpace(APIView):
@@ -43,7 +43,7 @@ class SpaceRating(APIView):
 
         ratings = Rating.objects.filter(space__space_id=uuid.UUID(space_id))
 
-        space_ratings = RatingSerializer(ratings, many=True).data
+        space_ratings = RatingDetailSerializer(ratings, many=True).data
 
         return Response({"message": "Ratings fetched", "payload": space_ratings}, status=status.HTTP_200_OK)
 class AgentRating(APIView):
@@ -52,7 +52,7 @@ class AgentRating(APIView):
 
         ratings = Rating.objects.filter(space__agent__agent_id=uuid.UUID(agent_id))
 
-        space_ratings = RatingSerializer(ratings, many=True).data
+        space_ratings = RatingDetailSerializer(ratings, many=True).data
 
         return Response({"message": "Ratings fetched", "payload": space_ratings}, status=status.HTTP_200_OK)
 
