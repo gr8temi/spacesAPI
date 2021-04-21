@@ -38,7 +38,7 @@ class ForgotPassword(APIView):
 
         user_template = get_template('api/forgot_password/forgot_password_users.html')
         user_content = user_template.render({'username': user.name, 'reset_password_url': config('RESET_PASSWORD_URL')})
-        msg = EmailMultiAlternatives(subject, user_content, sender, to=[to])
+        msg = EmailMultiAlternatives(subject, user_content, sender, to=to)
         msg.attach_alternative(user_content, 'text/html')
 
         reset_message = msg.send()
