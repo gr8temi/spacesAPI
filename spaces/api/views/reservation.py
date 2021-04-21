@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from django.contrib.auth.models import User
 
 from ..models.user import User
 from ..models.agent import Agent
@@ -347,6 +348,12 @@ class PlaceReservation(PlaceOrder):
                     subject_agent = "YOU HAVE A RESERVATION"
                     to_agent = agent_mail
                     agent_content = f"Dear {agent_name}, you have a reservation placed for your space {space.name} listed on our platform. accept the reservation now. Or it would expire by {next_day.time()} {next_day.date()}. "
+                    
+                    # notification for admin about new reservation
+                    all_admin = User.objects.filter(is_super=True)
+                    admin_email_list = [admin.email for admin in all_admin if all_admin]
+                    subject_admin = "A NEW RESERVATION HAS BEEN MADE"
+                    
 
                     guest_template = get_template('api/order/customer_reservation_notification.html')
                     guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
@@ -358,6 +365,12 @@ class PlaceReservation(PlaceOrder):
                     host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
                     msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
                     msg.attach_alternative(host_content, "text/html")
+                    msg.send()
+
+                    admin_template = get_template('api/admin/reservation_alert.html')
+                    admin_content = admin_template.render()
+                    msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
+                    msg.attach_alternative(admin_content, "text/html")
                     msg.send()
 
                     customer_details = {

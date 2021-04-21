@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction, IntegrityError
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from django.contrib.auth.models import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -407,6 +408,10 @@ class BookingCancellation(APIView):
         if not customer:
             return Response({"message": "Customer not found"},
                             status=status.HTTP_404_NOT_FOUND)
+
+        all_admin = User.objects.filter(is_super=True)
+        admin_email_list = [admin.email for admin in all_admin if all_admin]
+
         agent_mail = agent.user.email
         customer_mail = customer.user.email
         agent_name = agent.user.name
@@ -446,6 +451,12 @@ class BookingCancellation(APIView):
             guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login" })
             msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
             msg.attach_alternative(guest_content, "text/html")
+            msg.send()
+
+            admin_template = get_template('api/admin/booking_cancellation_request.html')
+            admin_content = admin_template.render({'guest_name': customer_name})
+            msg = EmailMultiAlternatives(subject_customer, admin_content, sender, to=[admin_email_list])
+            msg.attach_alternative(admin_content, "text/html")
             msg.send()
 
             subscriber.connect(notification_creator)
@@ -595,6 +606,11 @@ class UpdateReferenceCode(APIView):
         to_agent = agent_mail
         # agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform."
         
+        #notification for admin about customer booking space
+        subject_admin = "A NEW BOOKING HAS BEEN MADE"
+        all_admin = User.objects.filter(is_super=True)
+        admin_email_list = [admin.email for admin in all_admin if all_admin]
+
         guest_template = get_template('api/order/customer_booking_notification.html')
         guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
         msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
@@ -605,6 +621,12 @@ class UpdateReferenceCode(APIView):
         host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
         msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
         msg.attach_alternative(host_content, "text/html")
+        msg.send()
+
+        admin_template = get_template('api/admin/booking_alert.html')
+        admin_content = admin_template.render()
+        msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
+        msg.attach_alternative(admin_content, "text/html")
         msg.send()
 
         subscriber.connect(notification_creator)
