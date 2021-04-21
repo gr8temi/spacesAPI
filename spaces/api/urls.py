@@ -4,7 +4,6 @@ from spaces.views import notfound
 from django.urls import path, re_path
 from django.views.decorators.cache import cache_page
 
-from .views.auth import login
 from .views.add_space import CreateSpace
 from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace, RandomSpaces
 from .views.utilities import SpaceLocation
@@ -29,7 +28,7 @@ from .views.booking import (
 )
 from .views import agent, customer
 from .views import space_category, space_type, favourite
-from .views.auth import login, forgot_password, reset_password, verify_email
+from .views.auth import login, forgot_password, reset_password, verify_email, new_forgot_password
 from .views.subscription import (
     Subscribe,
     SubscribeActions,
@@ -183,6 +182,11 @@ urlpatterns = [
         "v1/auth/forgot-password/",
         forgot_password.ForgotPassword.as_view(),
         name="forgot-password",
+    ),
+    path(
+        "v1/auth/forgot-password/token/",
+        new_forgot_password.ForgotUserPassword.as_view(),
+        name="forgot-password-token"
     ),
     path(
         "v1/auth/reset-password/",
