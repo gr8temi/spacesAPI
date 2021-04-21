@@ -715,4 +715,4 @@ class BookingAnalytics(APIView):
         if no_of_bookings_within_range==0:
             return Response({"message": f"There were no bookings between {start_date} and {end_date}"}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({"message": f"Bookings between {start_date} and {end_date} were successfully fetched.", "number of bookings": no_of_bookings_within_range}, status=status.HTTP_200_OK)
+        return Response({"message": f"Bookings between {start_date} and {end_date} were successfully fetched.", "no_of_bookings": no_of_bookings_within_range}, status=status.HTTP_200_OK)

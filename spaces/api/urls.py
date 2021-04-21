@@ -38,7 +38,7 @@ from .views.subscription import (
     UpdateChargeType,
 )
 from .views.rating import RateASpace, SpaceRating, AgentRating
-from .views.analytics import Analytics
+from .views.analytics import Analytics, RevenueAnalytics
 from .views.cancellation_rules import CancellationRulesView, SingleCancelationRuleView
 
 CACHE_TTL = getattr(settings, "CACHE_TTL", DEFAULT_TIMEOUT)
@@ -229,6 +229,7 @@ urlpatterns = [
     path("v1/analytics/<slug:agent_id>/", Analytics.as_view(), name="analytics"),
     path("v1/analytics/<slug:agent_id>/booking/range/", BookingAnalytics.as_view(), name="booking-analytics"),
     path("v1/analytics/<slug:agent_id>/reservation/range/", ReservationAnalytics.as_view(), name="reservation-analytics"),
+    path("v1/analytics/<slug:agent_id>/revenue/range/", RevenueAnalytics.as_view(), name="revenue-analytics"),
 
     # Cancellation Rules
     path(
