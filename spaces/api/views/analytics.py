@@ -133,3 +133,29 @@ class Analytics(APIView):
             "bad_review_percentage": bad_review_percentage,
         }
         return Response({"message": "Analysis returned successfully", "payload": data}, status=status.HTTP_200_OK)
+
+
+class RevenueAnalytics(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+    def get(self, request, agent_id):
+        try:
+            agent = Agent.objects.get(agent_id=uuid.UUID(agent_id))
+        except:
+            return Response({"message": "Agent not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        str_start_date = request.GET.get('start_date')
+        start_date = datetime.fromisoformat(str_start_date.replace('Z', '+00:00'))
+
+        str_end_date = request.GET.get('end_date')
+        end_date = datetime.fromisoformat(str_end_date.replace('Z', '+00:00'))
+
+        revenues_within_range = list(Order.objects.filter(space__agent__agent_id=agent_id, order_type__order_type="booking", order_time__range=[start_date, end_date]).values("amount"))
+        sum_revenues_within_range = 0
+
+        for revenue in revenues_within_range:
+            sum_revenues_within_range += int(revenue['amount'])
+
+        total_revenue_within_range = sum_revenues_within_range - (0.08 * sum_revenues_within_range)
+
+        return Response({"message": "Total Revenue returned successfully", "total_revenue": total_revenue_within_range}, status=status.HTTP_200_OK)
