@@ -17,6 +17,8 @@ from ..serializers.extra import ExtraSerializer
 from ..signals import subscriber
 from ..consumers.channel_layers import notification_creator
 
+from django.db import transaction, IntegrityError
+
 
 class CreateSpace(APIView):
     permission_classes = (IsAuthenticated,)
@@ -55,30 +57,33 @@ class CreateSpace(APIView):
             'amenities': data.get('amenities'),
             'rules': data.get('rules'),
         }
-        user_id = Agent.objects.get(agent_id=uuid.UUID(
-            data.get("agent"))).user.user_id  # TODO: Catch error if it fails
-        spaceDataSerializer = SpaceSerializer(data=space_data)
-        availability = data.get('availability')
-        extras = data.get('extras')
-
-        if bool(existing):
-            return Response({"message": f"Space with name {name} already exists in this category"}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif spaceDataSerializer.is_valid():
-            spaceDataSerializer.save()
-            space_name = spaceDataSerializer.data.get("name")
+        with transaction.atomic():
             try:
-                space_id = Space.objects.get(name=space_name).space_id
-            except:
-                return Response({"message": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
-            save_to_model(f"{space_id}", availability, AvailabilitySerializer)
-            save_to_model(f"{space_id}", extras, ExtraSerializer)
+                user_id = Agent.objects.get(agent_id=uuid.UUID(
+                    data.get("agent"))).user.user_id  # TODO: Catch error if it fails
+                spaceDataSerializer = SpaceSerializer(data=space_data)
+                availability = data.get('availability')
+                extras = data.get('extras')
 
-            name = spaceDataSerializer.data.get("name")
-            subscriber.connect(notification_creator)
-            subscriber.send(sender=self.__class__,
-                            data={"name": space_id, "user_id": f"{user_id}", "notification": f"{space_id} was successfully created"})
+                if bool(existing):
+                    return Response({"message": f"Space with name {name} already exists in this category"}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
+                elif spaceDataSerializer.is_valid():
+                    spaceDataSerializer.save()
+                    space_name = spaceDataSerializer.data.get("name")
+                    try:
+                        space_id = Space.objects.get(name=space_name).space_id
+                    except:
+                        return Response({"message": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
+                    save_to_model(f"{space_id}", availability, AvailabilitySerializer)
+                    save_to_model(f"{space_id}", extras, ExtraSerializer)
 
+                    name = spaceDataSerializer.data.get("name")
+                    subscriber.connect(notification_creator)
+                    subscriber.send(sender=self.__class__,
+                                    data={"name": space_id, "user_id": f"{user_id}", "notification": f"{space_id} was successfully created"})
+
+                    return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
+            except Exception as err:
+                return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Check your input, some fields might be missing", "error": spaceDataSerializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
