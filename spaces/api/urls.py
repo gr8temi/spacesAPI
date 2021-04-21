@@ -14,6 +14,7 @@ from .views.reservation import (
     RequestReservationExtension,
     PreviousReservationPerUser,
     UpcomingReservationPerUser,
+    ReservationAnalytics,
 )
 from .views.booking import (
     BookingStatus,
@@ -25,6 +26,7 @@ from .views.booking import (
     PreviousBookingPerUser,
     UpcomingBookingPerUser,
     BookingCancellationPerUser,
+    BookingAnalytics,
 )
 from .views import agent, customer
 from .views import space_category, space_type, favourite
@@ -143,6 +145,7 @@ urlpatterns = [
         cache_page(CACHE_TTL)(space_type.SpaceTypeByCategory.as_view()),
         name="space_type_by_category",
     ),
+
     # match route that has not been registered above
     path("v1/auth/login/", login.UserLogin.as_view(), name="login"),
     path(
@@ -193,6 +196,7 @@ urlpatterns = [
         reset_password.ResetPassword.as_view(),
         name="reset-password",
     ),
+
     # Subscription
     path("v1/subscribe/", Subscribe.as_view(), name="subscribe"),
     path(
@@ -215,12 +219,17 @@ urlpatterns = [
         UpdateRecurring.as_view(),
         name="update-subscription-recurring",
     ),
+
     # ratings
     path("v1/rating/", RateASpace.as_view(), name="create-a-rating"),
     path("v1/rating/<slug:space_id>/", SpaceRating.as_view(), name="fetch-space-ratings"),
     path("v1/rating/agent/<slug:agent_id>/", AgentRating.as_view(), name="fetch-agent-ratings"),
+
     # Analytics
     path("v1/analytics/<slug:agent_id>/", Analytics.as_view(), name="analytics"),
+    path("v1/analytics/<slug:agent_id>/booking/range/", BookingAnalytics.as_view(), name="booking-analytics"),
+    path("v1/analytics/<slug:agent_id>/reservation/range/", ReservationAnalytics.as_view(), name="reservation-analytics"),
+
     # Cancellation Rules
     path(
         "v1/cancelation-rules/",

@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from decouple import config
 import calendar
+import uuid
 import json
 import pytz
 from datetime import datetime, date, timedelta
@@ -747,3 +748,25 @@ class UpcomingReservationPerUser(APIView):
         serializer = OrderSerializer(reservations, many=True)
 
         return Response({"message": "Upcoming reservation fetched successfully", "payload": serializer.data}, status=status.HTTP_200_OK)
+
+class ReservationAnalytics(APIView):
+    permission_classes = [IsAuthenticated & UserIsAnAgent]
+
+    def get(self, request, agent_id):
+        try:
+            agent = Agent.objects.get(agent_id=uuid.UUID(agent_id))
+        except:
+            return Response({"message": "Agent not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        str_start_date = request.GET.get('start_date')
+        start_date = datetime.fromisoformat(str_start_date.replace('Z', '+00:00'))
+        str_end_date = request.GET.get('end_date')
+        end_date = datetime.fromisoformat(str_end_date.replace('Z', '+00:00'))
+
+        reservations_within_range = Order.objects.filter(space__agent__agent_id=agent_id, order_type__order_type="reservation", order_time__range=[start_date, end_date])
+        no_of_reservations_within_range = len(reservations_within_range)
+
+        if no_of_reservations_within_range==0:
+            return Response({"message": f"There were no reservations between {start_date} and {end_date}"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"message": f"Reservations between {start_date} and {end_date} were successfully fetched.", "number of reservations": no_of_reservations_within_range}, status=status.HTTP_200_OK)
