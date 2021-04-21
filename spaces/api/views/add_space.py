@@ -72,7 +72,9 @@ class CreateSpace(APIView):
                     spaceDataSerializer.save()
                     space_name = spaceDataSerializer.data.get("name")
                     try:
-                        space_id = Space.objects.get(name=space_name).space_id
+                        new_space = Space.objects.get(name=space_name)
+                        space_id = new_space.space_id
+                        space_name = new_space.name
                     except:
                         return Response({"message": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND)
                     save_to_model(f"{space_id}", availability, AvailabilitySerializer)
@@ -81,7 +83,7 @@ class CreateSpace(APIView):
                     name = spaceDataSerializer.data.get("name")
                     subscriber.connect(notification_creator)
                     subscriber.send(sender=self.__class__,
-                                    data={"name": space_id, "user_id": f"{user_id}", "notification": f"{space_id} was successfully created"})
+                                    data={"name": space_id, "user_id": f"{user_id}", "notification": f"{space_name} was successfully created"})
 
                     return Response({"payload": spaceDataSerializer.data, "message": f"{name} was created successfully"}, status=status.HTTP_201_CREATED)
             except Exception as err:
