@@ -108,8 +108,7 @@ class AgentRegister(APIView):
             agent_serializer.save()
             agent_name = agent_serializer.data.get("business_name")
             if bool(new_user):
-                user.is_agent = True
-                user.save()
+                
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 host_template = get_template(
                     "api/signup_templates/space_host_signup.html"
@@ -139,6 +138,8 @@ class AgentRegister(APIView):
                         {"message": "Mail not sent"}, status=status.HTTP_400_BAD_REQUEST
                     )
             else:
+                user.is_agent = True
+                user.save()
                 return Response(
                     {
                         "message": f"Your account has been updated successfully to a Space host",
@@ -209,9 +210,11 @@ class AgentRegister(APIView):
                             "user": user_serializer.data.get("user_id"),
                         }
 
+
                         return self.serializeAgent(
                             new_agent_data,
                             user_serializer.data.get("email"),
+                            check,
                             token=user_serializer.data.get("token"),
                             new_user=True,
                         )

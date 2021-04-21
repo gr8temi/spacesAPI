@@ -25,6 +25,23 @@ def change_read_property(notification_id,operation):
     notification.save()
     return notification
 
+def clear_all():
+    all_notifications = Notification.objects.all()
+    if len(all_notifications) > 0:
+        all_notifications.delete()
+    
+    return all_notifications
+
+def read_all():
+    all_notifications = Notification.objects.all()
+
+    if len(all_notifications) > 0:
+        for notification in all_notifications:
+            notification.read = True
+            notification.save()
+        
+    return all_notifications
+
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['user_id']
@@ -57,8 +74,15 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        notification_id = data['notification_id']
+        notification_id = data.get('notification_id')
         operation = data["operation"]
+
+        if operation == "clear_all":
+            await database_sync_to_async(clear_all)()
+        
+        if operation == "read_all":
+            await database_sync_to_async(read_all)()
+
         await database_sync_to_async(change_read_property)(notification_id,operation)
         return
 

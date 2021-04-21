@@ -13,7 +13,7 @@ from ...helpers import random_string_generator
 from django.shortcuts import get_object_or_404
 from ...helpers import random_string_generator
 
-class ForgotUserPassword(APIView):
+class ForgotPasswordToken(APIView):
 
     def post(self, request):
         data = request.data
@@ -32,10 +32,10 @@ class ForgotUserPassword(APIView):
         SENDER = config("EMAIL_SENDER", default="space.ng@gmail.com")
         sender = SENDER
         html_content = 'Click on the link below to reset your password'
-        link_message = f'token={token}'
-        message = "A password reset link has been sent to your Email account"
+        link_message = f'token: {token}'
+        message = "A password reset token has been sent to your Email account"
 
-        user_template = get_template('api/forgot_password/new_forgot_password.html')
+        user_template = get_template('api/forgot_password/forgot_password_token.html')
         user_content = user_template.render({'username': user.name, 'reset_password_token': token})
         msg = EmailMultiAlternatives(subject, user_content, sender, to=[to])
         msg.attach_alternative(user_content, 'text/html')

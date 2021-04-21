@@ -28,7 +28,7 @@ from .views.booking import (
 )
 from .views import agent, customer
 from .views import space_category, space_type, favourite
-from .views.auth import login, forgot_password, reset_password, verify_email, new_forgot_password
+from .views.auth import login, forgot_password, reset_password, verify_email, forgot_password_token
 from .views.subscription import (
     Subscribe,
     SubscribeActions,
@@ -185,7 +185,7 @@ urlpatterns = [
     ),
     path(
         "v1/auth/forgot-password/token/",
-        new_forgot_password.ForgotUserPassword.as_view(),
+        forgot_password_token.ForgotPasswordToken.as_view(),
         name="forgot-password-token"
     ),
     path(
