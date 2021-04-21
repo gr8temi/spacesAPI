@@ -156,6 +156,6 @@ class RevenueAnalytics(APIView):
         for revenue in revenues_within_range:
             sum_revenues_within_range += int(revenue['amount'])
 
-        total_revenue_within_range = 0.08 * sum_revenues_within_range
+        total_revenue_within_range = sum_revenues_within_range - (0.08 * sum_revenues_within_range)
 
         return Response({"message": "Total Revenue returned successfully", "total_revenue": total_revenue_within_range}, status=status.HTTP_200_OK)
