@@ -766,7 +766,4 @@ class ReservationAnalytics(APIView):
         reservations_within_range = Order.objects.filter(space__agent__agent_id=agent_id, order_type__order_type="reservation", order_time__range=[start_date, end_date])
         no_of_reservations_within_range = len(reservations_within_range)
 
-        if no_of_reservations_within_range==0:
-            return Response({"message": f"There were no reservations between {start_date} and {end_date}"}, status=status.HTTP_404_NOT_FOUND)
-
         return Response({"message": f"Reservations between {start_date} and {end_date} were successfully fetched.", "no_of_reservations": no_of_reservations_within_range}, status=status.HTTP_200_OK)
