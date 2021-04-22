@@ -83,7 +83,7 @@ class BookingView(PlaceOrder):
         if duration == "hourly":
             hour_difference = int((end_date - start_date).total_seconds()/(3600*60))
             if hour_difference == 0:
-                hour_difference =1
+                hour_difference = 1
             booking_amount = (hour_difference*space_cost)
         elif duration == "daily":
             day_difference = (end_date - start_date).days
@@ -91,6 +91,12 @@ class BookingView(PlaceOrder):
         elif duration == "monthly":
             month_difference = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
             booking_amount = (month_difference*space_cost)
+        
+        extra_sum = 0
+        for extra in extras:
+            extra_sum += float(extra.get("amount"))
+        print(booking_amount,extra_sum)
+        booking_amount = booking_amount + extra_sum
 
         order_data = {
             'amount': booking_amount,
