@@ -75,7 +75,7 @@ class BookingView(PlaceOrder):
         else:
             return False
 
-    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type):
+    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type,notes):
         space = Space.objects.get(space_id=space_id)
         space_cost = space.amount
         space_cancellation_policy = space.cancellation_rule
@@ -109,7 +109,8 @@ class BookingView(PlaceOrder):
             'duration': duration,
             'hours_booked': hours_booked,
             'order_time': order_time,
-            'cancellation_rule': space_cancellation_policy
+            'cancellation_rule': space_cancellation_policy,
+            'notes':notes
         }
         print(order_data)
 
@@ -357,7 +358,7 @@ class BookingView(PlaceOrder):
                             days['end_date'].replace('Z', '+00:00'))
 
                         booking = self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                                  user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type)
+                                                  user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type, data.get("notes", ""))
                         if "error" in booking:
                             booking_error = booking["error"]
                             break
@@ -715,4 +716,4 @@ class BookingAnalytics(APIView):
         if no_of_bookings_within_range==0:
             return Response({"message": f"There were no bookings between {start_date} and {end_date}"}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({"message": f"Bookings between {start_date} and {end_date} were successfully fetched.", "no_of_bookings": no_of_bookings_within_range}, status=status.HTTP_200_OK)
+        return Response({"message": f"Bookings between {start_date} and {end_date} were successfully fetched.", "number of bookings": no_of_bookings_within_range}, status=status.HTTP_200_OK)
