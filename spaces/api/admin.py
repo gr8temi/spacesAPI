@@ -177,6 +177,22 @@ class OrderAdmin(ExportMixinAdmin):
         return instance.space.agent.bank
     bank_name.short_description = "Bank Name"
 
+    def space_cost(self, instance):
+        return instance.space.amount
+    space_cost.short_description = "Cost of Space"
+    
+    def extras_cost(self,instance):
+        sum_of_extras = 0
+        for extra in instance.extras:
+            sum_of_extras+=float(extra.get("amount"))
+        return sum_of_extras
+    extras_cost.short_description = "Cost of Extras booked"
+
+    def service_charge(self,instance):
+        return 0.08 * float(instance.space.amount)
+    service_charge.short_description = "Booking service charge"
+    
+
     def account_number(self, instance):
         return instance.space.agent.account_number
     account_number.short_description = "Account Number"
@@ -184,6 +200,10 @@ class OrderAdmin(ExportMixinAdmin):
     def billing_preference(self, instance):
         return instance.space.agent.plans
     billing_preference.short_description = "Billing Preference"
+
+    def total_amount(self, instance):
+        return float(instance.amount) + 0.08 * float(instance.space.amount)
+    total_amount.short_description = "Total Amount"
 
     resource_class = OrderResource
     list_display = ("orders_id",
@@ -198,7 +218,10 @@ class OrderAdmin(ExportMixinAdmin):
         "bank_name",
         "account_number",
         "billing_preference",
-        "amount"
+        "space_cost",
+        "extras_cost",
+        "service_charge",
+        "total_amount",
     )
 
     list_filter = (
