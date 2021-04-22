@@ -14,6 +14,7 @@ from spaces import celery
 from spaces.paystack import paystack
 
 from .models.order import Order
+from .models.ratings import Rating
 from .models.order_type import OrderType
 from .models.subscription import SubscriptionPerAgent
 from .helper.helper import send_subscription_mail
@@ -186,21 +187,24 @@ def charge_all_expired_subscriptions():
         send_subscription_mail(subject=subject, to=email, name=name, content=content)
 
 @periodic_task(
-    run_every=(crontab(minute="*/15")),
+    run_every=(crontab(minute="*/720")),
     name="Send mail to for review",
     ignore_result=False,
 )
 def send_review_message():
     booking = OrderType.objects.get(order_type="booking")
     all_expired_bookings = Order.objects.filter(usage_end_date__lte=datetime.now(), order_type=booking)
-
     for booking in all_expired_bookings:
         to = booking.user.email
         customer_name = booking.user.name
+        user=booking.user
         space_id = str(booking.space.space_id)
-        review_space_url=config("REVIEW_SPACE_URL", default=f"http://localhost:3000/rate")
-        subject = "KINDLY HELP REVIEW THE SPACE USED" 
-        from_email = config("EMAIL_SENDER", default="space.ng@gmail.com")
-        html_content = f"Dear {customer_name} you have successfully used {booking.space.name}. Kindly help review the space at the link below"
-        link_message = f'<a href="{review_space_url}/{space_id}">Review space</a>'
-        send_mail(subject, html_content, from_email, [to], fail_silently=False, html_message=link_message)
+        try:
+            Rating.objects.get(user=user,space__space_id=space_id)
+        except Rating.DoesNotExist:
+            review_space_url=config("REVIEW_SPACE_URL", default=f"http://localhost:3000/rate")
+            subject = "KINDLY HELP REVIEW THE SPACE USED" 
+            from_email = config("EMAIL_SENDER", default="space.ng@gmail.com")
+            html_content = f"Dear {customer_name} you have successfully used {booking.space.name}. Kindly help review the space at the link below"
+            link_message = f'<a href="{review_space_url}/{space_id}">Review space</a>'
+            send_mail(subject, html_content, from_email, [to], fail_silently=False, html_message=link_message)
