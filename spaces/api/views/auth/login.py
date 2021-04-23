@@ -70,7 +70,7 @@ class UserLogin(APIView):
                         }
                     return Response(dict(message="Login was successful", token=token, agent=agent.agent_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number, no_of_spaces=no_of_spaces, document=document, date_of_birth=date_of_birth,
                                          profile_picture_url=profile_picture_url,
-                                         social_links=social_links, plan=space_host_plan, business_name=agent.business_name), status=status.HTTP_200_OK, )
+                                         social_links=social_links, plan=space_host_plan, business_name=agent.business_name, account_number=agent.account_number,account_name=agent.account_name,bank=agent.bank), status=status.HTTP_200_OK, )
                 else:
                     customerFavourites = []
                     try:

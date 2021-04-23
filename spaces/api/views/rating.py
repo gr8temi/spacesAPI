@@ -17,10 +17,11 @@ class RateASpace(APIView):
 
     def post(self,request):
         data = {}
-        data["user"] =  request.data.get("name")
+        data["user"] =  request.data.get("name")  
         data["ratings"] = float(request.data.get("rating"))
         data["comment"] = request.data.get("message")
         data["space"] = request.data.get("space")
+        data["order_id"] = request.data.get("booking")
         try:
             space = Space.objects.get(space_id=uuid.UUID(data["space"]))
         except:

@@ -19,11 +19,16 @@ def filtered_notifications(user_id):
     return notifications.data
 
 def change_read_property(notification_id,operation):
-
+    
     notification = get_object_or_404(Notification,notification_id=notification_id)
     notification.read = True
     notification.save()
     return notification
+
+def delete_notification(notification_id):
+    notification = get_object_or_404(Notification,notification_id=notification_id)
+    notification.delete()
+    return True
 
 def clear_all():
     all_notifications = Notification.objects.all()
@@ -82,7 +87,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         
         if operation == "read_all":
             await database_sync_to_async(read_all)()
-
+        if operation == "delete":
+            await database_sync_to_async(delete_notification)(notification_id)
         await database_sync_to_async(change_read_property)(notification_id,operation)
         return
 

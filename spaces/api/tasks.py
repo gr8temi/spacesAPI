@@ -197,14 +197,13 @@ def send_review_message():
     for booking in all_expired_bookings:
         to = booking.user.email
         customer_name = booking.user.name
-        user=booking.user
         space_id = str(booking.space.space_id)
         try:
-            Rating.objects.get(user=user,space__space_id=space_id)
+            Rating.objects.get(order_id__order_id=booking.order_id)
         except Rating.DoesNotExist:
             review_space_url=config("REVIEW_SPACE_URL", default=f"http://localhost:3000/rate")
             subject = "KINDLY HELP REVIEW THE SPACE USED" 
             from_email = config("EMAIL_SENDER", default="space.ng@gmail.com")
             html_content = f"Dear {customer_name} you have successfully used {booking.space.name}. Kindly help review the space at the link below"
-            link_message = f'<a href="{review_space_url}/{space_id}">Review space</a>'
+            link_message = f'<a href="{review_space_url}/{space_id}/{booking.order_id}">Review space</a>'
             send_mail(subject, html_content, from_email, [to], fail_silently=False, html_message=link_message)
