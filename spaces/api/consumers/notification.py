@@ -88,7 +88,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         if operation == "read_all":
             await database_sync_to_async(read_all)()
         if operation == "delete":
-            await database_sync_to_async(delete)(notification_id)
+            await database_sync_to_async(delete_notification)(notification_id)
         await database_sync_to_async(change_read_property)(notification_id,operation)
         return
 
