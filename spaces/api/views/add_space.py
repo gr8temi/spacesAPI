@@ -53,6 +53,7 @@ class CreateSpace(APIView):
             'agent': data.get('agent'),
             'duration': data.get('duration'),
             'images': data.get('images'),
+            'cancellation_rule': data.get("cancellation_rule"),
             # 'videos': data.get('videos'),
             'amenities': data.get('amenities'),
             'rules': data.get('rules'),
