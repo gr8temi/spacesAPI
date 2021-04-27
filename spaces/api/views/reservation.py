@@ -369,7 +369,7 @@ class PlaceReservation(PlaceOrder):
                     msg.send()
 
                     admin_template = get_template('api/admin/reservation_alert.html')
-                    admin_content = admin_template.render()
+                    admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/login"})
                     msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
                     msg.attach_alternative(admin_content, "text/html")
                     msg.send()
@@ -585,13 +585,13 @@ class RequestReservationExtension(PlaceOrder):
             agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
 
             guest_template = get_template('api/reservation/reservation_extension_guest.html')
-            guest_content = guest_template.render({'guest_name': customer.name})
+            guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login"})
             msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
             msg.attach_alternative(guest_content, 'text/html')
             msg.send()
 
             host_template = get_template('api/reservation/reservation_extension_host.html')
-            host_content = host_template.render({'host_name': agent_name, 'space_name': space.name})
+            host_content = host_template.render({'host_name': agent_name, 'space_name': space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
             msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
             msg.attach_alternative(host_content, 'text/html')
             msg.send()
@@ -627,7 +627,7 @@ class RequestReservationExtension(PlaceOrder):
                 agent_content = f"Dear {agent_name}, You have approved a request for reservation extension for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}."
 
                 guest_template = get_template('api/reservation/extension_approval_guest.html')
-                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name})
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, 'text/html')
                 msg.send()
@@ -667,7 +667,7 @@ class RequestReservationExtension(PlaceOrder):
                 # send_mail(subject_customer, customer_content,
                 #           sender, to_customer)
                 guest_template = get_template('api/reservation/extension_denial_guest.html')
-                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name})
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, 'text/html')
                 msg.send()
