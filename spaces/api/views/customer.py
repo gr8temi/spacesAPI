@@ -65,11 +65,14 @@ class CustomerDetail(APIView):
 class CustomerRegister(APIView):
     def get_object(self, email):
         try:
+            email = email.lower()
             return User.objects.get(email=email)
         except User.DoesNotExist:
             return []
 
     def serializeCustomer(self, data, email, token, new_user):
+        email = email.lower()
+        data.get('email') = data.get('email').lower()
         customer_serializer = CustomerSerializer(data=data)
         if customer_serializer.is_valid():
             customer_serializer.save()
@@ -92,6 +95,7 @@ class CustomerRegister(APIView):
 
     def post(self, request, format=None):
         data = request.data
+        data.get('email') = data.get('email').lower()
         email = data.get('email')
         check = self.get_object(email)
         hashed = bcrypt.hashpw(
@@ -149,11 +153,13 @@ class FetchByEmail(APIView):
 
     def get_object(self, email):
         try:
+            email = email.lower()
             return Customer.objects.get(user__email=email)
         except Customer.DoesNotExist:
             return False
 
     def get(self, request, email):
+        email = email.lower()
         customer = self.get_object(email)
         if not customer:
             return Response({"message": "Customer with the given email does not exist"},

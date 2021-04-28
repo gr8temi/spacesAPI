@@ -98,11 +98,14 @@ class AgentDetail(APIView):
 class AgentRegister(APIView):
     def get_object(self, email):
         try:
+            email = email.lower()
             return User.objects.get(email=email)
         except User.DoesNotExist:
             return False
 
     def serializeAgent(self, data, email, user, token, new_user):
+        email = email.lower()
+        data.get('email') = data.get('email').lower()
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
             agent_serializer.save()
@@ -157,6 +160,7 @@ class AgentRegister(APIView):
         with transaction.atomic():
             try:
                 data = request.data
+                data.get('email') = data.get('email').lower()
                 email = data.get("email")
                 check = self.get_object(email)
                 hashed = ""
