@@ -20,7 +20,8 @@ class UserLogin(APIView):
     def post(self, request):
         data = request.data
         try:
-            user = User.objects.get(email=data.get('email'))
+            data_email = data.get('email').lower()
+            user = User.objects.get(email=data_email)
 
             is_valid_password = bcrypt.checkpw(
                 data.get('password').encode('utf-8'), user.password.split("'")[1].encode('utf-8'))
