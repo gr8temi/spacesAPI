@@ -105,7 +105,8 @@ class AgentRegister(APIView):
 
     def serializeAgent(self, data, email, user, token, new_user):
         email = email.lower()
-        data.get('email') = data.get('email').lower()
+        data_email = data.get('email')
+        data_email = data_email.lower()
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
             agent_serializer.save()
@@ -160,8 +161,9 @@ class AgentRegister(APIView):
         with transaction.atomic():
             try:
                 data = request.data
-                data.get('email') = data.get('email').lower()
-                email = data.get("email")
+                data_email = data.get('email')
+                data_email = data_email.lower()
+                email = data_email
                 check = self.get_object(email)
                 hashed = ""
                 if data.get("password"):
@@ -176,7 +178,7 @@ class AgentRegister(APIView):
                 token = token_generator()
                 user_data = {
                     "name": data.get("name"),
-                    "email": data.get("email"),
+                    "email": data_email,
                     "phone_number": data.get("phone_number"),
                     "password": f"${hashed}",
                     "is_agent": True,
