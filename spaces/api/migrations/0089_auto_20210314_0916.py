@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='space',
             name='cancellation_rule',
-            field=models.ForeignKey(default=uuid.UUID('5f25f296-ee0d-4e88-b5c9-147ba84e4821'), on_delete=django.db.models.deletion.CASCADE, to='api.CancellationRules'),
+            field=models.ForeignKey(default=uuid.UUID('75d5408d-017c-4a57-9d47-41284c36f448'), on_delete=django.db.models.deletion.CASCADE, to='api.CancellationRules'),
         ),
     ]
