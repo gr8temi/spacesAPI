@@ -1,3 +1,4 @@
+import uuid
 from rest_framework.views import APIView
 from ..serializers.favourite import FavouriteSerializer, FavouriteSpaceSerializer
 from rest_framework.response import Response
@@ -15,7 +16,9 @@ class AddFavorite(APIView):
         serializer = FavouriteSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Space added succesfully to Favorites", "payload":serializer.data}, status=status.HTTP_201_CREATED)
+            favourite = Favourite.objects.get(favorite_id=uuid.UUID(serializer.data.get("favorite_id")))
+            serialized = FavouriteSpaceSerializer(favourite)
+            return Response({"message": "Space added succesfully to Favorites", "payload":serialized.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
