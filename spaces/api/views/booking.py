@@ -359,9 +359,9 @@ class BookingView(PlaceOrder):
                     booking_error = ""
                     for days in booked:
                         start = datetime.fromisoformat(
-                            days['start_date'].replace('Z', '+00:00'))
+                            days['start_date'].replace('Z', '+01:00'))
                         end = datetime.fromisoformat(
-                            days['end_date'].replace('Z', '+00:00'))
+                            days['end_date'].replace('Z', '+01:00'))
 
                         booking = self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
                                                   user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type, data.get("notes", ""))
