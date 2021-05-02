@@ -15,7 +15,7 @@ class AddFavorite(APIView):
         serializer = FavouriteSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Space added succesfully to Favorites"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Space added succesfully to Favorites", "payload":serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
