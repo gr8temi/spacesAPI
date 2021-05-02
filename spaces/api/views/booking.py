@@ -462,7 +462,7 @@ class BookingCancellation(APIView):
             msg.send()
 
             admin_template = get_template('api/admin/booking_cancellation_request.html')
-            admin_content = admin_template.render({'guest_name': customer_name})
+            admin_content = admin_template.render({'guest_name': customer_name,  "login_url": f"{config('FRONTEND_URL')}/login"})
             msg = EmailMultiAlternatives(subject_customer, admin_content, sender, to=[admin_email_list])
             msg.attach_alternative(admin_content, "text/html")
             msg.send()
@@ -632,7 +632,7 @@ class UpdateReferenceCode(APIView):
         msg.send()
 
         admin_template = get_template('api/admin/booking_alert.html')
-        admin_content = admin_template.render()
+        admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/login"})
         msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
         msg.attach_alternative(admin_content, "text/html")
         msg.send()
