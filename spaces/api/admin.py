@@ -351,7 +351,7 @@ class CancellationRulesAdmin(ExportMixinAdmin):
 @admin.register(Availability)
 class AvailabilityAdmin(ExportMixinAdmin):
     resource_class = AvailabilityResource
-    list_display = ('space', 'space_host', 'space_host_business_name', 'day', 'all_day', 'open_time', 'close_time')
+    list_display = ('space', 'day', 'all_day', 'open_time', 'close_time')
     list_filter = ('space', 'day', 'open_time', 'close_time')
     search_fields = ['space__name']
 
