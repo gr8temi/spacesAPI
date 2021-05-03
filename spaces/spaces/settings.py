@@ -183,7 +183,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# USE_TZ = True
 
 CACHE_TTL = 60 * 15
 CACHES = {
