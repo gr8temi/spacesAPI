@@ -177,13 +177,13 @@ PASSWORD_HASSHERS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'
 
 USE_I18N = True
 
 USE_L10N = True
 
-# USE_TZ = True
+USE_TZ = True
 
 CACHE_TTL = 60 * 15
 CACHES = {
