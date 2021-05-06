@@ -80,6 +80,9 @@ class SubscriptionPerAgent(models.Model):
 
     def subscription_name(self):
         return self.subscription.subscription_title
+    
+    def subscription_plan(self):
+        return self.subscription.subscription_plan
 
     def subscription_type(self):
         return self.subscription.subscription_type

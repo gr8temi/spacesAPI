@@ -98,21 +98,24 @@ class AgentDetail(APIView):
 class AgentRegister(APIView):
     def get_object(self, email):
         try:
+
             email = email.lower()
             return User.objects.get(email=email)
         except User.DoesNotExist:
             return False
 
     def serializeAgent(self, data, email, user, token, new_user):
+
         email = email.lower()
-        data_email = data.get('email')
-        data_email = data_email.lower()
+        # data_email = data.get('email')
+
+        # data_email = data_email.lower()
         agent_serializer = AgentSerializer(data=data)
         if agent_serializer.is_valid():
             agent_serializer.save()
             agent_name = agent_serializer.data.get("business_name")
             if bool(new_user):
-                
+
                 email_verification_url = config("VERIFY_EMAIL_URL")
                 host_template = get_template(
                     "api/signup_templates/space_host_signup.html"
@@ -161,7 +164,8 @@ class AgentRegister(APIView):
         with transaction.atomic():
             try:
                 data = request.data
-                data_email = data.get('email')
+                data_email = data.get("email")
+
                 data_email = data_email.lower()
                 email = data_email
                 check = self.get_object(email)
@@ -200,10 +204,14 @@ class AgentRegister(APIView):
 
                 # Check if User already exist but is a customer
                 elif bool(check) and check.is_customer:
-                    
+
                     new_agent_data = {**agent_data, "user": check.user_id}
                     return self.serializeAgent(
-                        new_agent_data, check.email, check, token_generator(), new_user=False
+                        new_agent_data,
+                        check.email,
+                        check,
+                        token_generator(),
+                        new_user=False,
                     )
 
                 # Create new Agent
@@ -215,7 +223,6 @@ class AgentRegister(APIView):
                             **agent_data,
                             "user": user_serializer.data.get("user_id"),
                         }
-
 
                         return self.serializeAgent(
                             new_agent_data,
