@@ -66,3 +66,10 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_code
+
+class Booking(Order):
+    class Meta:
+        proxy = True
+class Reservation(Order):
+    class Meta:
+        proxy = True

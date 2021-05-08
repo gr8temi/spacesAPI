@@ -13,7 +13,7 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from import_export.admin import ExportMixin
 from import_export.formats import base_formats
 from .helper.send_cancellation_email import CancellationActions
-from .models.order import Order
+from .models.order import Order, Booking, Reservation
 from .models.spaces import Space
 from .models.cancelation import Cancellation
 from .models.space_type import SpaceType
@@ -284,6 +284,17 @@ class OrderAdmin(ExportMixinAdmin):
     def get_rangefilter_created_at_title(self, request, field_path):
         return "Create Date"
 
+@admin.register(Booking)
+class BookingAdmin(OrderAdmin):
+    def queryset(self, request):
+        qs = super(MyModelAdmin, self).queryset(request)
+        return qs.filter(order_type__order_type='booking')
+
+@admin.register(Reservation)
+class ReservationAdmin(OrderAdmin):
+    def queryset(self, request):
+        qs = super(MyModelAdmin, self).queryset(request)
+        return qs.filter(order_type__order_type='reservation')
 
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
