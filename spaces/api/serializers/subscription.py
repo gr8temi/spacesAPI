@@ -39,7 +39,6 @@ class SubPerAgentSerializer(serializers.ModelSerializer):
             "is_cancelled",
             "reference_code",
             "agent",
-            "authorization_code",
             "amount",
         ]
 
