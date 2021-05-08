@@ -41,7 +41,6 @@ class SubPerAgentSerializer(serializers.ModelSerializer):
             "agent",
             "authorization_code",
             "amount",
-            "",
         ]
 
     @property
