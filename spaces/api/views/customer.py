@@ -72,8 +72,6 @@ class CustomerRegister(APIView):
 
     def serializeCustomer(self, data, email, token, new_user):
         email = email.lower()
-        data_email = data.get('email')
-        data_email = data_email.lower()
         customer_serializer = CustomerSerializer(data=data)
         if customer_serializer.is_valid():
             customer_serializer.save()
