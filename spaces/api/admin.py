@@ -286,12 +286,16 @@ class OrderAdmin(ExportMixinAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(OrderAdmin):
+    class Meta:
+        ordering = ('-date',)
     def queryset(self, request):
         qs = super(MyModelAdmin, self).queryset(request)
         return qs.filter(order_type__order_type='booking')
 
 @admin.register(Reservation)
 class ReservationAdmin(OrderAdmin):
+    class Meta:
+        ordering = ('-date',)
     def queryset(self, request):
         qs = super(MyModelAdmin, self).queryset(request)
         return qs.filter(order_type__order_type='reservation')
