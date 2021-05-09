@@ -357,19 +357,19 @@ class PlaceReservation(PlaceOrder):
                     
 
                     guest_template = get_template('api/order/customer_reservation_notification.html')
-                    guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                    guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                     msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                     msg.attach_alternative(guest_content, "text/html")
                     msg.send()
                     
                     host_template = get_template('api/order/space_host_reservation_notification.html')
-                    host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                    host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                     msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
                     msg.attach_alternative(host_content, "text/html")
                     msg.send()
 
                     admin_template = get_template('api/admin/reservation_alert.html')
-                    admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/login"})
+                    admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
                     msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
                     msg.attach_alternative(admin_content, "text/html")
                     msg.send()
@@ -413,13 +413,13 @@ class PlaceReservation(PlaceOrder):
                 agent_content = f"Dear {agent_name}, You have approved a reservation for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}. This expiry is subject to request for extension by the customer "
 
                 guest_template = get_template('api/order/customer_reservation_approved.html')
-                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, "text/html")
                 msg.send()
                 
                 # host_template = get_template('api/order/space_host_reservation_approved.html')
-                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                 # msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
                 # msg.attach_alternative(host_content, "text/html")
                 # msg.send()
@@ -452,13 +452,13 @@ class PlaceReservation(PlaceOrder):
                 agent_content = f"Dear {agent_name}, You have declined a reservation for {space.name} listed on our platform."
 
                 guest_template = get_template('api/order/customer_reservation_denied.html')
-                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, "text/html")
                 msg.send()
                 
                 # host_template = get_template('api/order/space_host_reservation_notification.html')
-                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+                # host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
                 # msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
                 # msg.attach_alternative(host_content, "text/html")
                 # msg.send()
@@ -585,13 +585,13 @@ class RequestReservationExtension(PlaceOrder):
             agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
 
             guest_template = get_template('api/reservation/reservation_extension_guest.html')
-            guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/login"})
+            guest_content = guest_template.render({'guest_name': customer.name, "login_url": f"{config('FRONTEND_URL')}/signin"})
             msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
             msg.attach_alternative(guest_content, 'text/html')
             msg.send()
 
             host_template = get_template('api/reservation/reservation_extension_host.html')
-            host_content = host_template.render({'host_name': agent_name, 'space_name': space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
+            host_content = host_template.render({'host_name': agent_name, 'space_name': space.name, "login_url": f"{config('FRONTEND_URL')}/signin"})
             msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
             msg.attach_alternative(host_content, 'text/html')
             msg.send()
@@ -627,7 +627,7 @@ class RequestReservationExtension(PlaceOrder):
                 agent_content = f"Dear {agent_name}, You have approved a request for reservation extension for {space.name} listed on our platform. It would expire by {next_day.time()} {next_day.date()}."
 
                 guest_template = get_template('api/reservation/extension_approval_guest.html')
-                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/signin"})
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, 'text/html')
                 msg.send()
@@ -667,7 +667,7 @@ class RequestReservationExtension(PlaceOrder):
                 # send_mail(subject_customer, customer_content,
                 #           sender, to_customer)
                 guest_template = get_template('api/reservation/extension_denial_guest.html')
-                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/login"})
+                guest_content = guest_template.render({'guest_name': customer.name, 'space_name':space.name, "login_url": f"{config('FRONTEND_URL')}/signin"})
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, 'text/html')
                 msg.send()

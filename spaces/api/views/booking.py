@@ -456,13 +456,13 @@ class BookingCancellation(APIView):
             # kindly visit dashboard to accept or decline request """
 
             guest_template = get_template('api/order/customer_booking_cancellation_request.html')
-            guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login" })
+            guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin" })
             msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
             msg.attach_alternative(guest_content, "text/html")
             msg.send()
 
             admin_template = get_template('api/admin/booking_cancellation_request.html')
-            admin_content = admin_template.render({'guest_name': customer_name,  "login_url": f"{config('FRONTEND_URL')}/login"})
+            admin_content = admin_template.render({'guest_name': customer_name,  "login_url": f"{config('FRONTEND_URL')}/signin"})
             msg = EmailMultiAlternatives(subject_customer, admin_content, sender, to=[admin_email_list])
             msg.attach_alternative(admin_content, "text/html")
             msg.send()
@@ -501,13 +501,13 @@ class BookingCancellationActions(APIView):
                 # agent_content = f"Dear {agent_name}, You have approved a request for Booking cancellation."
 
                 guest_template = get_template('api/order/customer_booking_cancellation_approved.html')
-                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space_name, "space_location":space_location })
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, "text/html")
                 msg.send()
                 
                 host_template = get_template('api/order/space_host_booking_cancellation_approved.html')
-                host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space_name, "space_location":space_location })
                 msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
                 msg.attach_alternative(host_content, "text/html")
                 msg.send()
@@ -536,7 +536,7 @@ class BookingCancellationActions(APIView):
                 agent_content = f"Dear {agent_name}, You have Declined a request for Booking cancellation."
 
                 guest_template = get_template('api/order/customer_booking_cancellation_denied.html')
-                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space_name, "space_location":space_location })
+                guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space_name, "space_location":space_location })
                 msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
                 msg.attach_alternative(guest_content, "text/html")
                 msg.send()
@@ -620,19 +620,19 @@ class UpdateReferenceCode(APIView):
         admin_email_list = [admin.email for admin in all_admin if all_admin]
 
         guest_template = get_template('api/order/customer_booking_notification.html')
-        guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+        guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
         msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
         msg.attach_alternative(guest_content, "text/html")
         msg.send()
         
         host_template = get_template('api/order/space_host_booking_notification.html')
-        host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/login", "space_name":space.name, "space_location":space.address })
+        host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
         msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
         msg.attach_alternative(host_content, "text/html")
         msg.send()
 
         admin_template = get_template('api/admin/booking_alert.html')
-        admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/login"})
+        admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
         msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
         msg.attach_alternative(admin_content, "text/html")
         msg.send()
