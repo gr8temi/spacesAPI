@@ -112,7 +112,7 @@ class BookingView(PlaceOrder):
         else:
             return False
 
-    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type,notes):
+    def book_space(self, amount, start_date, end_date, transaction_code, no_of_guest, order_type_name, user, name, email, extras, space_id, duration, hours_booked, order_cde, order_time, booking_type,notes, offline_booking):
         space = Space.objects.get(space_id=space_id)
         space_cost = space.amount
         space_cancellation_policy = space.cancellation_rule
@@ -153,7 +153,8 @@ class BookingView(PlaceOrder):
             'hours_booked': hours_booked,
             'order_time': order_time,
             'cancellation_rule': space_cancellation_policy,
-            'notes':notes
+            'notes':notes,
+            'offline_booking':offline_booking
         }
         print(order_data)
 
