@@ -80,11 +80,53 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
         abstract = True
 
 
+class SpaceInline(admin.TabularInline):
+    model = Space
+
+    def image_preview(self, obj):
+        if obj.images:
+            return mark_safe(
+                " ".join(
+                    [
+                        '<img src="{0}" width="150" height="150" style="object-fit:contain" />'.format(
+                            image
+                        )
+                    ]
+                    for image in obj.images
+                )
+            )
+        else:
+            return "(No image)"
+
+    image_preview.short_description = "Preview"
+
+
 # Spaces display
 @admin.register(Space)
 class SpaceAdmin(ExportMixinAdmin):
     resource_class = SpaceResource
-
+    # inlines = [
+    #     SpaceInline,
+    # ]
+    readonly_fields = ['image_preview']
+    fields = [
+        "name",
+        "image_preview",
+        "space_type",
+        "address",
+        "city",
+        "state",
+        "number_of_bookings",
+        "capacity",
+        "amount",
+        "duration",
+        "carspace",
+        "cancellation_rule",
+        "ratings",
+        "active",
+        "gmap",
+        "agent",
+    ]
     list_display = (
         "space_id",
         "name",
@@ -167,7 +209,6 @@ class SpaceAdmin(ExportMixinAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
-    
     def booking_code(self, obj):
         return obj.order_code
 
@@ -285,24 +326,27 @@ class OrderAdmin(ExportMixinAdmin):
     def get_rangefilter_created_at_title(self, request, field_path):
         return "Create Date"
 
+
 @admin.register(Booking)
 class BookingAdmin(OrderAdmin):
-    
     def queryset(self, request):
         qs = super(BookingAdmin, self).queryset(request)
-        return qs.filter(order_type__order_type='booking', offline_booking=False)
+        return qs.filter(order_type__order_type="booking", offline_booking=False)
+
+
 @admin.register(OfflineBooking)
 class OfflineBookingAdmin(OrderAdmin):
-    
     def queryset(self, request):
         qs = super(OfflineBookingAdmin, self).queryset(request)
-        return qs.filter(order_type__order_type='booking', offline_booking=True)
+        return qs.filter(order_type__order_type="booking", offline_booking=True)
+
 
 @admin.register(Reservation)
 class ReservationAdmin(OrderAdmin):
     def queryset(self, request):
         qs = super(MyModelAdmin, self).queryset(request)
-        return qs.filter(order_type__order_type='reservation')
+        return qs.filter(order_type__order_type="reservation")
+
 
 @admin.register(Refund)
 class RefundAdmin(ExportMixinAdmin):
