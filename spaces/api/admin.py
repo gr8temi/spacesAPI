@@ -77,7 +77,6 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
         return [f for f in formats if f().can_export()]
 
     class Meta:
-        ordering = ('-created_at',)
         abstract = True
 
 
@@ -280,8 +279,6 @@ class OrderAdmin(ExportMixinAdmin):
         "total_amount",
         "paystack_amount",
     )
-    class Meta:
-        ordering = ['created_at']
 
     list_filter = (("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter))
 
@@ -292,19 +289,17 @@ class OrderAdmin(ExportMixinAdmin):
 class BookingAdmin(OrderAdmin):
     
     def queryset(self, request):
-        qs = super(MyModelAdmin, self).queryset(request)
+        qs = super(BookingAdmin, self).queryset(request)
         return qs.filter(order_type__order_type='booking', offline_booking=False)
 @admin.register(OfflineBooking)
 class OfflineBookingAdmin(OrderAdmin):
     
     def queryset(self, request):
-        qs = super(MyModelAdmin, self).queryset(request)
+        qs = super(OfflineBookingAdmin, self).queryset(request)
         return qs.filter(order_type__order_type='booking', offline_booking=True)
 
 @admin.register(Reservation)
 class ReservationAdmin(OrderAdmin):
-    class Meta:
-        ordering = ('-date',)
     def queryset(self, request):
         qs = super(MyModelAdmin, self).queryset(request)
         return qs.filter(order_type__order_type='reservation')

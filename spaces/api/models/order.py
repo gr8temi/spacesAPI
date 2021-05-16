@@ -70,13 +70,30 @@ class Order(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+class BookingManager(models.Manager):
+    def get_queryset(self):
+        return super(BookingManager, self).get_queryset().filter(
+            order_type__order_type='booking', offline_booking=False)
 class Booking(Order):
+    objects = BookingManager()
     class Meta:
         proxy = True
 
+class OfflineBookingManager(models.Manager):
+    def get_queryset(self):
+        return super(OfflineBookingManager, self).get_queryset().filter(
+            order_type__order_type='booking', offline_booking=True)
 class OfflineBooking(Order):
+    objects = OfflineBookingManager()
     class Meta:
         proxy = True
+
+class ReservationManager(models.Manager):
+    def get_queryset(self):
+        return super(ReservationManager, self).get_queryset().filter(
+            order_type__order_type='reservation')
+
 class Reservation(Order):
+    objects = ReservationManager()
     class Meta:
         proxy = True
