@@ -413,6 +413,8 @@ class BookingView(PlaceOrder):
                         return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
                     else:
                         send_booking_mail(customer_email,space.agent.user.email, data.get("name"), space.agent.user.name, space)
+                        return Response({"message": f"Booking successful", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
+
 
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
