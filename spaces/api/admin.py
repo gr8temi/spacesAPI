@@ -13,7 +13,7 @@ from rangefilter.filter import DateRangeFilter, DateTimeRangeFilter
 from import_export.admin import ExportMixin
 from import_export.formats import base_formats
 from .helper.send_cancellation_email import CancellationActions
-from .models.order import Order, Booking, Reservation
+from .models.order import Order, Booking, Reservation, OfflineBooking
 from .models.spaces import Space
 from .models.cancelation import Cancellation
 from .models.space_type import SpaceType
@@ -77,6 +77,7 @@ class ExportMixinAdmin(ExportMixin, admin.ModelAdmin):
         return [f for f in formats if f().can_export()]
 
     class Meta:
+        ordering = ('-created_at',)
         abstract = True
 
 
@@ -167,6 +168,7 @@ class SpaceAdmin(ExportMixinAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
+    
     def booking_code(self, obj):
         return obj.order_code
 
@@ -278,6 +280,8 @@ class OrderAdmin(ExportMixinAdmin):
         "total_amount",
         "paystack_amount",
     )
+    class Meta:
+        ordering = ['created_at']
 
     list_filter = (("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter))
 
@@ -286,11 +290,16 @@ class OrderAdmin(ExportMixinAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(OrderAdmin):
-    class Meta:
-        ordering = ('-date',)
+    
     def queryset(self, request):
         qs = super(MyModelAdmin, self).queryset(request)
-        return qs.filter(order_type__order_type='booking')
+        return qs.filter(order_type__order_type='booking', offline_booking=False)
+@admin.register(OfflineBooking)
+class OfflineBookingAdmin(OrderAdmin):
+    
+    def queryset(self, request):
+        qs = super(MyModelAdmin, self).queryset(request)
+        return qs.filter(order_type__order_type='booking', offline_booking=True)
 
 @admin.register(Reservation)
 class ReservationAdmin(OrderAdmin):

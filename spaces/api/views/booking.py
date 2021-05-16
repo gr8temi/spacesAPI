@@ -41,6 +41,43 @@ from .order import PlaceOrder
 
 lagos = py_timezone("Africa/Lagos")
 
+def send_booking_mail(customer_email,agent_mail, customer_name, agent_name, space):
+    sender = config(
+            "EMAIL_SENDER", default="space.ng@gmail.com")
+
+    # notification for customer booking space
+    subject_customer = "BOOKING COMPLETE"
+    to_customer = customer_email
+    # customer_content = f"Dear {to_customer}, your Booking has been completed"
+
+    # notification for agent that registered space
+    subject_agent = "YOU HAVE A BOOKING"
+    to_agent = agent_mail
+    # agent_content = f"Dear {agent_name}, you have a booking placed for your space {space.name} listed on our platform."
+    
+    #notification for admin about customer booking space
+    subject_admin = "A NEW BOOKING HAS BEEN MADE"
+    all_admin = User.objects.filter(is_super=True)
+    admin_email_list = [admin.email for admin in all_admin if all_admin]
+
+    guest_template = get_template('api/order/customer_booking_notification.html')
+    guest_content = guest_template.render({'guest_name': customer_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
+    msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
+    msg.attach_alternative(guest_content, "text/html")
+    msg.send()
+    
+    host_template = get_template('api/order/space_host_booking_notification.html')
+    host_content = host_template.render({'host_name': agent_name, "login_url": f"{config('FRONTEND_URL')}/signin", "space_name":space.name, "space_location":space.address })
+    msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+    msg.attach_alternative(host_content, "text/html")
+    msg.send()
+
+    admin_template = get_template('api/admin/booking_alert.html')
+    admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
+    msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=admin_email_list)
+    msg.attach_alternative(admin_content, "text/html")
+    msg.send()
+
 class BookingStatus(APIView):
     def get_order(self, order_code):
 
@@ -264,6 +301,7 @@ class BookingView(PlaceOrder):
         space_id = data.get("space")
         name = data.get("name")
         email = data.get('company_email')
+        offline_booking = data.get("offline_booking", False)
         try:
             space = Space.objects.get(space_id=space_id)
 
@@ -364,14 +402,16 @@ class BookingView(PlaceOrder):
                             days['end_date'].replace('Z', '+00:00'))
 
                         booking = self.book_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
-                                                  user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type, data.get("notes", ""))
+                                                  user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, booking_type, data.get("notes", ""), offline_booking)
                         if "error" in booking:
                             booking_error = booking["error"]
                             break
                     if booking_error:
                         return Response({"message":booking_error},status=status.HTTP_400_BAD_REQUEST)
-                    
-                    return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
+                    if not offline_booking:
+                        return Response({"message": f"Awaiting payment", "payload": {"order_code": order_cde}}, status=status.HTTP_200_OK)
+                    else:
+                        send_booking_mail(customer_email,space.agent.user.email, data.get("name"), space.agent.user.name, space)
 
             except IntegrityError as e:
                 return Response({"error": e.args}, status=status.HTTP_400_BAD_REQUEST)
@@ -633,7 +673,7 @@ class UpdateReferenceCode(APIView):
 
         admin_template = get_template('api/admin/booking_alert.html')
         admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
-        msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
+        msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=admin_email_list)
         msg.attach_alternative(admin_content, "text/html")
         msg.send()
 

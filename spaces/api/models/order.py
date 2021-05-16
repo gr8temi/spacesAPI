@@ -39,6 +39,7 @@ class Order(models.Model):
     expiry_time = models.DateTimeField(blank=True, null=True)
     notes = models.TextField(blank=True)
     cancellation_policy = models.ForeignKey(CancellationRules, null=True, on_delete=models.CASCADE)
+    offline_booking = models.BooleanField(default=False)
 
     def space_name(self):
         return self.space.name
@@ -66,8 +67,14 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_code
+    class Meta:
+        ordering = ["-created_at"]
 
 class Booking(Order):
+    class Meta:
+        proxy = True
+
+class OfflineBooking(Order):
     class Meta:
         proxy = True
 class Reservation(Order):
