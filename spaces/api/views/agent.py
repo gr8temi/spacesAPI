@@ -9,6 +9,7 @@ from ..serializers.agent import AgentSerializer
 from ..serializers.user import UserSerializer, UserRegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from ..helper.helper import random_string_generator as token_generator, send_email
@@ -50,7 +51,7 @@ class AgentDetail(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
-
+    parser_classes = (MultiPartParser, FormParser)
     @permission_classes([IsAuthenticated])
     def put(self, request, agent_id):
         agent = self.get_object(agent_id)
@@ -63,6 +64,9 @@ class AgentDetail(APIView):
             )
 
             if serializer.is_valid() and user_serializer.is_valid():
+                if request.data.get("document"):
+                    agent.document_verified = True
+                    agent.save()
                 serializer.save()
                 user_serializer.save()
                 return Response(
