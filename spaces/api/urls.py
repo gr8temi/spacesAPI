@@ -158,6 +158,12 @@ urlpatterns = [
         name="agent_details",
     ),
     path(
+        "v1/auth/agent/<uuid:agent_id>/document/",
+        agent.AgentDocumentUpdate.as_view(),
+        name="agent_details_document",
+    ),
+
+    path(
         "v1/auth/customers/signup/",
         customer.CustomerRegister.as_view(),
         name="customer_register",

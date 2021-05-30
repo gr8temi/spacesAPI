@@ -30,6 +30,41 @@ class AgentList(APIView):
             status=status.HTTP_200_OK,
         )
 
+class AgentDocumentUpdate(APIView):
+    def get_object(self, agent_id):
+        try:
+            return Agent.objects.get(agent_id=agent_id)
+        except Agent.DoesNotExist:
+            return False
+    parser_classes = (MultiPartParser, FormParser)
+    @permission_classes([IsAuthenticated])
+    def put(self, request, agent_id):
+        agent = self.get_object(agent_id)
+        if bool(agent):
+
+            serializer = AgentSerializer(agent, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                if request.data.get("document"):
+                    agent.document_verified = True
+                    agent.save()
+                serializer.save()
+                
+                return Response(
+                    {
+                        "payload": {**serializer.data},
+                        "message": "Agent successfully updated",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"error": serializer.custom_full_errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        else:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 class AgentDetail(APIView):
     # permission_classes = [IsAuthenticated,]
@@ -51,7 +86,6 @@ class AgentDetail(APIView):
             return Response(
                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
-    parser_classes = (MultiPartParser, FormParser)
     @permission_classes([IsAuthenticated])
     def put(self, request, agent_id):
         agent = self.get_object(agent_id)
@@ -64,9 +98,6 @@ class AgentDetail(APIView):
             )
 
             if serializer.is_valid() and user_serializer.is_valid():
-                if request.data.get("document"):
-                    agent.document_verified = True
-                    agent.save()
                 serializer.save()
                 user_serializer.save()
                 return Response(
