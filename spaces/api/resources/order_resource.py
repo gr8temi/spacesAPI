@@ -15,7 +15,11 @@ class OrderResource(resources.ModelResource):
     bank_name = Field(column_name="Bank Name")
     account_number = Field(column_name="Account Number")
     billing_preference = Field(column_name="Billing Preference")
-    amount = Field(attribute="amount", column_name="Amount")
+    space_cost = Field(attribute="space_cost", column_name="Space Cost")
+    extras_cost = Field(attribute="extras_cost", column_name="Extras Cost")
+    service_charge = Field(attribute="service_charge", column_name="Service Charge")
+    amount = Field(attribute="total_amount", column_name="Total Amount")
+    paystack_amount = Field(attribute="paystack_amount", column_name="Paystack Amount")
 
 
     def dehydrate_bank_name(self, instance):

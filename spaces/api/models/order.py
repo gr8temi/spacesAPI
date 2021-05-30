@@ -64,6 +64,52 @@ class Order(models.Model):
         
     def space_address(self):
         return self.space.address
+    
+    def space_cost(self):
+        return self.space.amount
+
+    space_cost.short_description = "Cost of Space"
+
+    def extras_cost(self):
+        sum_of_extras = 0
+        for extra in self.extras:
+            sum_of_extras += float(extra.get("amount"))
+        return sum_of_extras
+
+    extras_cost.short_description = "Cost of Extras booked"
+
+    def service_charge(self):
+        return (0.08 * float(self.amount))
+
+    service_charge.short_description = "Booking service charge"
+
+    def account_number(self):
+        return self.space.agent.account_number
+
+    account_number.short_description = "Account Number"
+
+    def billing_preference(self):
+        return self.space.agent.plans
+
+    billing_preference.short_description = "Billing Preference"
+
+    def paystack_amount(self):
+
+        total_amount = float(self.amount) +  (0.08*float(self.amount))
+        paystack_percentage_fee = 0.015 * total_amount
+        if total_amount < 2500:
+            return paystack_percentage_fee
+        elif paystack_percentage_fee > 2000:
+            return 2000
+        else:
+            return paystack_percentage_fee + 100
+
+    paystack_amount.short_description = "Paystack Charges"
+
+    def total_amount(self):
+        return float(self.amount) +  (0.08*float(self.amount))
+
+    total_amount.short_description = "Total Amount"
 
     def __str__(self):
         return self.order_code

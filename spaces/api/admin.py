@@ -108,7 +108,7 @@ class SpaceAdmin(ExportMixinAdmin):
     # inlines = [
     #     SpaceInline,
     # ]
-    readonly_fields = ['image_preview']
+    readonly_fields = ["image_preview"]
     fields = [
         "name",
         "image_preview",
@@ -209,6 +209,21 @@ class SpaceAdmin(ExportMixinAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ExportMixinAdmin):
+    readonly_fields = [
+        "agent_name",
+        "extras_cost",
+        "service_charge",
+        "account_number",
+        "billing_preference",
+        "paystack_amount",
+        "total_amount",
+        "bank_name",
+        "account_number",
+        "space_host",
+        "space_host_business_name",
+        "space_name",
+    ]
+
     def booking_code(self, obj):
         return obj.order_code
 
@@ -268,7 +283,7 @@ class OrderAdmin(ExportMixinAdmin):
     extras_cost.short_description = "Cost of Extras booked"
 
     def service_charge(self, instance):
-        return (0.08 * float(instance.amount))
+        return 0.08 * float(instance.amount)
 
     service_charge.short_description = "Booking service charge"
 
@@ -284,7 +299,7 @@ class OrderAdmin(ExportMixinAdmin):
 
     def paystack_amount(self, instance):
 
-        total_amount = float(instance.amount) +  (0.08*float(instance.amount))
+        total_amount = float(instance.amount) + (0.08 * float(instance.amount))
         paystack_percentage_fee = 0.015 * total_amount
         if total_amount < 2500:
             return paystack_percentage_fee
@@ -296,11 +311,43 @@ class OrderAdmin(ExportMixinAdmin):
     paystack_amount.short_description = "Paystack Charges"
 
     def total_amount(self, instance):
-        return float(instance.amount) +  (0.08*float(instance.amount))
+        return float(instance.amount) + (0.08 * float(instance.amount))
 
     total_amount.short_description = "Total Amount"
 
     resource_class = OrderResource
+    fields = [
+        "name",
+        "company_email",
+        "no_of_guest",
+        "extras",
+        "usage_start_date",
+        "usage_end_date",
+        "hours_booked",
+        "days_booked",
+        "status",
+        "transaction_code",
+        "order_code",
+        "order_type",
+        "user",
+        "space",
+        "order_time",
+        "expiry_time",
+        "notes",
+        "cancellation_policy",
+        "offline_booking",
+        "space_name",
+        "agent_name",
+        "extras_cost",
+        "service_charge",
+        "billing_preference",
+        "paystack_amount",
+        "total_amount",
+        "bank_name",
+        "account_number",
+        "space_host",
+        "space_host_business_name",
+    ]
     list_display = (
         "orders_id",
         "booking_code",
