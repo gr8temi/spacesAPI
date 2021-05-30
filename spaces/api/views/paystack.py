@@ -24,6 +24,7 @@ class PaystackHooks(APIView):
         agent_name = agent.user.name
         customer_name = order.name
         space = order.space
+        print(event,data,paystack_data)
         sender = config(
             "EMAIL_SENDER", default="space.ng@gmail.com")
         if event == "charge.success":
