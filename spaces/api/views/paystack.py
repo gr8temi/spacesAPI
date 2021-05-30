@@ -82,5 +82,5 @@ class PaystackHooks(APIView):
             msg = EmailMultiAlternatives(subject_customer, guest_content, sender, to=[to_customer])
             msg.attach_alternative(guest_content, "text/html")
             msg.send()
-            return Response({"message": "done"}, status=status.HTTP_200_OK)
+            return Response({"message": "failed"}, status=status.HTTP_200_OK)
             
