@@ -40,6 +40,7 @@ from .views.subscription import (
 from .views.rating import RateASpace, SpaceRating, AgentRating
 from .views.analytics import Analytics, RevenueAnalytics
 from .views.cancellation_rules import CancellationRulesView, SingleCancelationRuleView
+from .views.paystack import PaystackHooks
 
 CACHE_TTL = getattr(settings, "CACHE_TTL", DEFAULT_TIMEOUT)
 
@@ -247,5 +248,12 @@ urlpatterns = [
         "v1/cancelation-rule/<slug:cancelation_rule_id>/",
         SingleCancelationRuleView.as_view(),
         name="single-cancelation-rule",
+    ),
+
+    #WebHook
+    path(
+        "v1/paystack/webhook/",
+        PaystackHooks.as_view(),
+        name="paystack-webhook",
     ),
 ]
