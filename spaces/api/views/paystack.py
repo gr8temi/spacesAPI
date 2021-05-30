@@ -5,9 +5,9 @@ from django.core.mail import send_mail
 
 
 class PaystackHooks(APIView):
-    def post(self, request):
-        data = request.body
-        event = data.event
+    def post(self, request, format=None):
+        data = request.data
+        event = data.get('event')
         print({"event": event, "data": data})
         send_mail(
             "Subject here",
