@@ -176,11 +176,15 @@ class BookingView(PlaceOrder):
             booking_amount = hour_difference * space_cost
         elif duration == "daily":
             day_difference = (end_date - start_date).days
+            if day_difference == 0:
+                day_difference = 1
             booking_amount = day_difference * space_cost
         elif duration == "monthly":
             month_difference = (end_date.year - start_date.year) * 12 + (
                 end_date.month - start_date.month
             )
+            if month_difference == 0:
+                month_difference = 1
             booking_amount = month_difference * space_cost
 
         extra_sum = 0
