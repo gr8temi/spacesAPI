@@ -268,7 +268,7 @@ class OrderAdmin(ExportMixinAdmin):
     extras_cost.short_description = "Cost of Extras booked"
 
     def service_charge(self, instance):
-        return 0.08 * float(instance.space.amount)
+        return (0.08 * float(instance.amount))
 
     service_charge.short_description = "Booking service charge"
 
@@ -284,7 +284,7 @@ class OrderAdmin(ExportMixinAdmin):
 
     def paystack_amount(self, instance):
 
-        total_amount = float(instance.amount) + 0.08 * float(instance.space.amount)
+        total_amount = float(instance.amount) +  (0.08*float(instance.amount))
         paystack_percentage_fee = 0.015 * total_amount
         if total_amount < 2500:
             return paystack_percentage_fee
@@ -296,7 +296,7 @@ class OrderAdmin(ExportMixinAdmin):
     paystack_amount.short_description = "Paystack Charges"
 
     def total_amount(self, instance):
-        return float(instance.amount) + 0.08 * float(instance.space.amount)
+        return float(instance.amount) +  (0.08*float(instance.amount))
 
     total_amount.short_description = "Total Amount"
 
