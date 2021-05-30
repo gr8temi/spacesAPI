@@ -615,7 +615,7 @@ class BookingView(PlaceOrder):
                         return Response(
                             {
                                 "message": f"Awaiting payment",
-                                "payload": {"order_code": order_cde},
+                                "payload": {"order_code": order_cde, "transaction_code":data["transaction_code"]},
                             },
                             status=status.HTTP_200_OK,
                         )
