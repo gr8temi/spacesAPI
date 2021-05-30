@@ -187,8 +187,9 @@ class BookingView(PlaceOrder):
         for extra in extras:
             extra_sum += float(extra.get("amount"))
         print(booking_amount, extra_sum)
-        booking_amount = booking_amount + extra_sum
 
+        booking_amount = (booking_amount + extra_sum) 
+        print(booking_amount)
         order_data = {
             "amount": booking_amount,
             "usage_start_date": start_date,
