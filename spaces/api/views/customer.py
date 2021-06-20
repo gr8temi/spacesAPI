@@ -46,7 +46,7 @@ class CustomerDetail(APIView):
 
             serializer = CustomerSerializer(
                 customer, data=request.data, partial=True)
-            user = User.objects.get(user_id=agent.user.user_id)
+            user = User.objects.get(user_id=customer.user.user_id)
             user_serializer = UserRegisterSerializer(
                 user, data=request.data, partial=True
             )

@@ -26,7 +26,7 @@ now = timezone.now()
     run_every=(crontab(minute="*/60")), name="update_order_status", ignore_result=False
 )
 def update_order_status():
-    reservations = Order.objects.filter(Q(status="pending") | Q(status="reserved")).filter(order_type__order_type="booking")
+    reservations = Order.objects.filter(Q(status="pending") | Q(status="reserved")).filter(order_type__order_type="reservation")
 
     try:
         with transaction.atomic():
