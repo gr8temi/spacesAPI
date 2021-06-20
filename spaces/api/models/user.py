@@ -28,11 +28,11 @@ class User(models.Model):
     is_customer = models.BooleanField(default=True)
     is_agent = models.BooleanField(verbose_name='is space host' ,default=False)
     is_active = models.BooleanField(default=False)
-    token = models.CharField(max_length=20)
+    token = models.CharField(max_length=20, blank=True, null=True)
     objects = UserManager()
     updated_at = models.DateTimeField( auto_now=True)
-    date_of_birth = models.DateField( null=True )
-    social_links = JSONField(encoder=DjangoJSONEncoder, null=True)
+    date_of_birth = models.DateField( null=True, blank=True )
+    social_links = JSONField(encoder=DjangoJSONEncoder, null=True, blank=True)
     profile_url = models.CharField(max_length=256, blank=True)
     
     def __str__(self):

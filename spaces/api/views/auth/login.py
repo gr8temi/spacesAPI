@@ -86,7 +86,7 @@ class UserLogin(APIView):
 
                     except Customer.DoesNotExist:
                         customer_id = False
-                    return Response(dict(message="Login was successful", favourites=customerFavourites, token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number), status=status.HTTP_200_OK)
+                    return Response(dict(message="Login was successful", favourites=customerFavourites, token=token, agent=False, customer_id=customer_id, name=user.name, user_id=user.user_id, email=user.email, phone_number=user.phone_number,profile_url=user.profile_url,social_links=user.social_links), status=status.HTTP_200_OK)
 
             else:
                 return Response(dict(error="Invalid login details"), status=status.HTTP_400_BAD_REQUEST)

@@ -46,8 +46,13 @@ class CustomerDetail(APIView):
 
             serializer = CustomerSerializer(
                 customer, data=request.data, partial=True)
-            if serializer.is_valid():
+            user = User.objects.get(user_id=agent.user.user_id)
+            user_serializer = UserRegisterSerializer(
+                user, data=request.data, partial=True
+            )
+            if serializer.is_valid() and user_serializer.is_valid():
                 serializer.save()
+                user_serializer.save()
                 return Response({"payload": serializer.data, "message": "Customer successfully updated"}, status=status.HTTP_200_OK)
             return Response({"error": serializer.custom_full_errors}, status=status.HTTP_400_BAD_REQUEST)
         else:

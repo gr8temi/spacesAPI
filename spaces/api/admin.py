@@ -1,5 +1,5 @@
 import uuid
-import csv
+import bcrypt
 from django.apps import apps
 from django.http import HttpResponse
 from django.contrib import admin
@@ -383,6 +383,20 @@ class BookingAdmin(OrderAdmin):
 
 @admin.register(OfflineBooking)
 class OfflineBookingAdmin(OrderAdmin):
+    list_display = (
+        "orders_id",
+        "booking_code",
+        "customer_name",
+        "customer_email",
+        "create_date",
+        "start_date",
+        "end_date",
+        "space_host",
+        "space_host_business_name",
+        "space_cost",
+        "extras_cost",
+        "total_amount",
+    )
     def queryset(self, request):
         qs = super(OfflineBookingAdmin, self).queryset(request)
         return qs.filter(order_type__order_type="booking", offline_booking=True)
@@ -469,9 +483,11 @@ class OrderTypeAdmin(ExportMixinAdmin):
     resource_class = OrderTypeResource
     list_display = ("order_type_id", "order_type")
 
-
+class SpaceHostInline(admin.TabularInline):
+    model = Agent
 @admin.register(User)
 class UserAdmin(ExportMixinAdmin):
+    inlines = [SpaceHostInline]
     resource_class = UserResource
     list_display = (
         "name",
@@ -489,6 +505,12 @@ class UserAdmin(ExportMixinAdmin):
     )
     list_filter = ("email_verified", "is_super", "is_customer", "is_agent", "is_active")
     search_fields = ["name"]
+    def save_model(self, request, obj, form, change):
+        hashed = bcrypt.hashpw(
+                        obj.password.encode("utf-8"), bcrypt.gensalt()
+                    )
+        obj.password = hashed
+        obj.save()
 
 
 @admin.register(SpaceCategory)
@@ -616,6 +638,7 @@ class ExtraAdmin(ExportMixinAdmin):
 
     def space(self, obj):
         return obj.space.name
+
 
 
 @admin.register(Agent)
