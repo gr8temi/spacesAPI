@@ -5,7 +5,7 @@ from django.urls import path, re_path
 from django.views.decorators.cache import cache_page
 
 from .views.add_space import CreateSpace
-from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace, RandomSpaces
+from .views.space import Spaces, SingleSpace, EditSpace, DeleteSpace, RandomSpaces,SpacesFreeze
 from .views.utilities import SpaceLocation
 from .views.reservation import (
     ReservationDetail,
@@ -119,6 +119,7 @@ urlpatterns = [
     ),
     path("v1/space/<slug:space_id>/", SingleSpace.as_view(), name="single_space"),
     path("v1/space/edit/<slug:space_id>/", EditSpace.as_view(), name="edit_space"),
+    path("v1/space/action/<slug:freeze_type>/", SpacesFreeze.as_view(), name="freeze_space"),
     path(
         "v1/space/delete/<slug:space_id>/", DeleteSpace.as_view(), name="delete_space"
     ),

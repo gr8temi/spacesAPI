@@ -170,14 +170,10 @@ class BookingView(PlaceOrder):
         space_cancellation_policy = space.cancellation_rule
         booking_amount = 0
         if duration == "hourly":
-            hour_difference = int((end_date - start_date).total_seconds() / (3600 * 60))
-            if hour_difference == 0:
-                hour_difference = 1
+            hour_difference = int((end_date - start_date).total_seconds() / (3600))
             booking_amount = hour_difference * space_cost
         elif duration == "daily":
-            day_difference = (end_date - start_date).days
-            if day_difference == 0:
-                day_difference = 1
+            day_difference = (end_date - start_date).days + 1
             booking_amount = day_difference * space_cost
         elif duration == "monthly":
             month_difference = (end_date.year - start_date.year) * 12 + (

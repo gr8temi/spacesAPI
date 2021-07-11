@@ -19,7 +19,7 @@ from ..permissions.is_agent_permission import UserIsAnAgent
 
 class Spaces(APIView):
     def get(self, request, format="json"):
-        queryset = Space.objects.all()
+        queryset = Space.objects.filter(active=True)
         serializer = SpaceSerializer(queryset, many=True)
         return Response(
             {"payload": serializer.data, "message": "fetch successful"},
@@ -129,5 +129,28 @@ class RandomSpaces(APIView):
             return Response({"message": "No spaces created"})
         return Response(
             {"message": "Random spaces fetched successfully", "payload": random_spaces},
+            status=status.HTTP_200_OK,
+        )
+
+class SpacesFreeze(APIView):
+    def get_queryset(self,space_id):
+        try:
+            return Space.objects.get(space_id=space_id)
+        except Exception:
+            return False
+    def put(self, request,freeze_type, format="json"):
+        spaces_not_found = []
+        for space in request.data.get("spaces"):
+            each_space = self.get_queryset(space)
+            if each_space is False:
+                spaces_not_found.append(space)
+            else:
+                if freeze_type == "unfreeze":
+                    each_space.active = True
+                elif freeze_type == "freeze" :
+                    each_space.active = False
+                each_space.save()
+        return Response(
+            {"spaces_not_found": spaces_not_found, "message": f"spaces {freeze_type} successful"},
             status=status.HTTP_200_OK,
         )

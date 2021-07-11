@@ -653,6 +653,7 @@ class SpaceHostAdmin(ExportMixinAdmin):
         "bank",
         "document",
         "plans",
+        "created_at"
     )
     list_filter = ("bank",)
     search_fields = ["user__name", "business_name"]
