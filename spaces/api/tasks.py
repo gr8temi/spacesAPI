@@ -33,9 +33,8 @@ def update_order_status():
             expired_orders_grouped_by_order_code = {}
             for reservation in reservations:
                 expiry = reservation.order_time
-                if expiry > now:
-                    reservation.status = "cancelled"
-                    reservation.save()
+                reservation.status = "cancelled"
+                reservation.save()
                 if reservation.order_code in expired_orders_grouped_by_order_code:
                     expired_orders_grouped_by_order_code[reservation.order_code].extend(
                         [reservation]
