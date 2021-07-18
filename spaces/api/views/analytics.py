@@ -75,7 +75,7 @@ class Analytics(APIView):
         agent_total_amount_made = Order.objects.filter(space__agent=agent).aggregate(
             amount_sum=Sum(Cast("amount", FloatField())))["amount_sum"]
         if agent_total_amount_made:
-            amount_made_after_deduction = agent_total_amount_made * 0.92
+            amount_made_after_deduction = agent_total_amount_made
         else:
             amount_made_after_deduction = 0.0
 
