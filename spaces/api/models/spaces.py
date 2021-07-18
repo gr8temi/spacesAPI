@@ -32,7 +32,7 @@ class Space(models.Model):
         Agent, verbose_name="Space Host Business Name", on_delete=models.CASCADE
     )
     duration = models.CharField(max_length=50)
-    images = ArrayField(base_field=models.CharField(max_length=256))
+    images = ArrayField(base_field=models.CharField(max_length=1000))
     amenities = ArrayField(base_field=models.CharField(max_length=50))
     carspace = models.IntegerField(default=0)
     rules = ArrayField(base_field=models.CharField(max_length=50))
