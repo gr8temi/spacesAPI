@@ -567,6 +567,7 @@ class BookingView(PlaceOrder):
                 customer_email = User.objects.get(user_id=data["user"]).email
             except Exception:
                 user = ""
+                customer_email = request.data.get("email")
             try:
                 with transaction.atomic():
                     order_cde = order_code()
