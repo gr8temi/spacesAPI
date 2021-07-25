@@ -561,10 +561,10 @@ class BookingView(PlaceOrder):
                     status=status.HTTP_409_CONFLICT,
                 )
         else:
-            if data["user"]:
+            try:
                 user = User.objects.get(user_id=data["user"]).user_id
                 customer_email = User.objects.get(user_id=data["user"]).email
-            else:
+            except KeyError:
                 user = ""
             try:
                 with transaction.atomic():
@@ -932,8 +932,17 @@ class UpdateReferenceCode(APIView):
                 {"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND
             )
         booked = []
+        order = orders.first()
+        if order.status == "booked":
+            return Response(
+                {
+                    "message": f"Payment as been made before",
+                },
+                status = status.HTTP_400_BAD_REQUEST
+            )
         for order_obj in orders:
             order_obj.transaction_code = transaction_code
+            order_obj.status = "booked"
             booked.append(
                 {
                     "start_date": order_obj.usage_start_date,
@@ -954,6 +963,13 @@ class UpdateReferenceCode(APIView):
             "email": customer_email,
         }
         if order.status == "booked":
+            send_booking_mail(
+            customer_email,
+            space.agent.user.email,
+            customer_name,
+            space.agent.user.name,
+            space,
+                        )
 
             return Response(
                 {

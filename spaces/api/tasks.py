@@ -26,23 +26,24 @@ now = timezone.now()
     run_every=(crontab(minute="*/60")), name="update_order_status", ignore_result=False
 )
 def update_order_status():
-    reservations = Order.objects.filter(Q(status="pending") | Q(status="reserved")).filter(order_type__order_type="reservation")
+    reservations = Order.objects.filter(Q(status="pending") | Q(status="reserved") | Q(status="declined")).filter(order_type__order_type="reservation")
 
     try:
         with transaction.atomic():
             expired_orders_grouped_by_order_code = {}
             for reservation in reservations:
                 expiry = reservation.order_time
-                reservation.status = "cancelled"
-                reservation.save()
-                if reservation.order_code in expired_orders_grouped_by_order_code:
-                    expired_orders_grouped_by_order_code[reservation.order_code].extend(
-                        [reservation]
-                    )
-                else:
-                    expired_orders_grouped_by_order_code[reservation.order_code] = [
-                        reservation
-                    ]
+                if expiry - datetime.now() < datetime.timedelta(hours = 1):
+                    reservation.status = "cancelled"
+                    reservation.save()
+                    if reservation.order_code in expired_orders_grouped_by_order_code:
+                        expired_orders_grouped_by_order_code[reservation.order_code].extend(
+                            [reservation]
+                        )
+                    else:
+                        expired_orders_grouped_by_order_code[reservation.order_code] = [
+                            reservation
+                        ]
             expiring_array = list(expired_orders_grouped_by_order_code)
             for expiring in expiring_array:
                 expire = expired_orders_grouped_by_order_code[expiring]
@@ -80,7 +81,7 @@ def format_expire_array(expire_array):
 def send_mail_to_almost_expired_reservations():
     reservations = Order.objects.filter(
         Q(status="reserved") | Q(status="pending") | Q(status="declined")
-    )
+    ).filter(order_type__order_type="reservation")
     almost_expired_two_hours = {}
     almost_expired_one_hour = {}
     for reservation in reservations:
