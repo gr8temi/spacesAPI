@@ -397,6 +397,7 @@ class BookingView(PlaceOrder):
 
     def post(self, request):
         data = request.data
+        print(data)
         space_id = data.get("space")
         name = data.get("name")
         email = data.get("company_email")
@@ -564,7 +565,7 @@ class BookingView(PlaceOrder):
             try:
                 user = User.objects.get(user_id=data["user"]).user_id
                 customer_email = User.objects.get(user_id=data["user"]).email
-            except KeyError:
+            except Exception:
                 user = ""
             try:
                 with transaction.atomic():
