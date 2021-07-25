@@ -86,7 +86,7 @@ CORS_ALLOW_METHODS = [
 
 # Sentry settings
 sentry_sdk.init(
-    dsn="https://e3f95a649c0945208cd8b451cc42a89a@sentry.io/5189112",
+    dsn=config("SENTRY_DSN", default="https://e3f95a649c0945208cd8b451cc42a89a@sentry.io/5189112")
     integrations=[DjangoIntegration()],
 
     # If you wish to associate users to errors (assuming you are using
