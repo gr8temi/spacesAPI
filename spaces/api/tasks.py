@@ -33,7 +33,7 @@ def update_order_status():
             expired_orders_grouped_by_order_code = {}
             for reservation in reservations:
                 expiry = reservation.order_time
-                if expiry - datetime.now() < datetime.timedelta(hours = 1):
+                if (expiry + timedelta(hours=24)) < datetime.now():
                     reservation.status = "cancelled"
                     reservation.save()
                     if reservation.order_code in expired_orders_grouped_by_order_code:
@@ -87,12 +87,12 @@ def send_mail_to_almost_expired_reservations():
     for reservation in reservations:
         order_time = reservation.order_time
         now = datetime.now()
-        if order_time - now <= timedelta(hours=2):
+        if (order_time + timedelta(hours=24)) - now <= timedelta(hours=2):
             if reservation.order_code in almost_expired_two_hours:
                 almost_expired_two_hours[reservation.order_code].extend([reservation])
             else:
                 almost_expired_two_hours[reservation.order_code] = [reservation]
-        elif order_time - now <= timedelta(hours=1):
+        elif (order_time+ timedelta(hours=24)) - now <= timedelta(hours=1):
             if reservation.order_code in almost_expired_one_hour:
                 almost_expired_one_hour[reservation.order_code].extend([reservation])
             else:

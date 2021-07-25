@@ -566,8 +566,10 @@ class BookingView(PlaceOrder):
                 user = User.objects.get(user_id=data["user"]).user_id
                 customer_email = User.objects.get(user_id=data["user"]).email
             except Exception:
-                user = ""
+                new_user = User.objects.create(email=request.data.get("email"),name=request.data.get("name"),phone_number=request.data.get("phone_number"),is_customer=True)
+                Customer.objects.create(user=new_user)
                 customer_email = request.data.get("email")
+                user=new_user.user_id
             try:
                 with transaction.atomic():
                     order_cde = order_code()
