@@ -126,6 +126,7 @@ class SpaceAdmin(ExportMixinAdmin):
         "active",
         "gmap",
         "agent",
+        "amenities"
     ]
     list_display = (
         "space_id",
