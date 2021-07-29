@@ -473,7 +473,7 @@ class PlaceReservation(PlaceOrder):
                 start_now = datetime.now()
                 booking = OrderType.objects.get(order_type="booking")
                 for order in orders:
-                    if order.status == "pending":
+                    if order.status == "pending" or order.status == "reserved":
                         order.status = "booked"
                         order.order_type = booking
                         order.order_time = start_now
@@ -488,7 +488,7 @@ class PlaceReservation(PlaceOrder):
 
                 subject_customer2 = "ORDER COMPLETED"
                 to_customer = [customer.email]
-                customer_content2 = f"Dear {customer.name}, Your order {order_code} for {space.name} has been completed. Thanks for your patronage"
+                customer_content2 = f"Dear {customer.name}, Your order {order.order_code} for {space.name} has been completed. Thanks for your patronage"
 
                 send_mail(subject_agent, agent_content, sender, to_agent)
                 send_mail(subject_customer2, customer_content2,
