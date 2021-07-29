@@ -7,6 +7,7 @@ import time
 from datetime import date, timedelta, datetime
 from decouple import config
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.db import transaction, IntegrityError
 from django.core.mail import EmailMultiAlternatives
@@ -563,7 +564,9 @@ class BookingView(PlaceOrder):
                 )
         else:
             try:
-                user = User.objects.get(user_id=data["user"]).user_id
+                email = request.data.get("email")
+                phone_number = request.data.get("phone_number")
+                user = User.objects.get(Q(user_id=data["user"])| Q(email=email) | Q(phone_number=phone_number)).user_id
                 customer_email = User.objects.get(user_id=data["user"]).email
             except Exception:
                 new_user = User.objects.create(email=request.data.get("email"),name=request.data.get("name"),phone_number=request.data.get("phone_number"),is_customer=True)

@@ -141,8 +141,8 @@ class FetchByPhoneNumber(APIView):
 
     def get_object(self, phone_number):
         try:
-            return User.objects.get(phone_number=phone_number)
-        except User.DoesNotExist:
+            return Customer.objects.get(user__phone_number=phone_number)
+        except Customer.DoesNotExist:
             return False
 
     def get(self, request, phone_number):
@@ -159,8 +159,8 @@ class FetchByEmail(APIView):
     def get_object(self, email):
         try:
             email = email.lower()
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
+            return Customer.objects.get(user__email=email)
+        except Customer.DoesNotExist:
             return False
 
     def get(self, request, email):
