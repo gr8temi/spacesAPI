@@ -1,4 +1,3 @@
-from spaces.api.models import order_type
 import uuid
 import calendar
 from datetime import datetime, timedelta
