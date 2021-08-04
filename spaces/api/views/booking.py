@@ -674,6 +674,8 @@ class BookingCancellation(APIView):
             return Customer.objects.get(customer_id=customer_id)
         except Customer.DoesNotExist:
             return False
+    
+
 
     def post(self, request):
         reason = request.data.get("reason")
@@ -706,72 +708,118 @@ class BookingCancellation(APIView):
                 {"message": f"No order with the given booking id {order_id} found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        booking.status = "cancelation request"
-        booking.save()
         cancellation_data = {
-            "reason": reason,
-            "agent": agent_id,
-            "customer": customer_id,
-            "booking": f"{booking.orders_id}",
-        }
-        serializer = CancellationSerializer(data=cancellation_data)
+                "reason": reason,
+                "agent": agent_id,
+                "customer": customer_id,
+                "booking": f"{booking.orders_id}",
+            }
+        if booking.order_type__order_type == "reservation":
+            booking.status = "cancelled"
+            booking.save()
+            space_name = booking.space.name
+            space_location = booking.space.address
+            serializer = CancellationSerializer(data=cancellation_data)
 
-        if serializer.is_valid():
-            serializer.save()
-            sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
+            if serializer.is_valid():
+                serializer.save()
+                sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
-            # notification for customer booking space
-            subject_customer = "BOOKING CANCELLATION REQUEST SENT"
-            to_customer = customer_mail
-            customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
+                # notification for customer booking space
+                subject_customer = "RESERVATION CANCELLATION REQUEST SENT"
+                to_customer = customer_mail
+                customer_content = f"Dear {customer_name}, your Reservation Cancellation  has been received successfully"
 
-            # notification for agent that registered space
-            # subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
-            # to_agent = agent_mail
-            # agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
-            # {reason}.
-            # kindly visit dashboard to accept or decline request """
+                guest_template = get_template(
+                    "api/order/customer_reservation_cancellation_request.html"
+                )
+                guest_content = guest_template.render(
+                    {
+                        "guest_name": customer_name,
+                        "login_url": f"{config('FRONTEND_URL')}/signin",
+                        "space_name": space_name,
+                        "space_location": space_location,
+                    }
+                )
+                msg = EmailMultiAlternatives(
+                    subject_customer, guest_content, sender, to=[to_customer]
+                )
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+                subscriber.connect(notification_creator)
+                subscriber.send(
+                    sender=self.__class__,
+                    data={
+                        "user_id": f"{agent.user.user_id}",
+                        "notification": f"Reservation for {booking.order_code} ",
+                    },
+                )
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            booking.status = "cancelation request"
+            booking.save()
+           
+            serializer = CancellationSerializer(data=cancellation_data)
 
-            guest_template = get_template(
-                "api/order/customer_booking_cancellation_request.html"
-            )
-            guest_content = guest_template.render(
-                {
-                    "guest_name": customer_name,
-                    "login_url": f"{config('FRONTEND_URL')}/signin",
-                }
-            )
-            msg = EmailMultiAlternatives(
-                subject_customer, guest_content, sender, to=[to_customer]
-            )
-            msg.attach_alternative(guest_content, "text/html")
-            msg.send()
+            if serializer.is_valid():
+                serializer.save()
+                sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
-            admin_template = get_template("api/admin/booking_cancellation_request.html")
-            admin_content = admin_template.render(
-                {
-                    "guest_name": customer_name,
-                    "login_url": f"{config('FRONTEND_URL')}/signin",
-                }
-            )
-            msg = EmailMultiAlternatives(
-                subject_customer, admin_content, sender, to=[admin_email_list]
-            )
-            msg.attach_alternative(admin_content, "text/html")
-            msg.send()
+                # notification for customer booking space
+                subject_customer = "BOOKING CANCELLATION REQUEST SENT"
+                to_customer = customer_mail
+                customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
 
-            subscriber.connect(notification_creator)
-            subscriber.send(
-                sender=self.__class__,
-                data={
-                    "user_id": f"{agent.user.user_id}",
-                    "notification": f"You have a new booking cancellation request for booking {booking.order_code} ",
-                },
+                # notification for agent that registered space
+                # subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
+                # to_agent = agent_mail
+                # agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
+                # {reason}.
+                # kindly visit dashboard to accept or decline request """
+
+                guest_template = get_template(
+                    "api/order/customer_booking_cancellation_request.html"
+                )
+                guest_content = guest_template.render(
+                    {
+                        "guest_name": customer_name,
+                        "login_url": f"{config('FRONTEND_URL')}/signin",
+                    }
+                )
+                msg = EmailMultiAlternatives(
+                    subject_customer, guest_content, sender, to=[to_customer]
+                )
+                msg.attach_alternative(guest_content, "text/html")
+                msg.send()
+
+                admin_template = get_template("api/admin/booking_cancellation_request.html")
+                admin_content = admin_template.render(
+                    {
+                        "guest_name": customer_name,
+                        "login_url": f"{config('FRONTEND_URL')}/signin",
+                    }
+                )
+                msg = EmailMultiAlternatives(
+                    subject_customer, admin_content, sender, to=[admin_email_list]
+                )
+                msg.attach_alternative(admin_content, "text/html")
+                msg.send()
+
+                subscriber.connect(notification_creator)
+                subscriber.send(
+                    sender=self.__class__,
+                    data={
+                        "user_id": f"{agent.user.user_id}",
+                        "notification": f"You have a new booking cancellation request for booking {booking.order_code} ",
+                    },
+                )
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class BookingCancellationActions(APIView):
