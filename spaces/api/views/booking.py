@@ -714,7 +714,7 @@ class BookingCancellation(APIView):
                 "customer": customer_id,
                 "booking": f"{booking.orders_id}",
             }
-        if booking.order_type__order_type == "reservation":
+        if booking.order_type.order_type == "reservation":
             booking.status = "cancelled"
             booking.save()
             space_name = booking.space.name
