@@ -62,6 +62,9 @@ class Order(models.Model):
     def user_id(self):
         return self.user.user_id
         
+    def customer_image(self):
+        return self.user.profile_url
+        
     def space_address(self):
         return self.space.address
     
