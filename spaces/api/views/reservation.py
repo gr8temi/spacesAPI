@@ -607,7 +607,7 @@ class RequestReservationExtension(PlaceOrder):
                 start_now = datetime.now()
                 for order in orders:
                     if order.status == "extension":
-                        order.status = "pending"
+                        order.status = "reserved"
                         order.expiry_time = start_now + timedelta(days=1)
                         order.save()
                     else:
