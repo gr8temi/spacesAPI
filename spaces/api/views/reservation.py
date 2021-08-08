@@ -644,7 +644,7 @@ class RequestReservationExtension(PlaceOrder):
                 for order in orders:
                     if order.status == "extension":
                         if order.expiry_time > start_now:
-                            order.status = "declined"
+                            order.status = "reserved"
                             order.save()
                     else:
                         return Response({"message": "You can't decline this reservation extension request because it's status is not extension"}, status=status.HTTP_400_BAD_REQUEST)

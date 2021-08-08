@@ -98,6 +98,8 @@ class SubscribeActions(APIView):
         subscriptions = SubscriptionPerAgent.objects.filter(
             agent__agent_id=uuid.UUID(agent_id), next_due_date__gt=timezone.now()
         )
+        if not bool(subscriptions):
+            return Response({"message": "No subscriptions for this agent", "payload": {}}, status=status.HTTP_200_OK)
         current_subscription = min(
             subscriptions,
             key=lambda subscription: subscription.next_due_date,
