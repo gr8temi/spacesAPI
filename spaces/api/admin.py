@@ -224,6 +224,18 @@ class OrderAdmin(ExportMixinAdmin):
         "space_host_business_name",
         "space_name",
     ]
+    def cancellation_rule(self, obj):
+        return mark_safe(
+            '<a href="{}">{}</a>'.format(
+                reverse(
+                    "admin:api_cancellationrules_change",
+                    args=(obj.cancellation_policy,),
+                ),
+                obj.cancellation_policy,
+            )
+        )
+
+    cancellation_rule.short_description = "Cancellation Policy"
 
     def booking_code(self, obj):
         return obj.order_code
@@ -359,6 +371,7 @@ class OrderAdmin(ExportMixinAdmin):
         "end_date",
         "space_host",
         "space_host_business_name",
+        "cancellation_rule",
         "bank_name",
         "account_number",
         "billing_preference",
@@ -367,6 +380,7 @@ class OrderAdmin(ExportMixinAdmin):
         "service_charge",
         "total_amount",
         "paystack_amount",
+
     )
 
     list_filter = (("created_at", DateRangeFilter), ("created_at", DateTimeRangeFilter))
@@ -680,6 +694,9 @@ class CancellationAdmin(ExportMixinAdmin):
         "customer",
     )
     search_fields = ["customer__user__name"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(booking__order_type__order_type="booking")
 
     def cancellation_rule(self, obj):
         return mark_safe(

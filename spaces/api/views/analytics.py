@@ -43,7 +43,7 @@ class Analytics(APIView):
 
         agent_spaces = Space.objects.filter(agent=agent)
         booking_orders = Order.objects.filter(
-            order_type__order_type="booking", space__agent=agent)
+            order_type__order_type="booking", status="booked", offline_booking=False, space__agent=agent)
         reservation_orders = Order.objects.filter(
             order_type__order_type="reservation", space__agent=agent)
         print({"booking": booking_orders})

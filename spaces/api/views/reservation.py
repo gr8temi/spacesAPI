@@ -172,8 +172,6 @@ class PlaceReservation(PlaceOrder):
                 if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
             elif duration == "monthly":
-                # if (end_date.date() - start_date.date()).days < 28 or (end_date.date() - start_date.date()).days > 31:
-                #     return Response({"message": "The time different in your booking is not up to a monthly difference"}, status=status.HTTP_400_BAD_REQUEST)
                 if start_date.date() < pytz.utc.localize(now).date():
                     days_not_allowed.append(book)
 
@@ -330,9 +328,9 @@ class PlaceReservation(PlaceOrder):
                         booked = hours_booked
                     for days in booked:
                         start = datetime.fromisoformat(
-                            days['start_date'].replace('Z', '+01:00'))
+                            days['start_date'].replace('Z', '+00:00'))
                         end = datetime.fromisoformat(
-                            days['end_date'].replace('Z', '+01:00'))
+                            days['end_date'].replace('Z', '+00:00'))
 
                         self.reserve_space(data["amount"], start, end, data["transaction_code"], data["no_of_guest"], data["order_type"],
                                            user, data["name"], data["company_email"], data["extras"], data["space"], duration, [], order_cde, order_time, order_expiry_time, notes)

@@ -46,7 +46,7 @@ from .order import PlaceOrder
 lagos = py_timezone("Africa/Lagos")
 
 
-def send_booking_mail(customer_email, agent_mail, customer_name, agent_name, space):
+def send_booking_mail(customer_email, agent_mail, customer_name, agent_name, space, offline=False):
     sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
     # notification for customer booking space
@@ -63,44 +63,59 @@ def send_booking_mail(customer_email, agent_mail, customer_name, agent_name, spa
     subject_admin = "A NEW BOOKING HAS BEEN MADE"
     all_admin = User.objects.filter(is_super=True)
     admin_email_list = [admin.email for admin in all_admin if all_admin]
+    if not offline:
+        guest_template = get_template("api/order/customer_booking_notification.html")
+        guest_content = guest_template.render(
+            {
+                "guest_name": customer_name,
+                "login_url": f"{config('FRONTEND_URL')}/signin",
+                "space_name": space.name,
+                "space_location": space.address,
+            }
+        )
+        msg = EmailMultiAlternatives(
+            subject_customer, guest_content, sender, to=[to_customer]
+        )
+        msg.attach_alternative(guest_content, "text/html")
+        msg.send()
 
-    guest_template = get_template("api/order/customer_booking_notification.html")
-    guest_content = guest_template.render(
-        {
-            "guest_name": customer_name,
-            "login_url": f"{config('FRONTEND_URL')}/signin",
-            "space_name": space.name,
-            "space_location": space.address,
-        }
-    )
-    msg = EmailMultiAlternatives(
-        subject_customer, guest_content, sender, to=[to_customer]
-    )
-    msg.attach_alternative(guest_content, "text/html")
-    msg.send()
+        host_template = get_template("api/order/space_host_booking_notification.html")
+        host_content = host_template.render(
+            {
+                "host_name": agent_name,
+                "login_url": f"{config('FRONTEND_URL')}/signin",
+                "space_name": space.name,
+                "space_location": space.address,
+            }
+        )
+        msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
+        msg.attach_alternative(host_content, "text/html")
+        msg.send()
 
-    host_template = get_template("api/order/space_host_booking_notification.html")
-    host_content = host_template.render(
-        {
-            "host_name": agent_name,
-            "login_url": f"{config('FRONTEND_URL')}/signin",
-            "space_name": space.name,
-            "space_location": space.address,
-        }
-    )
-    msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
-    msg.attach_alternative(host_content, "text/html")
-    msg.send()
-
-    admin_template = get_template("api/admin/booking_alert.html")
-    admin_content = admin_template.render(
-        {"login_url": f"{config('FRONTEND_URL')}/signin"}
-    )
-    msg = EmailMultiAlternatives(
-        subject_admin, admin_content, sender, to=admin_email_list
-    )
-    msg.attach_alternative(admin_content, "text/html")
-    msg.send()
+        admin_template = get_template("api/admin/booking_alert.html")
+        admin_content = admin_template.render(
+            {"login_url": f"{config('FRONTEND_URL')}/signin"}
+        )
+        msg = EmailMultiAlternatives(
+            subject_admin, admin_content, sender, to=admin_email_list
+        )
+        msg.attach_alternative(admin_content, "text/html")
+        msg.send()
+    else:
+        guest_template = get_template("api/order/customer_offline_booking_notification.html")
+        guest_content = guest_template.render(
+            {
+                "guest_name": customer_name,
+                "login_url": f"{config('FRONTEND_URL')}/signin",
+                "space_name": space.name,
+                "space_location": space.address,
+            }
+        )
+        msg = EmailMultiAlternatives(
+            subject_customer, guest_content, sender, to=[to_customer]
+        )
+        msg.attach_alternative(guest_content, "text/html")
+        msg.send()
 
 
 class BookingStatus(APIView):
@@ -620,6 +635,14 @@ class BookingView(PlaceOrder):
                             status=status.HTTP_400_BAD_REQUEST,
                         )
                     if not offline_booking:
+                        send_booking_mail(
+                            customer_email,
+                            space.agent.user.email,
+                            data.get("name"),
+                            space.agent.user.name,
+                            space,
+                            True
+                        )
                         return Response(
                             {
                                 "message": f"Awaiting payment",
@@ -726,7 +749,7 @@ class BookingCancellation(APIView):
                 sender = config("EMAIL_SENDER", default="space.ng@gmail.com")
 
                 # notification for customer booking space
-                subject_customer = "RESERVATION CANCELLATION REQUEST SENT"
+                subject_customer = "RESERVATION CANCELLATION REQUEST"
                 to_customer = customer_mail
                 customer_content = f"Dear {customer_name}, your Reservation Cancellation  has been received successfully"
 
@@ -773,13 +796,6 @@ class BookingCancellation(APIView):
                 to_customer = customer_mail
                 customer_content = f"Dear {customer_name}, your Booking Cancellation request has been sent successfully. The space host would get back to you soon on the status of your request"
 
-                # notification for agent that registered space
-                # subject_agent = "YOU HAVE A BOOKING CANCELLATION REQUEST"
-                # to_agent = agent_mail
-                # agent_content = f"""Dear {agent_name}, Customer {customer_name} has requested cancellation of a booking with code {booking.order_code} and this is the reason
-                # {reason}.
-                # kindly visit dashboard to accept or decline request """
-
                 guest_template = get_template(
                     "api/order/customer_booking_cancellation_request.html"
                 )
@@ -808,14 +824,6 @@ class BookingCancellation(APIView):
                 msg.attach_alternative(admin_content, "text/html")
                 msg.send()
 
-                subscriber.connect(notification_creator)
-                subscriber.send(
-                    sender=self.__class__,
-                    data={
-                        "user_id": f"{agent.user.user_id}",
-                        "notification": f"You have a new booking cancellation request for booking {booking.order_code} ",
-                    },
-                )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
                 serializer.custom_full_errors, status=status.HTTP_400_BAD_REQUEST
