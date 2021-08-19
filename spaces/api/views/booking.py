@@ -94,7 +94,7 @@ def send_booking_mail(customer_email, agent_mail, customer_name, agent_name, spa
 
         admin_template = get_template("api/admin/booking_alert.html")
         admin_content = admin_template.render(
-            {"login_url": f"{config('FRONTEND_URL')}/signin"}
+            {"login_url": f"{config('ADMIN_DASHBOARD_URL')}"}
         )
         msg = EmailMultiAlternatives(
             subject_admin, admin_content, sender, to=admin_email_list
@@ -769,6 +769,35 @@ class BookingCancellation(APIView):
                 )
                 msg.attach_alternative(guest_content, "text/html")
                 msg.send()
+
+                subject_agent = "A RESERVATION CANCELLATION HAS BEEN MADE"
+                host_template = get_template("api/order/space_host_reservation_cancellation_notification.html")
+                host_content = host_template.render(
+                    {
+                        "host_name": agent_name,
+                        "login_url": f"{config('FRONTEND_URL')}/signin",
+                        "space_name": space_name,
+                        "space_location": space_location,
+                    }
+                )
+                msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[agent_mail])
+                msg.attach_alternative(host_content, "text/html")
+                msg.send()
+
+                admin_template = get_template("api/admin/reservation_cancellation_request.html")
+                admin_content = admin_template.render(
+                    {
+                        "guest_name": customer_name,
+                        "login_url": f"{config('ADMIN_DASHBOARD_URL')}",
+                    }
+                )
+                subject_admin = "A NEW RESERVATION CANCELLATION REQUEST HAS BEEN MADE"
+                msg = EmailMultiAlternatives(
+                    subject_admin, admin_content, sender, to=[admin_email_list]
+                )
+                msg.attach_alternative(admin_content, "text/html")
+                msg.send()
+
                 subscriber.connect(notification_creator)
                 subscriber.send(
                     sender=self.__class__,
@@ -815,11 +844,12 @@ class BookingCancellation(APIView):
                 admin_content = admin_template.render(
                     {
                         "guest_name": customer_name,
-                        "login_url": f"{config('FRONTEND_URL')}/signin",
+                        "login_url": f"{config('ADMIN_DASHBOARD_URL')}",
                     }
                 )
+                subject_admin = "A NEW BOOKING CANCELLATION REQUEST HAS BEEN MADE"
                 msg = EmailMultiAlternatives(
-                    subject_customer, admin_content, sender, to=[admin_email_list]
+                    subject_admin, admin_content, sender, to=[admin_email_list]
                 )
                 msg.attach_alternative(admin_content, "text/html")
                 msg.send()
