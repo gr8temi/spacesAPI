@@ -608,8 +608,8 @@ class RequestReservationExtension(PlaceOrder):
             msg.send()
 
             return Response({"message": "Request for extension sent to agent"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"error": "invalid"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": "invalid", "err": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def approve_reservation_extension(self, orders, data, agent_mail, agent_name, space, customer):
         # to approve extension time
