@@ -983,10 +983,14 @@ class BookingCancellationActions(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         if update_type == "accept":
+            booking.status = "cancelled"
+            booking.save()
             return self.approve_cancellation(
                 booking, cancel, agent_email, agent_name, customer_email, customer_name
             )
         elif update_type == "decline":
+            booking.status="booked"
+            booking.save()
             reason = request.data.get("reason")
             return self.decline_cancellation_request(
                 cancel, reason, agent_email, agent_name, customer_email, customer_name
