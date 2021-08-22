@@ -14,11 +14,8 @@ class PaystackHooks(APIView):
     def post(self, request, format=None):
         data = request.data
         event = data.get('event')
-        print(event,data)
         paystack_data = data.get("data")
-        print(event,data,paystack_data)
         bookings = Order.objects.filter(transaction_code=paystack_data.get("reference"))
-        print(bookings)
         order = bookings.first()
         customer_email = order.user.email
         order_code = order.order_code

@@ -46,7 +46,6 @@ class Analytics(APIView):
             order_type__order_type="booking", status="booked", offline_booking=False, space__agent=agent)
         reservation_orders = Order.objects.filter(
             order_type__order_type="reservation", space__agent=agent)
-        print({"booking": booking_orders})
         least_used_space = SpaceSerializer(min(
             agent_spaces, key=lambda space: space.number_of_bookings)).data if len(agent_spaces)>0 else None  # least used space
         most_used_space = SpaceSerializer(max(

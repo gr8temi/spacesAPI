@@ -62,7 +62,6 @@ class Space(models.Model):
 
     def image_preview(self):
         if self.images:
-            print(type(self.images))
             images = mark_safe(
                 " ".join(
                     [
