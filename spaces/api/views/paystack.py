@@ -62,7 +62,7 @@ class PaystackHooks(APIView):
             msg.send()
 
             admin_template = get_template('api/admin/booking_alert.html')
-            admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
+            admin_content = admin_template.render({"login_url": f"{config('ADMIN_DASHBOARD_URL')}"})
             msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=admin_email_list)
             msg.attach_alternative(admin_content, "text/html")
             msg.send()

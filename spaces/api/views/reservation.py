@@ -367,7 +367,7 @@ class PlaceReservation(PlaceOrder):
                     msg.send()
 
                     admin_template = get_template('api/admin/reservation_alert.html')
-                    admin_content = admin_template.render({"login_url": f"{config('FRONTEND_URL')}/signin"})
+                    admin_content = admin_template.render({"login_url": f"{config('ADMIN_DASHBOARD_URL')}"})
                     msg = EmailMultiAlternatives(subject_admin, admin_content, sender, to=[admin_email_list])
                     msg.attach_alternative(admin_content, "text/html")
                     msg.send()
@@ -592,6 +592,19 @@ class RequestReservationExtension(PlaceOrder):
             host_content = host_template.render({'host_name': agent_name, 'space_name': space.name, "login_url": f"{config('FRONTEND_URL')}/signin"})
             msg = EmailMultiAlternatives(subject_agent, host_content, sender, to=[to_agent])
             msg.attach_alternative(host_content, 'text/html')
+            msg.send()
+
+            subject_admin = "YOU HAVE A NEW REQUEST FOR RESERVATION EXTENSION "
+            all_admin = User.objects.filter(is_super=True)
+            admin_email_list = [admin.email for admin in all_admin if all_admin]
+            admin_template = get_template('api/admin/reservation_extension_alert.html')
+            admin_content = admin_template.render(
+                {"login_url": f"{config('ADMIN_DASHBOARD_URL')}"}
+            )
+            msg = EmailMultiAlternatives(
+                subject_admin, admin_content, sender, to=admin_email_list
+            )
+            msg.attach_alternative(admin_content, "text/html")
             msg.send()
 
             return Response({"message": "Request for extension sent to agent"}, status=status.HTTP_200_OK)
