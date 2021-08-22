@@ -574,12 +574,12 @@ class RequestReservationExtension(PlaceOrder):
                 "EMAIL_SENDER", default="space.ng@gmail.com")
 
             subject_customer = "REQUEST FOR RESERVATION EXTENSION"
-            to_customer = [customer.email]
+            to_customer = customer.email
             customer_content = f"Dear {customer.name}, you have requested for an extension of time on your reservation. You reserved space is {space.name}. Your request awaits approval of the space host, you will be notified once this is done. Thanks for your patronage."
 
             # notification for agent that registered space
             subject_agent = "YOU HAVE A REQUEST FOR RESERVATION EXTENSION"
-            to_agent = [agent_mail]
+            to_agent = agent_mail
             agent_content = f"Dear {agent_name}, {customer.name} has requested for extension of reservation time for the reason stated below;\n {reason}.\n Approve the extension time or it expires at the previously slated time."
 
             guest_template = get_template('api/reservation/reservation_extension_guest.html')
