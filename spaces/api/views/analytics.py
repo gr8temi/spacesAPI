@@ -71,7 +71,7 @@ class Analytics(APIView):
         spaces_with_its_respective_booking = Space.objects.prefetch_related(
             Prefetch("order", queryset=booking_orders))
 
-        agent_total_amount_made = Order.objects.filter(space__agent=agent,order_type__order_type="booking",offline_booking=False).aggregate(
+        agent_total_amount_made = Order.objects.filter(space__agent=agent,order_type__order_type="booking",offline_booking=False, status="booked").aggregate(
             amount_sum=Sum(Cast("amount", FloatField())))["amount_sum"]
         if agent_total_amount_made:
             amount_made_after_deduction = agent_total_amount_made
