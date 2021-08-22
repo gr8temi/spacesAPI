@@ -630,14 +630,6 @@ class BookingView(PlaceOrder):
                             status=status.HTTP_400_BAD_REQUEST,
                         )
                     if not offline_booking:
-                        send_booking_mail(
-                            customer_email,
-                            space.agent.user.email,
-                            data.get("name"),
-                            space.agent.user.name,
-                            space,
-                            True
-                        )
                         return Response(
                             {
                                 "message": f"Awaiting payment",
