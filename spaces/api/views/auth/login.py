@@ -92,5 +92,4 @@ class UserLogin(APIView):
                 return Response(dict(error="Invalid login details"), status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as err:
-            print(err)
             return Response(dict(error="invalid login",), status=status.HTTP_400_BAD_REQUEST)
