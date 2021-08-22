@@ -202,10 +202,8 @@ class BookingView(PlaceOrder):
         extra_sum = 0
         for extra in extras:
             extra_sum += float(extra.get("amount"))
-        print(booking_amount, extra_sum)
 
         booking_amount = (booking_amount + extra_sum) 
-        print(booking_amount)
         order_data = {
             "amount": booking_amount,
             "usage_start_date": start_date,
@@ -227,7 +225,6 @@ class BookingView(PlaceOrder):
             "notes": notes,
             "offline_booking": offline_booking,
         }
-        print(order_data)
 
         order_serializer = OrderSerializer(data=order_data)
         if order_serializer.is_valid():
@@ -413,7 +410,6 @@ class BookingView(PlaceOrder):
 
     def post(self, request):
         data = request.data
-        print(data)
         space_id = data.get("space")
         name = data.get("name")
         email = data.get("company_email")
@@ -461,7 +457,6 @@ class BookingView(PlaceOrder):
                     start_date = datetime.fromisoformat(
                         hours["start_date"].replace("Z", "+00:00")
                     )
-                    print(start_date.hour)
                     existing_bookings.extend(
                         self.booked_days(
                             start_date,
@@ -995,24 +990,6 @@ class UpdateReferenceCode(APIView):
                 {"message": "Booking not found"}, status=status.HTTP_404_NOT_FOUND
             )
         booked = []
-        order = orders.first()
-        if order.status == "booked":
-            return Response(
-                {
-                    "message": f"Payment as been made before",
-                },
-                status = status.HTTP_400_BAD_REQUEST
-            )
-        for order_obj in orders:
-            order_obj.transaction_code = transaction_code
-            order_obj.status = "booked"
-            booked.append(
-                {
-                    "start_date": order_obj.usage_start_date,
-                    "end_date": order_obj.usage_end_date,
-                }
-            )
-            order_obj.save()
 
         order = orders.first()
         customer_email = order.user.email
@@ -1025,6 +1002,31 @@ class UpdateReferenceCode(APIView):
             "name": customer_name,
             "email": customer_email,
         }
+
+        if order.status == "booked":
+            return Response(
+                {   
+                    "payload": {
+                        **customer_details,
+                        "order_code": order_code,
+                        "Booking dates": booked,
+                    },
+                    "message": f"Payment has been made before",
+                },
+                status = status.HTTP_200_OK
+            )
+
+        for order_obj in orders:
+            order_obj.transaction_code = transaction_code
+            order_obj.status = "booked"
+            booked.append(
+                {
+                    "start_date": order_obj.usage_start_date,
+                    "end_date": order_obj.usage_end_date,
+                }
+            )
+            order_obj.save()
+
         if order.status == "booked":
             send_booking_mail(
             customer_email,
@@ -1032,7 +1034,7 @@ class UpdateReferenceCode(APIView):
             customer_name,
             space.agent.user.name,
             space,
-                        )
+            )
 
             return Response(
                 {
@@ -1045,6 +1047,7 @@ class UpdateReferenceCode(APIView):
                 },
                 status = status.HTTP_201_CREATED
             )
+
         else:
             return Response(
                 {

@@ -36,7 +36,6 @@ class FetchUserFavourites(APIView):
 
 
 class DeleteFavourite(DestroyAPIView):
-
     queryset = Favourite.objects.all()
     serializer_class = FavouriteSerializer
     lookup_field = 'favorite_id'
