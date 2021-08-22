@@ -737,7 +737,7 @@ class BookingCancellation(APIView):
             booking.save()
             space_name = booking.space.name
             space_location = booking.space.address
-            serializer = CancellationSerializer(data=cancellation_data)
+            serializer = CancellationSerializer(data={**cancellation_data,status:"accepted"})
 
             if serializer.is_valid():
                 serializer.save()
