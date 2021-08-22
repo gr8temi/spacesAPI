@@ -629,7 +629,7 @@ class RequestReservationExtension(PlaceOrder):
                 next_day = start_now + timedelta(days=1)
                 # notification for customer booking space
                 subject_customer = "EXTENSION FOR RESERVATION APPROVED"
-                to_customer = [customer.email]
+                to_customer = customer.email
                 customer_content = f"Dear {customer.name}, your request for Reservation extension has been Accepted by the space host. You reserved space is {space.name} and would expire by {next_day.time()} {next_day.date()}. Thanks for your patronage"
 
                 # notification for agent that registered space
@@ -665,7 +665,7 @@ class RequestReservationExtension(PlaceOrder):
                     "EMAIL_SENDER", default="space.ng@gmail.com")
                 # notification for customer
                 subject_customer = "REQUEST FOR RESERVATION EXTENSION  DECLINED"
-                to_customer = [customer.email]
+                to_customer = customer.email
                 customer_content = f"Dear {customer.name}, your  request for extension of Reservation has been Declined by the space host. Kindly proceed to pay before 24hours from your original order time. Thanks for your patronage"
 
                 # notification for agent that registered space
