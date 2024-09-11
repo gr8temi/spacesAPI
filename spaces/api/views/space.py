@@ -10,6 +10,7 @@ from ..models.availabilities import Availability
 from ..models.extras import Extra
 from ..models.ratings import Rating
 from ..serializers.space import SpaceSerializer
+from ..serializers.space_cancellation_rules import SpaceCancellationRulesSerializer
 from ..serializers.order import OrderSerializer
 from ..serializers.availabilty import AvailabilitySerializer
 from ..serializers.extra import ExtraSerializer
@@ -72,7 +73,7 @@ class SingleSpace(APIView):
             cancellation_description = space.cancellation_rule.description
             cancellation_short_description = space.cancellation_rule.short_description
             ratings_count = Rating.objects.filter(space=space).count()
-            space_serializer = SpaceSerializer(space)
+            space_serializer = SpaceCancellationRulesSerializer(space)
             extra_serializer = ExtraSerializer(extras, many=True)
             availability_serializer = AvailabilitySerializer(availability, many=True)
             bookedSerializer = OrderSerializer(booked, many=True)

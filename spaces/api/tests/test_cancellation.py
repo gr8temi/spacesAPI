@@ -53,6 +53,7 @@ class TestBookingCancellationRequest(APITestCase):
         response2 = self.client.put(
             approve_url, data, HTTP_AUTHORIZATION=self.header1, format='json')
         self.assertEqual(response2.status_code, 200)
+        
     def test_decline_cancellation(self):
         approve_url = reverse('booking_cancellation_actions',kwargs={"cancellation_id":self.cancel.cancellation_id})
         data={
